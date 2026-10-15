@@ -1,0 +1,367 @@
+{
+  "merchants": {
+    "merchant_001": {
+      "id": "merchant_001",
+      "shopName": "Yangon Style Fashion & Apparel",
+      "ownerName": "Ko Aung",
+      "email": "aung@yangonstyle.mm",
+      "store": {
+        "slug": "yangon-style",
+        "storeName": "Yangon Style Fashion & Apparel",
+        "description": "Premium fashion apparel in Yangon with instant AI customer service.",
+        "logoUrl": "",
+        "coverUrl": "",
+        "deliveryInfo": "Yangon city-wide delivery within 2-3 days. Delivery fee 2,500 MMK.",
+        "paymentInstructions": "KBZPay: 09-912345678 (Ko Aung)\nWavePay: 09-912345678",
+        "isPublished": true
+      },
+      "aiConfig": {
+        "enabled": true,
+        "preferredLanguage": "myanmar",
+        "replyStyle": "friendly",
+        "customInstructions": "Customer များကို ယဉ်ကျေးပြီး ဖော်ရွေစွာ ပြန်ဖြေပါ။ မေးခွန်းကို တိုက်ရိုက်ဖြေပြီး လိုအပ်ပါက Product ရဲ့ အားသာချက်ကို အတိုချုံးရှင်းပြပါ။ စျေးနှုန်း၊ Variant နဲ့ Stock ကို သက်ဆိုင်ရာ Database မှာ စစ်ဆေးပြီးမှ ဖြေပါ။ Customer က ဝယ်ယူရန် စိတ်ဝင်စားပါက အော်ဒါတင်နိုင်ရန် ရှင်းလင်းစွာ လမ်းညွှန်ပါ။ မသေချာသောအချက်များကို မခန့်မှန်းပါနှင့်။ လိုအပ်ပါက လူထံ လွှဲပြောင်းပါ။",
+        "salesBehavior": {
+          "greeting": "greet_new",
+          "responseLength": "balanced",
+          "emojiPreference": "moderate",
+          "productRecommendation": "answer_first",
+          "followUp": "needed_only",
+          "salesApproach": "helpful_recommendations",
+          "discountBehavior": "verified_only",
+          "uncertainPolicy": "escalate_to_human"
+        },
+        "humanHandoff": {
+          "enabled": true,
+          "triggerOnUncertain": true,
+          "triggerOnComplaint": true,
+          "triggerOnHumanRequest": true,
+          "notificationChannel": "telegram_staff"
+        },
+        "schemaVersion": 1,
+        "updatedAt": "2026-10-15T11:29:45.556Z"
+      }
+    }
+  },
+  "sampleReplies": [
+    {
+      "id": "sample_1",
+      "merchantId": "merchant_001",
+      "customerMessage": "ဒီအင်္ကျီ အနက်ရောင် M Size ရှိလား။",
+      "preferredReply": "မင်္ဂလာပါရှင့်။ အနက်ရောင် M Size လေးကို စစ်ဆေးပေးပါမယ်နော်။",
+      "category": "Stock and variants",
+      "createdAt": "2026-10-15T11:29:45.556Z",
+      "updatedAt": "2026-10-15T11:29:45.556Z"
+    },
+    {
+      "id": "sample_2",
+      "merchantId": "merchant_001",
+      "customerMessage": "စျေးနှုန်းဘယ်လောက်လဲ ပို့ခဘယ်လောက်ကျလဲ။",
+      "preferredReply": "မင်္ဂလာပါရှင်။ ကုန်ပစ္စည်းစျေးနှုန်းကတော့ Product description မှာ ကြည့်လို့ရပါတယ်ရှင်။ ရန်ကုန်မြို့တွင်း ပို့ခက 2,500 ကျပ် ဖြစ်ပါတယ်။",
+      "category": "Price",
+      "createdAt": "2026-10-15T11:29:45.556Z",
+      "updatedAt": "2026-10-15T11:29:45.556Z"
+    },
+    {
+      "id": "sample_3",
+      "merchantId": "merchant_001",
+      "customerMessage": "ငွေဘယ်လိုလွှဲရမလဲ KBZPay နဲ့ရလား။",
+      "preferredReply": "ဟုတ်ကဲ့ရှင်၊ KBZPay (09-912345678) နဲ့ KBZ Bank Account တို့ဖြင့် ငွေပေးချေနိုင်ပါတယ်။ ငွေလွှဲပြီးပါက မျက်နှာပြင်ဖမ်းယူမှု (Screenshot) ပို့ပေးပါရန် မေတ္တာရပ်ခံပါတယ်ရှင်။",
+      "category": "Payment instructions",
+      "createdAt": "2026-10-15T11:29:45.556Z",
+      "updatedAt": "2026-10-15T11:29:45.556Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod_1",
+      "merchantId": "merchant_001",
+      "name": "Premium Cotton Oversized T-Shirt",
+      "sku": "TS-COTTON-BLK-M",
+      "price": 18500,
+      "currency": "MMK",
+      "description": "100% Cotton premium breathable fabric. Oversized casual fit.",
+      "variants": [
+        {
+          "id": "v1",
+          "color": "Black",
+          "size": "M",
+          "stock": 9,
+          "sku": "TS-COTTON-BLK-M"
+        },
+        {
+          "id": "v2",
+          "color": "Black",
+          "size": "L",
+          "stock": 8,
+          "sku": "TS-COTTON-BLK-L"
+        },
+        {
+          "id": "v3",
+          "color": "White",
+          "size": "M",
+          "stock": 12,
+          "sku": "TS-COTTON-WHT-M"
+        },
+        {
+          "id": "v4",
+          "color": "White",
+          "size": "L",
+          "stock": 0,
+          "sku": "TS-COTTON-WHT-L"
+        }
+      ],
+      "discount": "10% OFF during weekend promo",
+      "status": "active"
+    },
+    {
+      "id": "prod_2",
+      "merchantId": "merchant_001",
+      "name": "Classic Denim Casual Jacket",
+      "sku": "JKT-DENIM-BLU",
+      "price": 35000,
+      "currency": "MMK",
+      "description": "High quality durable denim jacket for all seasons.",
+      "variants": [
+        {
+          "id": "v5",
+          "color": "Dark Blue",
+          "size": "Free Size",
+          "stock": 5,
+          "sku": "JKT-DENIM-BLU-F"
+        }
+      ],
+      "discount": null,
+      "status": "active"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord_1792072034684_6y3t",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T13:47:14.688Z",
+      "createdAt": "2026-10-15T13:47:14.684Z"
+    },
+    {
+      "id": "ord_1792068354766_6lrc",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T12:45:54.771Z",
+      "createdAt": "2026-10-15T12:45:54.766Z"
+    },
+    {
+      "id": "ord_1792068229875_r0iq",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T12:43:49.879Z",
+      "createdAt": "2026-10-15T12:43:49.875Z"
+    },
+    {
+      "id": "ord_1792067795799_8p2r",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T12:36:35.807Z",
+      "createdAt": "2026-10-15T12:36:35.799Z"
+    },
+    {
+      "id": "ord_1792067792984_8qn8",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T12:36:33.006Z",
+      "createdAt": "2026-10-15T12:36:33.002Z"
+    },
+    {
+      "id": "ord_1792067784619_d2v0",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T12:36:24.623Z",
+      "createdAt": "2026-10-15T12:36:24.619Z"
+    },
+    {
+      "id": "ord_101",
+      "merchantId": "merchant_001",
+      "customerName": "Ma Mya",
+      "customerPhone": "09-456789123",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "paymentProofUrl": null,
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T12:35:24.380Z",
+      "shippingAddress": "No. 12, Strand Road, Yangon",
+      "status": "confirmed",
+      "createdAt": "2026-10-15T11:29:45.556Z"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "log_1792072034688",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792072034684_6y3t amount 18500 MMK.",
+      "timestamp": "2026-10-15T13:47:14.688Z"
+    },
+    {
+      "id": "log_1792068354771",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792068354766_6lrc amount 18500 MMK.",
+      "timestamp": "2026-10-15T12:45:54.771Z"
+    },
+    {
+      "id": "log_1792068229879",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792068229875_r0iq amount 18500 MMK.",
+      "timestamp": "2026-10-15T12:43:49.879Z"
+    },
+    {
+      "id": "log_1792067795807",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792067795799_8p2r amount 18500 MMK.",
+      "timestamp": "2026-10-15T12:36:35.807Z"
+    },
+    {
+      "id": "log_1792067793006",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792067792984_8qn8 amount 18500 MMK.",
+      "timestamp": "2026-10-15T12:36:33.006Z"
+    },
+    {
+      "id": "log_1792067784623",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792067784619_d2v0 amount 18500 MMK.",
+      "timestamp": "2026-10-15T12:36:24.623Z"
+    },
+    {
+      "id": "log_1792067724380",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_101 amount 18500 MMK.",
+      "timestamp": "2026-10-15T12:35:24.380Z"
+    },
+    {
+      "id": "log_1",
+      "merchantId": "merchant_001",
+      "action": "INITIALIZE_SYSTEM",
+      "actor": "system",
+      "details": "System initialized with default merchant and secure storage.",
+      "timestamp": "2026-10-15T11:29:45.556Z"
+    }
+  ]
+}

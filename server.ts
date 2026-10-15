@@ -129,7 +129,7 @@ export function initPassportStrategies() {
     clientSecret: creds.facebookAppSecret || 'unconfigured_fb',
     callbackURL: creds.facebookRedirectUri
   }, (accessToken: string, refreshToken: string, profile: any, done: (error: any, user?: any) => void) => {
-    done(null, { ...profile, merchantId: 'merchant_001', provider: 'facebook' });
+    done(null, { ...profile, merchantId: 'merchant_001', provider: 'facebook', role: 'merchant_admin' });
   }));
 
   passport.use('tiktok', new TikTokStrategy({
@@ -139,7 +139,7 @@ export function initPassportStrategies() {
     clientSecret: creds.tiktokClientSecret || 'unconfigured_tiktok',
     callbackURL: creds.tiktokRedirectUri
   }, (accessToken: string, refreshToken: string, profile: any, done: (error: any, user?: any) => void) => {
-    done(null, { ...profile, merchantId: 'merchant_001', provider: 'tiktok' });
+    done(null, { ...profile, merchantId: 'merchant_001', provider: 'tiktok', role: 'merchant_admin' });
   }));
 
   passport.use(new GoogleStrategy({
@@ -147,7 +147,7 @@ export function initPassportStrategies() {
     clientSecret: creds.googleClientSecret || 'unconfigured_google',
     callbackURL: creds.googleCallbackUrl
   }, (accessToken: string, refreshToken: string, profile: any, done: (error: any, user?: any) => void) => {
-    done(null, { ...profile, merchantId: 'merchant_001', provider: 'google' });
+    done(null, { ...profile, merchantId: 'merchant_001', provider: 'google', role: 'merchant_admin' });
   }));
 }
 
@@ -372,6 +372,27 @@ function writeDb(data: any) {
     console.error("Error writing DB file atomically", err);
     throw err;
   }
+}
+
+// Mutex / Transaction queue to serialize all database read-modify-write operations (Single-node concurrency safety)
+let dbMutationQueue: Promise<any> = Promise.resolve();
+
+export function withDbTransaction<T>(mutator: (db: any) => T): Promise<T> {
+  return new Promise((resolve, reject) => {
+    dbMutationQueue = dbMutationQueue.then(async () => {
+      try {
+        const db = readDb();
+        const result = mutator(db);
+        writeDb(db);
+        resolve(result);
+        return result;
+      } catch (err) {
+        reject(err);
+      }
+    }).catch((queueErr) => {
+      console.error("Mutation queue error:", queueErr);
+    });
+  });
 }
 
 if (!fs.existsSync(DB_FILE)) {
@@ -665,7 +686,8 @@ app.post('/api/auth/dev-login', (req: any, res: any) => {
     displayName: 'Ko Aung (Store Owner)',
     email: 'aung@yangonstyle.mm',
     merchantId: 'merchant_001',
-    provider: 'merchant_admin'
+    provider: 'merchant_admin',
+    role: 'merchant_admin'
   };
   const token = createAuthToken(userObj);
   req.login(userObj, (err: any) => {
@@ -728,32 +750,38 @@ app.get('/api/merchant/store', authMiddleware, (req: any, res: any) => {
   res.json(req.merchant.store || {});
 });
 
-app.put('/api/merchant/store', authMiddleware, (req: any, res: any) => {
-  const db = readDb();
-  const merchantId = req.merchant.id;
-  const storeData = req.body;
+app.put('/api/merchant/store', authMiddleware, async (req: any, res: any) => {
+  try {
+    const merchantId = req.merchant.id;
+    const storeData = req.body;
 
-  if (!storeData) {
-    return res.status(400).json({ error: 'Store data is required' });
+    if (!storeData) {
+      return res.status(400).json({ error: 'Store data is required' });
+    }
+
+    const store = await withDbTransaction((db) => {
+      db.merchants[merchantId].store = {
+        ...db.merchants[merchantId].store,
+        ...storeData,
+        updatedAt: new Date().toISOString()
+      };
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'UPDATE_STORE_SETTINGS',
+        actor: req.user.id,
+        details: 'Updated store profile and publication settings.',
+        timestamp: new Date().toISOString()
+      });
+
+      return db.merchants[merchantId].store;
+    });
+
+    res.json({ success: true, store });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
-
-  db.merchants[merchantId].store = {
-    ...db.merchants[merchantId].store,
-    ...storeData,
-    updatedAt: new Date().toISOString()
-  };
-
-  db.auditLogs.unshift({
-    id: `log_${Date.now()}`,
-    merchantId,
-    action: 'UPDATE_STORE_SETTINGS',
-    actor: req.user.id,
-    details: 'Updated store profile and publication settings.',
-    timestamp: new Date().toISOString()
-  });
-
-  writeDb(db);
-  res.json({ success: true, store: db.merchants[merchantId].store });
 });
 
 // Public Storefront Data
@@ -775,71 +803,77 @@ app.get('/api/public/store/:slug', (req: any, res: any) => {
 });
 
 // Public Server-Validated Checkout & Order Creation
-app.post('/api/public/store/:slug/orders', (req: any, res: any) => {
-  const db = readDb();
-  const slug = req.params.slug;
-  const { customerName, customerPhone, shippingAddress, paymentMethod, items } = req.body;
+app.post('/api/public/store/:slug/orders', async (req: any, res: any) => {
+  try {
+    const slug = req.params.slug;
+    const { customerName, customerPhone, shippingAddress, paymentMethod, items } = req.body;
 
-  if (!customerName || !customerPhone || !shippingAddress || !items || !Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ error: 'Invalid checkout details or empty cart' });
-  }
-
-  const merchantEntry = (Object.values(db.merchants) as any[]).find((m: any) => m.store && m.store.slug === slug);
-  if (!merchantEntry || !merchantEntry.store || !merchantEntry.store.isPublished) {
-    return res.status(404).json({ error: 'Store not found or unpublished' });
-  }
-
-  let calculatedTotal = 0;
-  const verifiedItems = [];
-
-  for (const item of items) {
-    const product = db.products.find((p: any) => p.id === item.productId && p.merchantId === merchantEntry.id);
-    if (!product) {
-      return res.status(400).json({ error: `Product not found: ${item.productId}` });
+    if (!customerName || !customerPhone || !shippingAddress || !items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Invalid checkout details or empty cart' });
     }
 
-    const variant = product.variants.find((v: any) => v.id === item.variantId);
-    if (!variant) {
-      return res.status(400).json({ error: `Product variant not found` });
-    }
+    const newOrder = await withDbTransaction((db) => {
+      const merchantEntry = (Object.values(db.merchants) as any[]).find((m: any) => m.store && m.store.slug === slug);
+      if (!merchantEntry || !merchantEntry.store || !merchantEntry.store.isPublished) {
+        throw new Error('Store not found or unpublished');
+      }
 
-    if (variant.stock < item.qty) {
-      return res.status(400).json({ error: `Insufficient stock for ${product.name} (${variant.color}/${variant.size}). Available: ${variant.stock}` });
-    }
+      let calculatedTotal = 0;
+      const verifiedItems = [];
 
-    // Decrement stock authoritatively
-    variant.stock -= item.qty;
+      for (const item of items) {
+        const product = db.products.find((p: any) => p.id === item.productId && p.merchantId === merchantEntry.id);
+        if (!product) {
+          throw new Error(`Product not found: ${item.productId}`);
+        }
 
-    calculatedTotal += product.price * item.qty;
-    verifiedItems.push({
-      productId: product.id,
-      name: product.name,
-      variant: `${variant.color} / ${variant.size}`,
-      price: product.price,
-      qty: item.qty
+        const variant = product.variants.find((v: any) => v.id === item.variantId);
+        if (!variant) {
+          throw new Error('Product variant not found');
+        }
+
+        if (variant.stock < item.qty) {
+          throw new Error(`Insufficient stock for ${product.name} (${variant.color}/${variant.size}). Available: ${variant.stock}`);
+        }
+
+        // Decrement stock authoritatively
+        variant.stock -= item.qty;
+
+        calculatedTotal += product.price * item.qty;
+        verifiedItems.push({
+          productId: product.id,
+          name: product.name,
+          variant: `${variant.color} / ${variant.size}`,
+          price: product.price,
+          qty: item.qty
+        });
+      }
+
+      const order = {
+        id: `ord_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        merchantId: merchantEntry.id,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        items: verifiedItems,
+        totalAmount: calculatedTotal,
+        paymentStatus: 'PENDING',
+        paymentMethod: paymentMethod || 'KBZPay',
+        shippingAddress: shippingAddress.trim(),
+        status: 'processing',
+        confirmedBy: null,
+        confirmedAt: null,
+        createdAt: new Date().toISOString()
+      };
+
+      db.orders.unshift(order);
+      return order;
     });
+
+    res.status(201).json({ success: true, order: newOrder });
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Checkout failed' });
   }
-
-  const newOrder = {
-    id: `ord_${Date.now()}`,
-    merchantId: merchantEntry.id,
-    customerName: customerName.trim(),
-    customerPhone: customerPhone.trim(),
-    items: verifiedItems,
-    totalAmount: calculatedTotal,
-    paymentStatus: 'PENDING',
-    paymentMethod: paymentMethod || 'KBZPay',
-    shippingAddress: shippingAddress.trim(),
-    status: 'processing',
-    confirmedBy: null,
-    confirmedAt: null,
-    createdAt: new Date().toISOString()
-  };
-
-  db.orders.unshift(newOrder);
-  writeDb(db);
-
-  res.status(201).json({ success: true, order: newOrder });
 });
 
 // AI Config
@@ -847,33 +881,38 @@ app.get('/api/merchant/ai-config', authMiddleware, (req: any, res: any) => {
   res.json(req.merchant.aiConfig);
 });
 
-app.put('/api/merchant/ai-config', authMiddleware, (req: any, res: any) => {
-  const db = readDb();
-  const merchantId = req.merchant.id;
+app.put('/api/merchant/ai-config', authMiddleware, async (req: any, res: any) => {
+  try {
+    const merchantId = req.merchant.id;
+    const newConfig = req.body;
+    if (!newConfig) {
+      return res.status(400).json({ error: 'Configuration body is required' });
+    }
 
-  const newConfig = req.body;
-  if (!newConfig) {
-    return res.status(400).json({ error: 'Configuration body is required' });
+    const aiConfig = await withDbTransaction((db) => {
+      db.merchants[merchantId].aiConfig = {
+        ...db.merchants[merchantId].aiConfig,
+        ...newConfig,
+        schemaVersion: 1,
+        updatedAt: new Date().toISOString()
+      };
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'UPDATE_AI_CONFIG',
+        actor: req.user.id,
+        details: 'Updated AI sales assistant configuration and instructions.',
+        timestamp: new Date().toISOString()
+      });
+
+      return db.merchants[merchantId].aiConfig;
+    });
+
+    res.json({ success: true, aiConfig });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
-
-  db.merchants[merchantId].aiConfig = {
-    ...db.merchants[merchantId].aiConfig,
-    ...newConfig,
-    schemaVersion: 1,
-    updatedAt: new Date().toISOString()
-  };
-
-  db.auditLogs.unshift({
-    id: `log_${Date.now()}`,
-    merchantId,
-    action: 'UPDATE_AI_CONFIG',
-    actor: req.user.id,
-    details: 'Updated AI sales assistant configuration and instructions.',
-    timestamp: new Date().toISOString()
-  });
-
-  writeDb(db);
-  res.json({ success: true, aiConfig: db.merchants[merchantId].aiConfig });
 });
 
 // Sample Replies CRUD
@@ -883,63 +922,78 @@ app.get('/api/merchant/samples', authMiddleware, (req: any, res: any) => {
   res.json(samples);
 });
 
-app.post('/api/merchant/samples', authMiddleware, (req: any, res: any) => {
-  const db = readDb();
-  const { customerMessage, preferredReply, category } = req.body;
+app.post('/api/merchant/samples', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { customerMessage, preferredReply, category } = req.body;
+    if (!customerMessage || !preferredReply) {
+      return res.status(400).json({ error: 'Customer message and preferred reply are required' });
+    }
 
-  if (!customerMessage || !preferredReply) {
-    return res.status(400).json({ error: 'Customer message and preferred reply are required' });
+    const newSample = await withDbTransaction((db) => {
+      const sample = {
+        id: `sample_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        merchantId: req.merchant.id,
+        customerMessage: customerMessage.trim(),
+        preferredReply: preferredReply.trim(),
+        category: category || 'General',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      db.sampleReplies.push(sample);
+      return sample;
+    });
+
+    res.status(201).json(newSample);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
-
-  const newSample = {
-    id: `sample_${Date.now()}`,
-    merchantId: req.merchant.id,
-    customerMessage: customerMessage.trim(),
-    preferredReply: preferredReply.trim(),
-    category: category || 'General',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-
-  db.sampleReplies.push(newSample);
-  writeDb(db);
-  res.status(201).json(newSample);
 });
 
-app.put('/api/merchant/samples/:id', authMiddleware, (req: any, res: any) => {
-  const db = readDb();
-  const sampleId = req.params.id;
-  const sampleIndex = db.sampleReplies.findIndex((s: any) => s.id === sampleId && s.merchantId === req.merchant.id);
+app.put('/api/merchant/samples/:id', authMiddleware, async (req: any, res: any) => {
+  try {
+    const sampleId = req.params.id;
+    const { customerMessage, preferredReply, category } = req.body;
 
-  if (sampleIndex === -1) {
-    return res.status(404).json({ error: 'Sample reply not found or unauthorized' });
+    const sample = await withDbTransaction((db) => {
+      const sampleIndex = db.sampleReplies.findIndex((s: any) => s.id === sampleId && s.merchantId === req.merchant.id);
+      if (sampleIndex === -1) {
+        throw new Error('Sample reply not found or unauthorized');
+      }
+
+      db.sampleReplies[sampleIndex] = {
+        ...db.sampleReplies[sampleIndex],
+        customerMessage: customerMessage !== undefined ? customerMessage.trim() : db.sampleReplies[sampleIndex].customerMessage,
+        preferredReply: preferredReply !== undefined ? preferredReply.trim() : db.sampleReplies[sampleIndex].preferredReply,
+        category: category !== undefined ? category : db.sampleReplies[sampleIndex].category,
+        updatedAt: new Date().toISOString()
+      };
+      return db.sampleReplies[sampleIndex];
+    });
+
+    res.json(sample);
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : 500;
+    res.status(status).json({ error: err.message || 'Internal server error' });
   }
-
-  const { customerMessage, preferredReply, category } = req.body;
-  db.sampleReplies[sampleIndex] = {
-    ...db.sampleReplies[sampleIndex],
-    customerMessage: customerMessage !== undefined ? customerMessage.trim() : db.sampleReplies[sampleIndex].customerMessage,
-    preferredReply: preferredReply !== undefined ? preferredReply.trim() : db.sampleReplies[sampleIndex].preferredReply,
-    category: category !== undefined ? category : db.sampleReplies[sampleIndex].category,
-    updatedAt: new Date().toISOString()
-  };
-
-  writeDb(db);
-  res.json(db.sampleReplies[sampleIndex]);
 });
 
-app.delete('/api/merchant/samples/:id', authMiddleware, (req: any, res: any) => {
-  const db = readDb();
-  const sampleId = req.params.id;
-  const sampleIndex = db.sampleReplies.findIndex((s: any) => s.id === sampleId && s.merchantId === req.merchant.id);
+app.delete('/api/merchant/samples/:id', authMiddleware, async (req: any, res: any) => {
+  try {
+    const sampleId = req.params.id;
 
-  if (sampleIndex === -1) {
-    return res.status(404).json({ error: 'Sample reply not found or unauthorized' });
+    await withDbTransaction((db) => {
+      const sampleIndex = db.sampleReplies.findIndex((s: any) => s.id === sampleId && s.merchantId === req.merchant.id);
+      if (sampleIndex === -1) {
+        throw new Error('Sample reply not found or unauthorized');
+      }
+      db.sampleReplies.splice(sampleIndex, 1);
+    });
+
+    res.json({ success: true, id: sampleId });
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : 500;
+    res.status(status).json({ error: err.message || 'Internal server error' });
   }
-
-  db.sampleReplies.splice(sampleIndex, 1);
-  writeDb(db);
-  res.json({ success: true, id: sampleId });
 });
 
 // Products CRUD
@@ -949,70 +1003,85 @@ app.get('/api/products', authMiddleware, (req: any, res: any) => {
   res.json(products);
 });
 
-app.post('/api/products', authMiddleware, (req: any, res: any) => {
-  const db = readDb();
-  const { name, sku, price, description, variants, discount, status } = req.body;
+app.post('/api/products', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { name, sku, price, description, variants, discount, status } = req.body;
+    if (!name || !price || !variants || !Array.isArray(variants)) {
+      return res.status(400).json({ error: 'Name, price, and variants are required' });
+    }
 
-  if (!name || !price || !variants || !Array.isArray(variants)) {
-    return res.status(400).json({ error: 'Name, price, and variants are required' });
+    const newProduct = await withDbTransaction((db) => {
+      const prod = {
+        id: `prod_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        merchantId: req.merchant.id,
+        name: name.trim(),
+        sku: sku ? sku.trim() : `SKU-${Date.now()}`,
+        price: Number(price),
+        currency: 'MMK',
+        description: description ? description.trim() : '',
+        variants: variants.map((v: any, idx: number) => ({
+          id: `v_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 4)}`,
+          color: v.color || 'Standard',
+          size: v.size || 'Free',
+          stock: Number(v.stock) || 0,
+          sku: v.sku || `${sku || 'SKU'}-V${idx}`
+        })),
+        discount: discount || null,
+        status: status || 'active'
+      };
+      db.products.push(prod);
+      return prod;
+    });
+
+    res.status(201).json(newProduct);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
-
-  const newProduct = {
-    id: `prod_${Date.now()}`,
-    merchantId: req.merchant.id,
-    name: name.trim(),
-    sku: sku ? sku.trim() : `SKU-${Date.now()}`,
-    price: Number(price),
-    currency: 'MMK',
-    description: description ? description.trim() : '',
-    variants: variants.map((v: any, idx: number) => ({
-      id: `v_${Date.now()}_${idx}`,
-      color: v.color || 'Standard',
-      size: v.size || 'Free',
-      stock: Number(v.stock) || 0,
-      sku: v.sku || `${sku}-V${idx}`
-    })),
-    discount: discount || null,
-    status: status || 'active'
-  };
-
-  db.products.push(newProduct);
-  writeDb(db);
-  res.status(201).json(newProduct);
 });
 
-app.put('/api/products/:id', authMiddleware, (req: any, res: any) => {
-  const db = readDb();
-  const prodId = req.params.id;
-  const prodIndex = db.products.findIndex((p: any) => p.id === prodId && p.merchantId === req.merchant.id);
+app.put('/api/products/:id', authMiddleware, async (req: any, res: any) => {
+  try {
+    const prodId = req.params.id;
+    const updates = req.body;
 
-  if (prodIndex === -1) {
-    return res.status(404).json({ error: 'Product not found' });
+    const product = await withDbTransaction((db) => {
+      const prodIndex = db.products.findIndex((p: any) => p.id === prodId && p.merchantId === req.merchant.id);
+      if (prodIndex === -1) {
+        throw new Error('Product not found');
+      }
+
+      db.products[prodIndex] = {
+        ...db.products[prodIndex],
+        ...updates,
+        price: updates.price !== undefined ? Number(updates.price) : db.products[prodIndex].price
+      };
+      return db.products[prodIndex];
+    });
+
+    res.json(product);
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : 500;
+    res.status(status).json({ error: err.message || 'Internal server error' });
   }
-
-  const updates = req.body;
-  db.products[prodIndex] = {
-    ...db.products[prodIndex],
-    ...updates,
-    price: updates.price !== undefined ? Number(updates.price) : db.products[prodIndex].price
-  };
-
-  writeDb(db);
-  res.json(db.products[prodIndex]);
 });
 
-app.delete('/api/products/:id', authMiddleware, (req: any, res: any) => {
-  const db = readDb();
-  const prodId = req.params.id;
-  const prodIndex = db.products.findIndex((p: any) => p.id === prodId && p.merchantId === req.merchant.id);
+app.delete('/api/products/:id', authMiddleware, async (req: any, res: any) => {
+  try {
+    const prodId = req.params.id;
 
-  if (prodIndex === -1) {
-    return res.status(404).json({ error: 'Product not found' });
+    await withDbTransaction((db) => {
+      const prodIndex = db.products.findIndex((p: any) => p.id === prodId && p.merchantId === req.merchant.id);
+      if (prodIndex === -1) {
+        throw new Error('Product not found');
+      }
+      db.products.splice(prodIndex, 1);
+    });
+
+    res.json({ success: true, id: prodId });
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : 500;
+    res.status(status).json({ error: err.message || 'Internal server error' });
   }
-
-  db.products.splice(prodIndex, 1);
-  writeDb(db);
-  res.json({ success: true, id: prodId });
 });
 
 // Orders & Payments
@@ -1023,45 +1092,53 @@ app.get('/api/orders', authMiddleware, (req: any, res: any) => {
 });
 
 // HUMAN-ONLY PAYMENT CONFIRMATION INVARIANT ROUTE
-app.post('/api/orders/:id/confirm-payment', authMiddleware, (req: any, res: any) => {
-  const { role, id: userId } = req.user;
-  
-  const allowedRoles = ['merchant_admin', 'store_manager', 'finance_staff'];
-  if (!allowedRoles.includes(role)) {
-    return res.status(403).json({
-      error: 'Access Denied: Payment confirmation requires authorized human staff permission. AI cannot confirm payments.'
+app.post('/api/orders/:id/confirm-payment', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { role, provider, id: userId } = req.user;
+    const userRole = role || (provider ? 'merchant_admin' : 'customer');
+    
+    const allowedRoles = ['merchant_admin', 'store_manager', 'finance_staff'];
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        error: 'Access Denied: Payment confirmation requires authorized human staff permission. AI cannot confirm payments.'
+      });
+    }
+
+    const orderId = req.params.id;
+
+    const order = await withDbTransaction((db) => {
+      const orderIndex = db.orders.findIndex((o: any) => o.id === orderId && o.merchantId === req.merchant.id);
+      if (orderIndex === -1) {
+        throw new Error('Order not found');
+      }
+
+      const ord = db.orders[orderIndex];
+      if (ord.paymentStatus === 'CONFIRMED') {
+        throw new Error('Payment is already confirmed');
+      }
+
+      ord.paymentStatus = 'CONFIRMED';
+      ord.status = 'confirmed';
+      ord.confirmedBy = userId;
+      ord.confirmedAt = new Date().toISOString();
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId: req.merchant.id,
+        action: 'CONFIRM_PAYMENT_HUMAN',
+        actor: userId,
+        details: `Authorized human confirmed payment for order ${orderId} amount ${ord.totalAmount} MMK.`,
+        timestamp: new Date().toISOString()
+      });
+
+      return ord;
     });
+
+    res.json({ success: true, order });
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : err.message.includes('already confirmed') ? 400 : 500;
+    res.status(status).json({ error: err.message || 'Internal server error' });
   }
-
-  const db = readDb();
-  const orderId = req.params.id;
-  const orderIndex = db.orders.findIndex((o: any) => o.id === orderId && o.merchantId === req.merchant.id);
-
-  if (orderIndex === -1) {
-    return res.status(404).json({ error: 'Order not found' });
-  }
-
-  const order = db.orders[orderIndex];
-  if (order.paymentStatus === 'CONFIRMED') {
-    return res.status(400).json({ error: 'Payment is already confirmed' });
-  }
-
-  order.paymentStatus = 'CONFIRMED';
-  order.status = 'confirmed';
-  order.confirmedBy = userId;
-  order.confirmedAt = new Date().toISOString();
-
-  db.auditLogs.unshift({
-    id: `log_${Date.now()}`,
-    merchantId: req.merchant.id,
-    action: 'CONFIRM_PAYMENT_HUMAN',
-    actor: userId,
-    details: `Authorized human confirmed payment for order ${orderId} amount ${order.totalAmount} MMK.`,
-    timestamp: new Date().toISOString()
-  });
-
-  writeDb(db);
-  res.json({ success: true, order });
 });
 
 // AI Prompt Generation Helper
