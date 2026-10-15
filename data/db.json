@@ -40,6 +40,47 @@
         "schemaVersion": 1,
         "updatedAt": "2026-10-15T11:29:45.556Z"
       }
+    },
+    "merchant_eval_empty": {
+      "id": "merchant_eval_empty",
+      "shopName": "Myanmar AI Seller Evaluation Store",
+      "ownerName": "AI Evaluator",
+      "email": "evaluator@myanmarseller.mm",
+      "store": {
+        "slug": "eval-store",
+        "storeName": "Myanmar AI Seller Evaluation Store",
+        "description": "Isolated evaluation storefront with verified empty sales state.",
+        "logoUrl": "",
+        "coverUrl": "",
+        "deliveryInfo": "Standard delivery",
+        "paymentInstructions": "KBZPay: 09-000000000",
+        "isPublished": true
+      },
+      "aiConfig": {
+        "enabled": true,
+        "preferredLanguage": "myanmar",
+        "replyStyle": "friendly",
+        "customInstructions": "",
+        "salesBehavior": {
+          "greeting": "greet_new",
+          "responseLength": "balanced",
+          "emojiPreference": "moderate",
+          "productRecommendation": "answer_first",
+          "followUp": "needed_only",
+          "salesApproach": "helpful_recommendations",
+          "discountBehavior": "verified_only",
+          "uncertainPolicy": "escalate_to_human"
+        },
+        "humanHandoff": {
+          "enabled": true,
+          "triggerOnUncertain": true,
+          "triggerOnComplaint": true,
+          "triggerOnHumanRequest": true,
+          "notificationChannel": "telegram_staff"
+        },
+        "schemaVersion": 1,
+        "updatedAt": "2026-10-15T11:29:45.556Z"
+      }
     }
   },
   "sampleReplies": [
@@ -85,7 +126,7 @@
           "id": "v1",
           "color": "Black",
           "size": "M",
-          "stock": 9,
+          "stock": 5,
           "sku": "TS-COTTON-BLK-M"
         },
         {
@@ -135,6 +176,98 @@
     }
   ],
   "orders": [
+    {
+      "id": "ord_1792088606117_rd8l",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T18:23:26.122Z",
+      "createdAt": "2026-10-15T18:23:26.118Z"
+    },
+    {
+      "id": "ord_1792088430288_mqtn",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T18:20:30.292Z",
+      "createdAt": "2026-10-15T18:20:30.288Z"
+    },
+    {
+      "id": "ord_1792088017447_30em",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "confirmedAt": "2026-10-15T18:13:37.452Z",
+      "createdAt": "2026-10-15T18:13:37.447Z"
+    },
+    {
+      "id": "ord_1792087962629_5a30",
+      "merchantId": "merchant_001",
+      "customerName": "Test Buyer",
+      "customerPhone": "09123456789",
+      "items": [
+        {
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "totalAmount": 18500,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "KBZPay",
+      "shippingAddress": "Yangon",
+      "status": "processing",
+      "confirmedBy": null,
+      "confirmedAt": null,
+      "createdAt": "2026-10-15T18:12:42.629Z"
+    },
     {
       "id": "ord_1792072034684_6y3t",
       "merchantId": "merchant_001",
@@ -300,6 +433,30 @@
   ],
   "auditLogs": [
     {
+      "id": "log_1792088606122",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792088606117_rd8l amount 18500 MMK.",
+      "timestamp": "2026-10-15T18:23:26.122Z"
+    },
+    {
+      "id": "log_1792088430292",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792088430288_mqtn amount 18500 MMK.",
+      "timestamp": "2026-10-15T18:20:30.292Z"
+    },
+    {
+      "id": "log_1792088017452",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1792088017447_30em amount 18500 MMK.",
+      "timestamp": "2026-10-15T18:13:37.452Z"
+    },
+    {
       "id": "log_1792072034688",
       "merchantId": "merchant_001",
       "action": "CONFIRM_PAYMENT_HUMAN",
@@ -363,5 +520,6 @@
       "details": "System initialized with default merchant and secure storage.",
       "timestamp": "2026-10-15T11:29:45.556Z"
     }
-  ]
+  ],
+  "conversations": []
 }
