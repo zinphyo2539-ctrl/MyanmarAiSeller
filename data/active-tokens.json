@@ -1,0 +1,22 @@
+{
+  "mm_token_2d3de08b40df686144b6216e793e88ec3cb6c1ede64e068fca9b462b798c23a6": {
+    "user": {
+      "id": "user_owner_001",
+      "displayName": "Ko Aung (Store Owner)",
+      "email": "aung@yangonstyle.mm",
+      "merchantId": "merchant_001",
+      "provider": "merchant_admin"
+    },
+    "createdAt": 1792013928623
+  },
+  "mm_token_1ab3a1b5649ec3bcaeed95497c0f2aa71d64f9ee819ee88edbc7de82b91bd72c": {
+    "user": {
+      "id": "user_owner_001",
+      "displayName": "Ko Aung (Store Owner)",
+      "email": "aung@yangonstyle.mm",
+      "merchantId": "merchant_001",
+      "provider": "merchant_admin"
+    },
+    "createdAt": 1792022019195
+  }
+}
