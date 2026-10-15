@@ -1143,11 +1143,21 @@ app.post('/api/orders/:id/confirm-payment', authMiddleware, async (req: any, res
 
 // AI Prompt Generation Helper
 async function generateAiReply(merchantConfig: any, sampleReplies: any[], products: any[], customerMessage: string) {
+  const provider = merchantConfig.provider || 'gemini';
+  
+  if (provider === 'xai') {
+    return await generateAiReplyXAI(merchantConfig, sampleReplies, products, customerMessage);
+  }
+  
+  return await generateAiReplyGemini(merchantConfig, sampleReplies, products, customerMessage);
+}
+
+async function generateAiReplyGemini(merchantConfig: any, sampleReplies: any[], products: any[], customerMessage: string) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return `[Simulation Mode - API Key Missing] ${merchantConfig.preferredLanguage === 'myanmar' ? 'မင်္ဂလာပါရှင့်။ မေးမြန်းမှုအတွက် ကျေးဇူးတင်ပါတယ်။' : 'Hello! Thank you for your inquiry.'} (Response style: ${merchantConfig.replyStyle})`;
   }
-
+  
   try {
     const ai = new GoogleGenAI({ apiKey });
     
@@ -1198,6 +1208,54 @@ Instructions: Respond to the customer's message below following the custom instr
   } catch (err: any) {
     console.error("Gemini API generation error:", err);
     return `[AI Generation Error] မင်္ဂလာပါရှင့်။ ခေတ္တစောင့်ဆိုင်းပေးပါ။ (Error: ${err.message || 'Unknown'})`;
+  }
+}
+
+async function generateAiReplyXAI(merchantConfig: any, sampleReplies: any[], products: any[], customerMessage: string) {
+  const apiKey = process.env.XAI_API_KEY;
+  if (!apiKey) {
+    return `[XAI Configuration Error] API Key Missing.`;
+  }
+  
+  try {
+    const productContext = products.map(p => 
+      `- ${p.name} (SKU: ${p.sku}): ${p.price} MMK`
+    ).join('\n');
+
+    const systemInstruction = `
+You are a professional AI Sales Assistant for "${merchantConfig.shopName}".
+- Rely strictly on the verified product database below for factual answers.
+- If information is uncertain, state so honestly or offer to connect with human staff.
+
+Verified Product Inventory (Source of Truth):
+${productContext}
+`;
+
+    const response = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'grok-beta',
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: customerMessage }
+        ],
+        temperature: 0.3
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`XAI API returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content || 'မင်္ဂလာပါရှင့်။ မေးမြန်းမှုကို လက်ခံရရှိပါပြီ။';
+  } catch (err: any) {
+    console.error("XAI API generation error:", err);
+    return `[AI Generation Error] မင်္ဂလာပါရှင့်။ (Error: ${err.message || 'Unknown'})`;
   }
 }
 
