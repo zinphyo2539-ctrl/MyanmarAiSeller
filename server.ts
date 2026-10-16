@@ -195,47 +195,6 @@ const DEFAULT_DB = {
         schemaVersion: 1,
         updatedAt: new Date().toISOString()
       }
-    },
-    "merchant_eval_empty": {
-      id: "merchant_eval_empty",
-      shopName: "Myanmar AI Seller Evaluation Store",
-      ownerName: "AI Evaluator",
-      email: "evaluator@myanmarseller.mm",
-      store: {
-        slug: "eval-store",
-        storeName: "Myanmar AI Seller Evaluation Store",
-        description: "Isolated evaluation storefront with verified empty sales state.",
-        logoUrl: "",
-        coverUrl: "",
-        deliveryInfo: "Standard delivery",
-        paymentInstructions: "KBZPay: 09-000000000",
-        isPublished: true
-      },
-      aiConfig: {
-        enabled: true,
-        preferredLanguage: "myanmar",
-        replyStyle: "friendly",
-        customInstructions: "",
-        salesBehavior: {
-          greeting: "greet_new",
-          responseLength: "balanced",
-          emojiPreference: "moderate",
-          productRecommendation: "answer_first",
-          followUp: "needed_only",
-          salesApproach: "helpful_recommendations",
-          discountBehavior: "verified_only",
-          uncertainPolicy: "escalate_to_human"
-        },
-        humanHandoff: {
-          enabled: true,
-          triggerOnUncertain: true,
-          triggerOnComplaint: true,
-          triggerOnHumanRequest: true,
-          notificationChannel: "telegram_staff"
-        },
-        schemaVersion: 1,
-        updatedAt: new Date().toISOString()
-      }
     }
   },
   sampleReplies: [
@@ -300,26 +259,7 @@ const DEFAULT_DB = {
       status: "active"
     }
   ],
-  orders: [
-    {
-      id: "ord_101",
-      merchantId: "merchant_001",
-      customerName: "Ma Mya",
-      customerPhone: "09-456789123",
-      items: [
-        { productId: "prod_1", name: "Premium Cotton Oversized T-Shirt", variant: "Black / M", price: 18500, qty: 1 }
-      ],
-      totalAmount: 18500,
-      paymentStatus: "PENDING",
-      paymentMethod: "KBZPay",
-      paymentProofUrl: null,
-      confirmedBy: null,
-      confirmedAt: null,
-      shippingAddress: "No. 12, Strand Road, Yangon",
-      status: "processing",
-      createdAt: new Date().toISOString()
-    }
-  ],
+  orders: [],
   auditLogs: [
     {
       id: "log_1",
@@ -724,15 +664,13 @@ app.post('/api/auth/configure-provider', (req: any, res: any) => {
 
 app.post('/api/auth/dev-login', (req: any, res: any) => {
   const db = readDb();
-  const requestedMerchantId = req.body?.merchantId || 'merchant_001';
-  const targetMerchant = db.merchants[requestedMerchantId] || db.merchants['merchant_001'];
-  const isEval = targetMerchant.id === 'merchant_eval_empty';
+  const targetMerchant = db.merchants['merchant_001'];
   const devUser = {
-    id: isEval ? 'user_eval_001' : 'user_owner_001',
-    name: isEval ? 'AI Evaluator (Clean Empty Store)' : 'Ko Aung (Merchant Owner)',
-    email: targetMerchant.email || (isEval ? 'evaluator@myanmarseller.mm' : 'aung@yangonstyle.mm'),
+    id: 'user_owner_001',
+    name: 'Ko Aung (Merchant Owner)',
+    email: targetMerchant?.email || 'aung@yangonstyle.mm',
     role: 'merchant_admin',
-    merchantId: targetMerchant.id,
+    merchantId: 'merchant_001',
     provider: 'local'
   };
   const token = createAuthToken(devUser);
@@ -1418,8 +1356,8 @@ async function generateAiReply(merchantConfig: any, sampleReplies: any[], produc
 
 async function generateAiReplyGroq(merchantConfig: any, sampleReplies: any[], products: any[], customerMessage: string) {
   const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    return `[Groq Configuration Error] API Key Missing. Please set GROQ_API_KEY.`;
+  if (!apiKey || !apiKey.trim()) {
+    throw new Error('Groq API Key is not configured on the server. Please set GROQ_API_KEY in environment variables.');
   }
   
   const model = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
@@ -1476,22 +1414,35 @@ Instructions: Respond to the customer's message below following the custom instr
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("Groq API detailed error:", JSON.stringify(errorData));
-      throw new Error(`Groq API status ${response.status}: ${JSON.stringify(errorData)}`);
+      const errorMsg = errorData?.error?.message || `Groq API responded with status ${response.status}`;
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || 'မင်္ဂလာပါရှင့်။ မေးမြန်းမှုကို လက်ခံရရှိပါပြီ။';
+    return data.choices?.[0]?.message?.content || 'မင်္ဂလာပါရှင့်။ မေးမြန်းမှုကို လက်ခံရရှိပါပြီ။';
   } catch (err: any) {
     console.error("Groq API generation error:", err.message);
-    return `[AI Generation Error] မင်္ဂလာပါရှင့်။ (Error: ${err.message})`;
+    throw err;
   }
 }
 
-// AI Preview Route
+// AI Preview Routes (Supports GET for readiness inspection and POST for simulation)
+app.get('/api/ai/preview', authMiddleware, (req: any, res: any) => {
+  const hasKey = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim());
+  res.json({
+    endpoint: '/api/ai/preview',
+    methods: ['GET', 'POST'],
+    status: hasKey ? 'operational' : 'configuration_missing',
+    provider: 'groq',
+    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+    configured: hasKey
+  });
+});
+
 app.post('/api/ai/preview', authMiddleware, async (req: any, res: any) => {
   const { customerMessage, customInstructions, replyStyle, preferredLanguage } = req.body;
-  if (!customerMessage) {
-    return res.status(400).json({ error: 'Customer message is required for preview' });
+  if (!customerMessage || typeof customerMessage !== 'string' || !customerMessage.trim()) {
+    return res.status(400).json({ error: 'Customer message is required for preview', code: 'MISSING_MESSAGE' });
   }
 
   const db = readDb();
@@ -1506,22 +1457,42 @@ app.post('/api/ai/preview', authMiddleware, async (req: any, res: any) => {
     ...(preferredLanguage !== undefined && { preferredLanguage })
   };
 
-  const aiReply = await generateAiReply(previewConfig, samples, products, customerMessage);
-  
+  try {
+    const aiReply = await generateAiReply(previewConfig, samples, products, customerMessage);
+    return res.json({
+      success: true,
+      previewReply: aiReply,
+      usedConfig: previewConfig,
+      sourceDataCount: products.length,
+      sampleCountUsed: samples.length
+    });
+  } catch (err: any) {
+    console.error("AI Preview error:", err.message);
+    const isMissingKey = !process.env.GROQ_API_KEY || !process.env.GROQ_API_KEY.trim();
+    const status = isMissingKey ? 503 : 502;
+    return res.status(status).json({
+      error: err.message || 'Groq AI generation failed',
+      code: isMissingKey ? 'GROQ_KEY_MISSING' : 'GROQ_API_ERROR'
+    });
+  }
+});
+
+// Live AI Customer Chat Endpoints (Supports both GET and POST)
+app.get('/api/ai/chat', authMiddleware, (req: any, res: any) => {
+  const hasKey = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim());
   res.json({
-    success: true,
-    previewReply: aiReply,
-    usedConfig: previewConfig,
-    sourceDataCount: products.length,
-    sampleCountUsed: samples.length
+    endpoint: '/api/ai/chat',
+    methods: ['GET', 'POST'],
+    status: hasKey ? 'operational' : 'configuration_missing',
+    provider: 'groq',
+    configured: hasKey
   });
 });
 
-// Live AI Customer Chat Endpoint
 app.post('/api/ai/chat', authMiddleware, async (req: any, res: any) => {
   const { customerMessage } = req.body;
-  if (!customerMessage) {
-    return res.status(400).json({ error: 'Customer message is required' });
+  if (!customerMessage || typeof customerMessage !== 'string' || !customerMessage.trim()) {
+    return res.status(400).json({ error: 'Customer message is required', code: 'MISSING_MESSAGE' });
   }
 
   const db = readDb();
@@ -1529,13 +1500,22 @@ app.post('/api/ai/chat', authMiddleware, async (req: any, res: any) => {
   const samples = db.sampleReplies.filter((s: any) => s.merchantId === merchant.id);
   const products = db.products.filter((p: any) => p.merchantId === merchant.id);
 
-  const aiReply = await generateAiReply(merchant.aiConfig, samples, products, customerMessage);
-
-  res.json({
-    success: true,
-    reply: aiReply,
-    timestamp: new Date().toISOString()
-  });
+  try {
+    const aiReply = await generateAiReply(merchant.aiConfig, samples, products, customerMessage);
+    return res.json({
+      success: true,
+      reply: aiReply,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err: any) {
+    console.error("AI Chat error:", err.message);
+    const isMissingKey = !process.env.GROQ_API_KEY || !process.env.GROQ_API_KEY.trim();
+    const status = isMissingKey ? 503 : 502;
+    return res.status(status).json({
+      error: err.message || 'Groq AI generation failed',
+      code: isMissingKey ? 'GROQ_KEY_MISSING' : 'GROQ_API_ERROR'
+    });
+  }
 });
 
 // AI Suggestions Orchestrator
@@ -1603,11 +1583,24 @@ app.get('/api/audit-logs', authMiddleware, (req: any, res: any) => {
   res.json(logs);
 });
 
+// Explicit API 404 Handler: intercepts ANY unmatched /api/* requests and returns JSON.
+// This guarantees that Vite SPA fallback or production dist/index.html never serves HTML for /api/* routes.
+app.all('/api/*', (req: any, res: any) => {
+  res.status(404).json({
+    error: `API endpoint not found: ${req.method} ${req.originalUrl || req.url}`,
+    code: 'API_ENDPOINT_NOT_FOUND'
+  });
+});
+
 // Global Express Error Handler Middleware (Catches write protection and other server errors)
 app.use((err: any, req: any, res: any, next: any) => {
   console.error("Global Express Error Handler:", err);
   if (res.headersSent) return next(err);
-  res.status(500).json({ error: err.message || 'Internal Server Error' });
+  const status = typeof err.status === 'number' ? err.status : 500;
+  res.status(status).json({
+    error: err.message || 'Internal Server Error',
+    code: err.code || 'SERVER_ERROR'
+  });
 });
 
 // Start Server & Mount Vite Middleware

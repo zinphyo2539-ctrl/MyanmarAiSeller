@@ -81,9 +81,12 @@ export const AiSellerView: React.FC<AiSellerViewProps> = ({
         },
         body: JSON.stringify({})
       });
-      const data = await res.json();
-      if (data.suggestions) {
-        setSuggestions(data.suggestions);
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.suggestions) {
+          setSuggestions(data.suggestions);
+        }
       }
     } catch {
       // Ignored

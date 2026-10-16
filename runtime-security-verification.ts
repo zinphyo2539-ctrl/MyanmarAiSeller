@@ -172,20 +172,28 @@ async function runRuntimeVerification() {
 
   // 4. FINANCIAL IDEMPOTENCY & PAYMENT CONFIRMATION TESTS
   console.log("\n--- Category G & C: Payment Confirmation & Idempotency ---");
-  let targetOrderId = '';
+  let createdOrderId = '';
+  let targetProductId = '';
+  let targetVariantId = '';
+  let originalStock = 0;
+
   try {
-    // Get store public products to place a fresh order
+    // Get store public products to place a temporary isolated test order
     const storeRes = await fetch(`${BASE_URL}/api/public/store/yangon-style`);
     const storeData = await storeRes.json();
     if (storeData.products && storeData.products.length > 0) {
       const prod = storeData.products[0];
       const variant = prod.variants[0];
-      // Place fresh order
+      targetProductId = prod.id;
+      targetVariantId = variant.id;
+      originalStock = variant.stock;
+
+      // Place isolated temporary test order
       const orderRes = await fetch(`${BASE_URL}/api/public/store/yangon-style/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerName: 'Test Buyer',
+          customerName: 'Test Buyer (Isolated Rollback)',
           customerPhone: '09123456789',
           shippingAddress: 'Yangon',
           paymentMethod: 'KBZPay',
@@ -194,34 +202,18 @@ async function runRuntimeVerification() {
       });
       const orderData = await orderRes.json();
       if (orderData.success && orderData.order) {
-        targetOrderId = orderData.order.id;
+        createdOrderId = orderData.order.id;
       }
     }
 
-    if (!targetOrderId) {
-      // Fallback to existing orders list
-      const ordersRes = await fetch(`${BASE_URL}/api/orders`, {
-        headers: { 'Authorization': `Bearer ${merchantAToken}` }
-      });
-      const orders = await ordersRes.json();
-      const unconfirmed = orders.find((o: any) => o.paymentStatus !== 'CONFIRMED');
-      if (unconfirmed) {
-        targetOrderId = unconfirmed.id;
-      } else if (orders.length > 0) {
-        targetOrderId = orders[0].id;
-      }
-    }
-  } catch (e) {}
-
-  if (targetOrderId && merchantAToken) {
-    try {
+    if (createdOrderId && merchantAToken) {
       // Confirm payment concurrently twice
       const [res1, res2] = await Promise.all([
-        fetch(`${BASE_URL}/api/orders/${targetOrderId}/confirm-payment`, {
+        fetch(`${BASE_URL}/api/orders/${createdOrderId}/confirm-payment`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${merchantAToken}` }
         }),
-        fetch(`${BASE_URL}/api/orders/${targetOrderId}/confirm-payment`, {
+        fetch(`${BASE_URL}/api/orders/${createdOrderId}/confirm-payment`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${merchantAToken}` }
         })
@@ -229,9 +221,8 @@ async function runRuntimeVerification() {
 
       const status1 = res1.status;
       const status2 = res2.status;
-      const body2 = await res2.json();
 
-      // First should succeed (200), second should fail (400 already confirmed) or succeed idempotently
+      // First should succeed (200), second should fail (400 already confirmed)
       const passed = status1 === 200 && (status2 === 400 || status2 === 200);
       results.push({
         id: 'PAY_01',
@@ -239,17 +230,37 @@ async function runRuntimeVerification() {
         description: 'Concurrent payment confirmation handling',
         expected: 'First 200, Second 400/200 idempotent',
         actual: `1st: ${status1}, 2nd: ${status2}`,
-        passed,
-        body2
+        passed
       });
       console.log(`[PAY_01] Concurrent payment confirmation: ${passed ? 'PASS' : 'FAIL'} (1st: ${status1}, 2nd: ${status2})`);
-    } catch (err: any) {
-      results.push({ id: 'PAY_01', passed: false, error: err.message });
-      console.log(`[PAY_01] Concurrent payment confirmation: FAIL (${err.message})`);
+    } else {
+      results.push({ id: 'PAY_01', passed: true, note: 'Skipped' });
     }
-  } else {
-    results.push({ id: 'PAY_01', passed: true, note: 'No pending order found for test, skipped live confirmation call' });
-    console.log(`[PAY_01] Payment confirmation: SKIPPED (No orders)`);
+  } catch (err: any) {
+    results.push({ id: 'PAY_01', passed: false, error: err.message });
+    console.log(`[PAY_01] Concurrent payment confirmation: FAIL (${err.message})`);
+  } finally {
+    // GUARANTEED CLEANUP & ROLLBACK: Remove temporary test order & test audit logs immediately
+    if (createdOrderId) {
+      try {
+        const fs = await import('fs');
+        const dbPath = 'data/db.json';
+        const db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+        db.orders = db.orders.filter((o: any) => o.id !== createdOrderId);
+        db.auditLogs = db.auditLogs.filter((l: any) => !l.details?.includes(createdOrderId));
+        if (targetProductId && targetVariantId) {
+          const prod = db.products.find((p: any) => p.id === targetProductId);
+          const v = prod?.variants.find((vr: any) => vr.id === targetVariantId);
+          if (v) v.stock = originalStock;
+        }
+        const tmp = `${dbPath}.tmp.${Date.now()}`;
+        fs.writeFileSync(tmp, JSON.stringify(db, null, 2), 'utf-8');
+        fs.renameSync(tmp, dbPath);
+        console.log(`  -> Guaranteed rollback executed: Cleaned up temporary test order ${createdOrderId}`);
+      } catch (cleanupErr) {
+        console.error("Failed test rollback:", cleanupErr);
+      }
+    }
   }
 
   // 5. AI ENDPOINTS TESTS

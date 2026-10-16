@@ -259,14 +259,13 @@ export default function App() {
     }
   };
 
-  const handleDevLogin = async (merchantId: 'merchant_eval_empty' | 'merchant_001') => {
+  const handleDevLogin = async () => {
     setAuthLoading(true);
     setAuthError(null);
     try {
       const res = await fetch('/api/auth/dev-login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ merchantId })
+        headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json();
       if (!res.ok || !data.token) {
@@ -462,8 +461,23 @@ export default function App() {
         preferredLanguage: aiConfig?.preferredLanguage || 'myanmar'
       })
     });
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'AI generation failed');
+
+    const contentType = res.headers.get('content-type') || '';
+    let d: any;
+    if (contentType.includes('application/json')) {
+      try {
+        d = await res.json();
+      } catch (parseErr: any) {
+        throw new Error(`Failed to parse AI response as JSON: ${parseErr.message}`);
+      }
+    } else {
+      const rawText = await res.text();
+      throw new Error(`Server returned non-JSON response (${res.status}): ${rawText.slice(0, 100)}`);
+    }
+
+    if (!res.ok) {
+      throw new Error(d.error || 'AI generation failed');
+    }
     return d.previewReply;
   };
 
@@ -506,7 +520,7 @@ export default function App() {
             </div>
           )}
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             <button
               type="button"
               disabled={authLoading}
@@ -519,20 +533,11 @@ export default function App() {
             <button
               type="button"
               disabled={authLoading}
-              onClick={() => handleDevLogin('merchant_eval_empty')}
-              className="w-full py-2.5 px-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#C9A227]/40 hover:border-[#C9A227] text-xs font-semibold text-[#E0BD55] rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+              onClick={handleDevLogin}
+              className="w-full py-2.5 px-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-xs font-semibold text-[#B9B5A7] hover:text-[#F5F2E8] rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
             >
               <ShieldCheck className="w-4 h-4 text-[#C9A227]" />
-              <span>{lang === 'my' ? 'စမ်းသပ်အကောင့်ဝင်မည် (အရောင်းမှတ်တမ်း အလွတ်)' : 'Sign In: Evaluation Store (Empty Sales Data)'}</span>
-            </button>
-
-            <button
-              type="button"
-              disabled={authLoading}
-              onClick={() => handleDevLogin('merchant_001')}
-              className="w-full py-2 px-4 bg-[#11110D] hover:bg-[#181810] border border-[#393426] text-xs font-medium text-[#B9B5A7] hover:text-[#F5F2E8] rounded-xl transition-colors cursor-pointer disabled:opacity-50"
-            >
-              <span>{lang === 'my' ? 'ထုတ်လုပ်မှုအကောင့် (Yangon Style)' : 'Sign In: Production Store (Yangon Style)'}</span>
+              <span>{lang === 'my' ? 'စတိုးအကောင့်ဖြင့် ဝင်ရောက်မည် (Yangon Style)' : 'Sign In to Merchant Workspace (Yangon Style)'}</span>
             </button>
 
             <button
@@ -671,7 +676,7 @@ export default function App() {
             orders={orders}
             auditLogs={auditLogs}
             aiHealth={aiHealth}
-            storeName={store?.storeName || (user?.merchantId === 'merchant_eval_empty' ? 'Myanmar AI Seller Evaluation Store' : 'Yangon Style Fashion & Apparel')}
+            storeName={store?.storeName || 'Yangon Style Fashion & Apparel'}
             lang={lang}
             onNavigate={handleNavigateWithFilter}
             onEditProduct={() => {
