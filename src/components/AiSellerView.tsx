@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   Zap,
   Activity,
-  MessageSquare
+  MessageSquare,
+  FlaskConical
 } from 'lucide-react';
 import { AiConfig, SampleReply, AiHealth, Product } from '../types';
 
@@ -29,6 +30,7 @@ interface AiSellerViewProps {
   onUpdateSample: (id: string, sample: { customerMessage: string; preferredReply: string; category: string }) => Promise<void>;
   onDeleteSample: (id: string) => Promise<void>;
   onTestPreview: (customerMessage: string, customInstructions?: string, replyStyle?: string) => Promise<string>;
+  onOpenLab?: () => void;
 }
 
 export const AiSellerView: React.FC<AiSellerViewProps> = ({
@@ -41,7 +43,8 @@ export const AiSellerView: React.FC<AiSellerViewProps> = ({
   onAddSample,
   onUpdateSample,
   onDeleteSample,
-  onTestPreview
+  onTestPreview,
+  onOpenLab
 }) => {
   // Config form local state
   const [preferredLang, setPreferredLang] = useState(config?.preferredLanguage || 'myanmar');
@@ -414,15 +417,29 @@ export const AiSellerView: React.FC<AiSellerViewProps> = ({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={fetchSuggestions}
-            disabled={suggestionsLoading}
-            className="text-xs text-[#C9A227] hover:underline flex items-center gap-1 font-medium cursor-pointer"
-          >
-            <Activity className="w-3.5 h-3.5" />
-            <span>{suggestionsLoading ? (lang === 'my' ? 'မေးခွန်းထုတ်နေသည်...' : 'Generating...') : (lang === 'my' ? 'မေးခွန်းအသစ်များ ထုတ်ယူမည်' : 'Generate Suggestions')}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {onOpenLab && (
+              <button
+                type="button"
+                onClick={onOpenLab}
+                className="px-2.5 py-1.5 bg-[#C9A227]/15 hover:bg-[#C9A227]/25 border border-[#C9A227]/40 text-[#C9A227] text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                title={lang === 'my' ? 'ခေတ်မီ Multi-Turn AI စမ်းသပ်ခန်းသို့ သွားရန်' : 'Open Dedicated Multi-Turn AI Chat Testing Lab'}
+              >
+                <FlaskConical className="w-3.5 h-3.5" />
+                <span>{lang === 'my' ? 'AI Chat စမ်းသပ်ခန်း' : 'Testing Lab'}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={fetchSuggestions}
+              disabled={suggestionsLoading}
+              className="text-xs text-[#C9A227] hover:underline flex items-center gap-1 font-medium cursor-pointer"
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>{suggestionsLoading ? (lang === 'my' ? 'မေးခွန်းထုတ်နေသည်...' : 'Generating...') : (lang === 'my' ? 'မေးခွန်းအသစ်များ ထုတ်ယူမည်' : 'Generate Suggestions')}</span>
+            </button>
+          </div>
         </div>
 
         {/* Dynamic Suggested Questions */}

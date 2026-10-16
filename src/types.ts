@@ -161,4 +161,28 @@ export interface AiHealth {
   lastCheck: string;
 }
 
-export type NavigationDestination = 'home' | 'messages' | 'inventory' | 'ai' | 'profile';
+export type NavigationDestination = 'home' | 'messages' | 'inventory' | 'ai' | 'profile' | 'lab';
+
+export interface TestLabMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  status?: 'sending' | 'success' | 'error';
+  latencyMs?: number;
+  catalogMode?: 'real' | 'empty';
+  errorDetails?: string;
+  httpStatus?: number;
+}
+
+export interface TestLabStatus {
+  status: string;
+  provider: string;
+  model: string;
+  configured: boolean;
+  merchantId: string;
+  shopName: string;
+  realCatalogCount: number;
+  sampleCount: number;
+  timestamp: string;
+}

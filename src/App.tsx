@@ -17,7 +17,8 @@ import {
   ExternalLink,
   ShieldCheck,
   CheckCircle2,
-  Lock
+  Lock,
+  FlaskConical
 } from 'lucide-react';
 
 import {
@@ -40,6 +41,7 @@ import { MessagesView } from './components/MessagesView';
 import { InventoryView } from './components/InventoryView';
 import { AiSellerView } from './components/AiSellerView';
 import { ProfileView } from './components/ProfileView';
+import { AiTestingLabView } from './components/AiTestingLabView';
 import { ConfigureModal } from './components/ConfigureModal';
 import { PublicStoreModal } from './components/PublicStoreModal';
 
@@ -601,35 +603,58 @@ export default function App() {
             aria-label="Desktop Primary Navigation"
             className="hidden md:flex items-center gap-1 bg-[#11110D] p-1 rounded-xl border border-[#393426]/70"
           >
-            {(['home', 'messages', 'inventory', 'ai', 'profile'] as NavigationDestination[]).map((tab) => {
+            {((user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local')
+              ? ['home', 'messages', 'inventory', 'ai', 'profile', 'lab']
+              : ['home', 'messages', 'inventory', 'ai', 'profile']
+            ).map((tab) => {
               const isActive = currentTab === tab;
-              const labels: Record<NavigationDestination, { my: string; en: string }> = {
+              const labels: Record<string, { my: string; en: string }> = {
                 home: { my: 'ပင်မ', en: 'Home' },
                 messages: { my: 'မက်ဆေ့ခ်ျ', en: 'Messages' },
                 inventory: { my: 'စတော့', en: 'Inventory' },
                 ai: { my: 'AI စနစ်', en: 'AI Seller' },
-                profile: { my: 'ပရိုဖိုင်', en: 'Profile' }
+                profile: { my: 'ပရိုဖိုင်', en: 'Profile' },
+                lab: { my: 'AI စမ်းသပ်ခန်း', en: 'AI Testing Lab' }
               };
 
               return (
                 <button
                   key={tab}
                   type="button"
-                  onClick={() => setCurrentTab(tab)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  onClick={() => setCurrentTab(tab as NavigationDestination)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
+                      : tab === 'lab'
+                      ? 'text-[#C9A227] hover:text-[#E0BD55]'
                       : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
                   }`}
                 >
-                  {lang === 'my' ? labels[tab].my : labels[tab].en}
+                  {tab === 'lab' && <FlaskConical className="w-3.5 h-3.5" />}
+                  <span>{lang === 'my' ? labels[tab].my : labels[tab].en}</span>
                 </button>
               );
             })}
           </nav>
 
-          {/* Action Zone (Zone 3 - Language & Logout) */}
+          {/* Action Zone (Zone 3 - Testing Lab Quick Access, Language & Logout) */}
           <div className="flex items-center gap-2 shrink-0">
+            {(user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local') && (
+              <button
+                type="button"
+                onClick={() => setCurrentTab('lab')}
+                className={`md:hidden px-2.5 py-1.5 border text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  currentTab === 'lab'
+                    ? 'bg-[#C9A227] text-[#0B0B09] border-[#C9A227]'
+                    : 'bg-[#181810] hover:bg-[#252419] border-[#C9A227]/40 text-[#C9A227] hover:text-[#F5F2E8]'
+                }`}
+                title={lang === 'my' ? 'AI Chat စမ်းသပ်ခန်း' : 'AI Testing Lab'}
+              >
+                <FlaskConical className="w-3.5 h-3.5" />
+                <span>Lab</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
@@ -727,6 +752,19 @@ export default function App() {
             onUpdateSample={handleUpdateSample}
             onDeleteSample={handleDeleteSample}
             onTestPreview={handleTestPreview}
+            onOpenLab={() => setCurrentTab('lab')}
+          />
+        )}
+
+        {currentTab === 'lab' && (user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local') && (
+          <AiTestingLabView
+            lang={lang}
+            user={user}
+            products={products}
+            samples={samples}
+            aiConfig={aiConfig}
+            aiHealth={aiHealth}
+            getHeaders={getHeaders}
           />
         )}
 
