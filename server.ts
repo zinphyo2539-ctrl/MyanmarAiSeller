@@ -514,6 +514,7 @@ app.get('/api/auth/google/url', (req: any, res: any) => {
 
 app.get('/api/auth/google', (req: any, res: any, next: any) => {
   const creds = getOAuthCreds();
+  console.log('DIAGNOSTIC: Google OAuth initiation. Callback URL:', creds.googleCallbackUrl);
   if (!creds.googleClientId || creds.googleClientId.startsWith('unconfigured_') || creds.googleClientId.startsWith('dummy_') || !creds.googleClientId.includes('.apps.googleusercontent.com')) {
     return res.redirect('/?error=google_not_configured');
   }
@@ -521,6 +522,7 @@ app.get('/api/auth/google', (req: any, res: any, next: any) => {
 });
 
 app.get('/api/auth/google/callback', (req: any, res: any, next: any) => {
+  console.log('DIAGNOSTIC: Google OAuth callback reached. Path:', req.originalUrl);
   passport.authenticate('google', (err: any, user: any, info: any) => {
     if (err) {
       console.error('Google OAuth callback error:', err);
