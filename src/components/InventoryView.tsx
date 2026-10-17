@@ -11,9 +11,36 @@ import {
   X,
   Layers,
   Save,
-  Tag
+  Tag,
+  ImageIcon,
+  Upload
 } from 'lucide-react';
 import { Product, Variant } from '../types';
+
+// Declarative Product Thumbnail with graceful fallback on broken image URLs
+const ProductThumbnail: React.FC<{ imageUrl?: string | null; name: string }> = ({ imageUrl, name }) => {
+  const [hasError, setHasError] = useState(false);
+
+  if (!imageUrl || hasError) {
+    return (
+      <div className="w-12 h-12 rounded-xl bg-[#1E1D14] border border-[#393426] flex items-center justify-center shrink-0">
+        <Package className="w-6 h-6 text-[#A88419]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-12 h-12 rounded-xl bg-[#1E1D14] border border-[#393426] flex items-center justify-center shrink-0 overflow-hidden">
+      <img
+        src={imageUrl}
+        alt={name}
+        className="w-full h-full object-cover"
+        onError={() => setHasError(true)}
+        loading="lazy"
+      />
+    </div>
+  );
+};
 
 interface InventoryViewProps {
   products: Product[];
@@ -23,6 +50,7 @@ interface InventoryViewProps {
   onUpdateProduct: (id: string, updates: any) => Promise<void>;
   onDeleteProduct: (id: string) => Promise<void>;
   initialFilter?: string;
+  getHeaders: () => Record<string, string>;
 }
 
 export const InventoryView: React.FC<InventoryViewProps> = ({
@@ -32,7 +60,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   onAddProduct,
   onUpdateProduct,
   onDeleteProduct,
-  initialFilter
+  initialFilter,
+  getHeaders
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>(
@@ -41,7 +70,66 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Upload State
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError(lang === 'my' ? 'ဖိုင်ဆိုဒ် 5 MB ထက်မကြီးရပါ။' : 'File size must not exceed 5 MiB.');
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      setUploadError(lang === 'my' ? 'JPEG, PNG သို့မဟုတ် WebP ပုံဖိုင်သာ လက်ခံပါသည်။' : 'Only JPEG, PNG, and WebP images are supported.');
+      return;
+    }
+
+    setUploadingImage(true);
+    setUploadError(null);
+    setUploadSuccessMessage(null);
+
+    try {
+      const dataForm = new FormData();
+      dataForm.append('image', file);
+
+      const rawHeaders = getHeaders();
+      const headers: Record<string, string> = {};
+      for (const [k, v] of Object.entries(rawHeaders)) {
+        if (k.toLowerCase() !== 'content-type') {
+          headers[k] = v;
+        }
+      }
+
+      const res = await fetch('/api/merchant/upload-image', {
+        method: 'POST',
+        headers,
+        body: dataForm
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      setUploadSuccessMessage(lang === 'my' ? 'ပုံတင်ခြင်း အောင်မြင်ပါသည်!' : 'Image uploaded successfully!');
+      setTimeout(() => setUploadSuccessMessage(null), 3000);
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -51,6 +139,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     description: '',
     discount: '',
     status: 'active',
+    imageUrl: '',
     variants: [
       { color: 'Standard', size: 'Free Size', stock: 10, sku: '' }
     ]
@@ -105,6 +194,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
 
   const handleOpenAdd = () => {
     setEditingProduct(null);
+    setFormError(null);
     setFormData({
       name: '',
       sku: `SKU-${Date.now().toString().slice(-6)}`,
@@ -112,6 +202,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       description: '',
       discount: '',
       status: 'active',
+      imageUrl: '',
       variants: [
         { color: 'Standard', size: 'Free Size', stock: 10, sku: `SKU-${Date.now().toString().slice(-6)}-V1` }
       ]
@@ -121,6 +212,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
 
   const handleOpenEdit = (prod: Product) => {
     setEditingProduct(prod);
+    setFormError(null);
     setFormData({
       name: prod.name,
       sku: prod.sku,
@@ -128,6 +220,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       description: prod.description || '',
       discount: prod.discount || '',
       status: prod.status || 'active',
+      imageUrl: prod.imageUrl || '',
       variants: (prod.variants && prod.variants.length > 0)
         ? prod.variants.map(v => ({ color: v.color, size: v.size, stock: v.stock, sku: v.sku }))
         : [{ color: 'Standard', size: 'Free Size', stock: 0, sku: `${prod.sku}-V1` }]
@@ -157,6 +250,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     e.preventDefault();
     if (!formData.name.trim() || saving) return;
     setSaving(true);
+    setFormError(null);
     try {
       if (editingProduct) {
         await onUpdateProduct(editingProduct.id, formData);
@@ -164,6 +258,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         await onAddProduct(formData);
       }
       setIsModalOpen(false);
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to save product');
     } finally {
       setSaving(false);
     }
@@ -331,10 +427,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      {/* Neutral visual container for product representation (strictly avoids fake photos) */}
-                      <div className="w-12 h-12 rounded-xl bg-[#1E1D14] border border-[#393426] flex items-center justify-center shrink-0">
-                        <Package className="w-6 h-6 text-[#A88419]" />
-                      </div>
+                      <ProductThumbnail imageUrl={product.imageUrl} name={product.name} />
                       <div>
                         <h3 className="text-sm font-bold text-[#F5F2E8] leading-snug">
                           {product.name}
@@ -437,6 +530,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
               </button>
             </div>
 
+            {formError && (
+              <div className="p-3 bg-[#E06B61]/15 border border-[#E06B61]/40 rounded-xl text-xs text-[#E06B61] flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
               <div>
                 <label className="block text-[#B9B5A7] font-semibold mb-1">
@@ -478,6 +578,90 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
                     className="w-full bg-[#11110D] border border-[#393426] rounded-xl px-3 py-2 text-[#F5F2E8] font-mono focus:border-[#C9A227] focus:outline-none"
                   />
+                </div>
+              </div>
+
+              {/* Product Image URL Input & Live Preview with Supabase File Upload */}
+              <div className="bg-[#11110D] border border-[#393426] p-3 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-[#B9B5A7] font-semibold text-xs flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-[#C9A227]" />
+                    <span>{lang === 'my' ? 'ကုန်ပစ္စည်း ဓာတ်ပုံ (Supabase Storage Upload သို့မဟုတ် HTTPS URL)' : 'Product Image (Supabase Upload or HTTPS URL)'}</span>
+                  </label>
+                  {formData.imageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                      className="text-[11px] text-[#E06B61] hover:underline font-medium cursor-pointer"
+                    >
+                      {lang === 'my' ? 'ဖျက်မည်' : 'Clear Image'}
+                    </button>
+                  )}
+                </div>
+
+                {/* File Upload Button / Hidden Input */}
+                <div className="flex items-center gap-2">
+                  <label className={`flex-1 py-2 px-3 bg-[#181810] hover:bg-[#252419] border border-[#393426] hover:border-[#C9A227]/40 rounded-xl text-xs font-semibold text-[#F5F2E8] flex items-center justify-center gap-2 transition-colors cursor-pointer ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <Upload className="w-4 h-4 text-[#C9A227]" />
+                    <span>
+                      {uploadingImage
+                        ? (lang === 'my' ? 'ပုံတင်နေသည်...' : 'Uploading to Supabase...')
+                        : (lang === 'my' ? 'ဖိုင်မှ ပုံတင်မည် (JPEG/PNG/WebP, Max 5MB)' : 'Upload Image File (Supabase)')}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleFileUpload}
+                      disabled={uploadingImage}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {uploadError && (
+                  <div className="p-2 bg-[#E06B61]/15 border border-[#E06B61]/40 rounded-lg text-[11px] text-[#E06B61]">
+                    {uploadError}
+                  </div>
+                )}
+
+                {uploadSuccessMessage && (
+                  <div className="p-2 bg-[#65B985]/15 border border-[#65B985]/40 rounded-lg text-[11px] text-[#65B985]">
+                    {uploadSuccessMessage}
+                  </div>
+                )}
+
+                <div className="flex gap-3 items-center">
+                  <div className="flex-1">
+                    <input
+                      type="url"
+                      value={formData.imageUrl}
+                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                      placeholder="https://... (or uploaded via Supabase)"
+                      maxLength={1024}
+                      className="w-full bg-[#181810] border border-[#393426] rounded-xl px-3 py-2 text-[#F5F2E8] font-mono text-xs focus:border-[#C9A227] focus:outline-none placeholder-[#817D70]"
+                    />
+                    <span className="text-[10px] text-[#817D70] mt-1 block">
+                      {lang === 'my'
+                        ? 'Supabase မှ တင်ထားသော URL သို့မဟုတ် တိုက်ရိုက် HTTPS link ကို အသုံးပြုနိုင်သည်'
+                        : 'Supabase storage URL or direct secure HTTPS link'}
+                    </span>
+                  </div>
+
+                  {/* Live Image Preview Thumbnail */}
+                  <div className="w-12 h-12 rounded-xl bg-[#181810] border border-[#393426] flex items-center justify-center shrink-0 overflow-hidden relative">
+                    {formData.imageUrl && formData.imageUrl.trim().startsWith('https://') ? (
+                      <img
+                        src={formData.imageUrl.trim()}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <ImageIcon className="w-5 h-5 text-[#817D70]" />
+                    )}
+                  </div>
                 </div>
               </div>
 

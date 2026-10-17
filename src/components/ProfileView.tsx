@@ -12,7 +12,9 @@ import {
   AlertCircle,
   ShoppingBag,
   CreditCard,
-  UserCheck
+  UserCheck,
+  Copy,
+  Globe
 } from 'lucide-react';
 import { StoreSettings, Order, ProviderStatus } from '../types';
 
@@ -55,6 +57,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [isPublished, setIsPublished] = useState(store?.isPublished ?? true);
   const [savingStore, setSavingStore] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+
+  const publicStoreUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/store/${store?.slug || 'yangon-style'}`
+    : `/store/${store?.slug || 'yangon-style'}`;
+
+  const handleCopyStoreUrl = () => {
+    navigator.clipboard.writeText(publicStoreUrl);
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 2500);
+  };
 
   // Payment confirmation loading tracker
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -153,14 +166,69 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={onOpenPublicStore}
-              className="px-3.5 py-1.5 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-xs font-semibold text-[#C9A227] rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>{lang === 'my' ? 'Public စတိုး စမ်းသပ်ကြည့်ရှုမည်' : 'View Public Storefront'}</span>
-            </button>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <a
+                href={`/store/${store?.slug || 'yangon-style'}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-1.5 bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-md"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span>{lang === 'my' ? 'Public စတိုး ဖွင့်မည်' : 'Open Storefront'}</span>
+              </a>
+              <button
+                type="button"
+                onClick={onOpenPublicStore}
+                className="px-3 py-1.5 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-xs font-semibold text-[#B9B5A7] hover:text-[#F5F2E8] rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>{lang === 'my' ? 'စမ်းသပ်ခန်း' : 'Simulator'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Public Storefront Link & Sharing Banner */}
+          <div className="bg-[#11110D] border border-[#393426] rounded-xl p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-[#817D70] tracking-wider flex items-center gap-1.5">
+                <Globe className="w-3 h-3 text-[#C9A227]" />
+                <span>{lang === 'my' ? 'ဖောက်သည်များသို့ ပေးပို့ရမည့် စတိုးလိပ်စာ (Storefront URL)' : 'Public Customer Storefront Link'}</span>
+              </span>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                isPublished
+                  ? 'bg-[#65B985]/15 border border-[#65B985]/30 text-[#65B985]'
+                  : 'bg-[#E06B61]/15 border border-[#E06B61]/30 text-[#E06B61]'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isPublished ? 'bg-[#65B985]' : 'bg-[#E06B61]'}`} />
+                <span>{isPublished ? (lang === 'my' ? 'ဖွင့်လှစ်ထားသည် (LIVE)' : 'Publicly Live') : (lang === 'my' ? 'ပိတ်ထားသည် (Draft)' : 'Unpublished')}</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={publicStoreUrl}
+                className="flex-1 bg-[#181810] border border-[#393426] rounded-lg px-3 py-1.5 text-xs text-[#C9A227] font-mono select-all focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleCopyStoreUrl}
+                className="px-3 py-1.5 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-xs font-semibold text-[#F5F2E8] hover:text-[#C9A227] rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              >
+                {copiedUrl ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#65B985]" />
+                    <span className="text-[#65B985]">{lang === 'my' ? 'ကူးပြီးပါပြီ' : 'Copied!'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{lang === 'my' ? 'လင့်ခ် ကူးမည်' : 'Copy Link'}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleSaveStore} className="space-y-4 text-xs">

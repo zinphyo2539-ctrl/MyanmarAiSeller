@@ -6,6 +6,8 @@ export interface Variant {
   sku: string;
 }
 
+export type ProductVariant = Variant;
+
 export interface Product {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ export interface Product {
   variants: Variant[];
   discount: string | null;
   status: string;
+  imageUrl?: string | null;
 }
 
 export interface OrderItem {
@@ -45,8 +48,11 @@ export interface Order {
 export interface StoreSettings {
   slug: string;
   storeName: string;
+  brandName?: string;
   description: string;
-  logoUrl: string;
+  logoUrl?: string;
+  faviconUrl?: string;
+  tagline?: string;
   coverUrl: string;
   deliveryInfo: string;
   paymentInstructions: string;

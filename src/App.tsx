@@ -44,6 +44,7 @@ import { ProfileView } from './components/ProfileView';
 import { AiTestingLabView } from './components/AiTestingLabView';
 import { ConfigureModal } from './components/ConfigureModal';
 import { PublicStoreModal } from './components/PublicStoreModal';
+import { CustomerStorefrontView } from './components/CustomerStorefrontView';
 
 export default function App() {
   const [lang, setLang] = useState<'my' | 'en'>('my');
@@ -91,6 +92,59 @@ export default function App() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configTargetProvider, setConfigTargetProvider] = useState<'google' | 'facebook' | 'tiktok'>('google');
   const [isPublicStoreOpen, setIsPublicStoreOpen] = useState(false);
+
+  // Dedicated Public Storefront Routing Detection
+  const [publicStoreSlug, setPublicStoreSlug] = useState<string | null>(() => {
+    try {
+      if (typeof window === 'undefined') return null;
+      const pathMatch = window.location.pathname.match(/^\/store\/([a-zA-Z0-9_-]+)/);
+      if (pathMatch) return pathMatch[1];
+
+      const params = new URLSearchParams(window.location.search);
+      const querySlug = params.get('store');
+      if (querySlug) return querySlug;
+
+      const hashMatch = window.location.hash.match(/#\/?store\/([a-zA-Z0-9_-]+)/) || window.location.hash.match(/#.*store=([a-zA-Z0-9_-]+)/);
+      if (hashMatch) return hashMatch[1];
+
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      try {
+        const pathMatch = window.location.pathname.match(/^\/store\/([a-zA-Z0-9_-]+)/);
+        if (pathMatch) {
+          setPublicStoreSlug(pathMatch[1]);
+          return;
+        }
+        const params = new URLSearchParams(window.location.search);
+        const querySlug = params.get('store');
+        if (querySlug) {
+          setPublicStoreSlug(querySlug);
+          return;
+        }
+        const hashMatch = window.location.hash.match(/#\/?store\/([a-zA-Z0-9_-]+)/) || window.location.hash.match(/#.*store=([a-zA-Z0-9_-]+)/);
+        if (hashMatch) {
+          setPublicStoreSlug(hashMatch[1]);
+          return;
+        }
+        setPublicStoreSlug(null);
+      } catch {
+        setPublicStoreSlug(null);
+      }
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
 
   const getHeaders = useCallback((): Record<string, string> => {
     const token = authToken || localStorage.getItem('myanmar_seller_token');
@@ -493,6 +547,21 @@ export default function App() {
   const inventoryAlertCount = products.filter(p => p.variants && p.variants.some(v => Number(v.stock) === 0)).length;
   const paymentsReviewCount = orders.filter(o => o.paymentStatus !== 'CONFIRMED' && o.status !== 'cancelled').length;
 
+  // Dedicated Public Customer Storefront (Accessible to all shoppers without merchant authentication)
+  if (publicStoreSlug) {
+    return (
+      <CustomerStorefrontView
+        slug={publicStoreSlug}
+        onNavigateToMerchant={() => {
+          try {
+            window.history.pushState({}, '', '/');
+          } catch {}
+          setPublicStoreSlug(null);
+        }}
+      />
+    );
+  }
+
   // Unauthenticated Login Screen
   if (isAuthenticated === false) {
     return (
@@ -737,6 +806,7 @@ export default function App() {
             onUpdateProduct={handleUpdateProduct}
             onDeleteProduct={handleDeleteProduct}
             initialFilter={subFilter}
+            getHeaders={getHeaders}
           />
         )}
 

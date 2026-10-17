@@ -87,6 +87,7 @@ export const PublicStoreModal: React.FC<PublicStoreModalProps> = ({
           paymentMethod: 'KBZPay',
           items: cart.map(i => ({
             productId: i.productId,
+            variantId: i.variantId,
             name: i.name,
             variant: i.variant,
             price: i.price,

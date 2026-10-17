@@ -12,8 +12,28 @@ import passport from 'passport';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as TikTokStrategy } from 'passport-oauth2';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { initStorageAdapter, getStorageStatus } from './server/storage.ts';
+import { validateProductImageUrl } from './server/validator.ts';
+import multer from 'multer';
+import { uploadProductImageToSupabase, initSupabaseStorageAdapter } from './server/supabaseStorage.ts';
 
 dotenv.config();
+
+// Initialize Firebase Cloud Storage adapter safely (fails closed if unconfigured)
+const initialStorageStatus = initStorageAdapter();
+if (!initialStorageStatus.available) {
+  console.log(`[Storage] Firebase Cloud Storage status: ${initialStorageStatus.status} (${initialStorageStatus.reason || 'unconfigured'})`);
+} else {
+  console.log(`[Storage] Firebase Cloud Storage operational on bucket: ${initialStorageStatus.bucketName}`);
+}
+
+// Initialize Supabase Storage adapter safely
+const uploadStorageStatus = initSupabaseStorageAdapter();
+if (!uploadStorageStatus.available) {
+  console.log(`[SupabaseStorage] Supabase Storage status: ${uploadStorageStatus.status} (${uploadStorageStatus.reason || 'unconfigured'})`);
+} else {
+  console.log(`[SupabaseStorage] Supabase Storage operational on bucket: ${uploadStorageStatus.bucketName}`);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -143,13 +163,15 @@ export function initPassportStrategies() {
     done(null, { ...profile, merchantId: 'merchant_001', provider: 'tiktok', role: 'merchant_admin' });
   }));
 
-  passport.use(new GoogleStrategy({
+  const googleStrategy = new GoogleStrategy({
     clientID: creds.googleClientId || 'unconfigured_google',
     clientSecret: creds.googleClientSecret || 'unconfigured_google',
     callbackURL: creds.googleCallbackUrl
   }, (accessToken: string, refreshToken: string, profile: any, done: (error: any, user?: any) => void) => {
     done(null, { ...profile, merchantId: 'merchant_001', provider: 'google', role: 'merchant_admin' });
-  }));
+  });
+  console.log("DIAGNOSTIC: Google OAuth Strategy initialized. Callback URL:", creds.googleCallbackUrl);
+  passport.use(googleStrategy);
 }
 
 initPassportStrategies();
@@ -727,6 +749,19 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
+// Storage Infrastructure Status (Read-Only Diagnostics, Authenticated)
+app.get('/api/storage/status', authMiddleware, (req: any, res: any) => {
+  const status = getStorageStatus();
+  res.json({
+    available: status.available,
+    configured: status.configured,
+    bucketName: status.bucketName,
+    projectId: status.projectId,
+    status: status.status,
+    missingVariables: status.missingVariables,
+  });
+});
+
 // Merchant Store Settings
 app.get('/api/merchant/store', authMiddleware, (req: any, res: any) => {
   res.json(req.merchant.store || {});
@@ -853,7 +888,7 @@ app.post('/api/public/store/:slug/orders', async (req: any, res: any) => {
 
     res.status(201).json({ success: true, order: newOrder });
   } catch (err: any) {
-    const status = err.message.includes('not found') ? 404 : 400;
+    const status = err.message.includes('Store not found') ? 404 : 400;
     res.status(status).json({ error: err.message || 'Checkout failed' });
   }
 });
@@ -978,6 +1013,52 @@ app.delete('/api/merchant/samples/:id', authMiddleware, async (req: any, res: an
   }
 });
 
+// Multer memory storage for secure image upload (max 5 MiB)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowed.includes((file.mimetype || '').toLowerCase())) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are permitted.'));
+    }
+  }
+});
+
+// Secure Merchant Product Image Upload Endpoint
+app.post('/api/merchant/upload-image', authMiddleware, upload.single('image'), async (req: any, res: any) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file uploaded or file exceeds 5 MiB limit.' });
+    }
+
+    const merchantId = req.merchant?.id || req.user?.merchantId;
+    if (!merchantId) {
+      return res.status(401).json({ error: 'Unauthorized: Merchant identity not verified.' });
+    }
+
+    const publicUrl = await uploadProductImageToSupabase(
+      merchantId,
+      req.file.buffer,
+      req.file.mimetype,
+      req.file.originalname
+    );
+
+    res.status(201).json({
+      success: true,
+      imageUrl: publicUrl
+    });
+  } catch (err: any) {
+    console.error('[UploadEndpoint] Error:', err);
+    const msg = err.message || 'Image upload failed';
+    const isConfigError = msg.includes('unconfigured') || msg.includes('Missing required Supabase') || msg.includes('unavailable');
+    const status = isConfigError ? 503 : 400;
+    res.status(status).json({ error: msg });
+  }
+});
+
 // Products CRUD
 app.get('/api/products', authMiddleware, (req: any, res: any) => {
   const db = readDb();
@@ -987,9 +1068,14 @@ app.get('/api/products', authMiddleware, (req: any, res: any) => {
 
 app.post('/api/products', authMiddleware, async (req: any, res: any) => {
   try {
-    const { name, sku, price, description, variants, discount, status } = req.body;
+    const { name, sku, price, description, variants, discount, status, imageUrl } = req.body;
     if (!name || !price || !variants || !Array.isArray(variants)) {
       return res.status(400).json({ error: 'Name, price, and variants are required' });
+    }
+
+    const imageValidation = validateProductImageUrl(imageUrl);
+    if (!imageValidation.isValid) {
+      return res.status(400).json({ error: imageValidation.error });
     }
 
     const newProduct = await withDbTransaction((db) => {
@@ -1001,6 +1087,7 @@ app.post('/api/products', authMiddleware, async (req: any, res: any) => {
         price: Number(price),
         currency: 'MMK',
         description: description ? description.trim() : '',
+        imageUrl: imageValidation.sanitizedUrl,
         variants: variants.map((v: any, idx: number) => ({
           id: `v_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 4)}`,
           color: v.color || 'Standard',
@@ -1026,6 +1113,15 @@ app.put('/api/products/:id', authMiddleware, async (req: any, res: any) => {
     const prodId = req.params.id;
     const updates = req.body;
 
+    let sanitizedImageUrl: string | null | undefined = undefined;
+    if ('imageUrl' in updates) {
+      const imageValidation = validateProductImageUrl(updates.imageUrl);
+      if (!imageValidation.isValid) {
+        return res.status(400).json({ error: imageValidation.error });
+      }
+      sanitizedImageUrl = imageValidation.sanitizedUrl;
+    }
+
     const product = await withDbTransaction((db) => {
       const prodIndex = db.products.findIndex((p: any) => p.id === prodId && p.merchantId === req.merchant.id);
       if (prodIndex === -1) {
@@ -1035,6 +1131,7 @@ app.put('/api/products/:id', authMiddleware, async (req: any, res: any) => {
       db.products[prodIndex] = {
         ...db.products[prodIndex],
         ...updates,
+        ...(sanitizedImageUrl !== undefined && { imageUrl: sanitizedImageUrl }),
         price: updates.price !== undefined ? Number(updates.price) : db.products[prodIndex].price
       };
       return db.products[prodIndex];
