@@ -57,9 +57,9 @@ export const ConfigureModal: React.FC<ConfigureModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#181810] border border-[#393426] rounded-2xl w-full max-w-md p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#393426] pb-3">
-          <h3 className="text-base font-bold text-[#F5F2E8]">
+      <div className="bg-white border border-[#CBD5E1] rounded-2xl w-full max-w-md p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#CBD5E1] pb-3">
+          <h3 className="text-base font-bold text-[#0F172A]">
             {configProvider === 'google'
               ? 'Google OAuth Configuration'
               : configProvider === 'facebook'
@@ -69,7 +69,7 @@ export const ConfigureModal: React.FC<ConfigureModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 hover:bg-[#252419] rounded-lg text-[#817D70] hover:text-[#F5F2E8]"
+            className="p-1 hover:bg-[#F8FAFC] rounded-lg text-[#64748B] hover:text-[#0F172A]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -81,25 +81,25 @@ export const ConfigureModal: React.FC<ConfigureModalProps> = ({
           </div>
         )}
 
-        <div className="bg-[#11110D] p-3 rounded-xl border border-[#393426] space-y-1.5 text-xs">
-          <span className="text-[#817D70] block font-semibold">
+        <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#CBD5E1] space-y-1.5 text-xs">
+          <span className="text-[#64748B] block font-semibold">
             {lang === 'my' ? 'Redirect / Callback URI:' : 'Redirect / Callback URI:'}
           </span>
-          <div className="flex items-center justify-between gap-2 font-mono text-[11px] text-[#C9A227] bg-[#181810] p-2 rounded-lg border border-[#393426]/60 break-all">
+          <div className="flex items-center justify-between gap-2 font-mono text-[11px] text-[#2563EB] bg-[#FFFFFF] p-2 rounded-lg border border-[#CBD5E1] break-all">
             <span>{callbackUrl}</span>
             <button
               type="button"
               onClick={handleCopy}
-              className="p-1 hover:bg-[#252419] rounded text-[#817D70] hover:text-[#F5F2E8] shrink-0"
+              className="p-1 hover:bg-[#F8FAFC] rounded text-[#64748B] hover:text-[#0F172A] shrink-0"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-[#65B985]" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-[#16A34A]" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
-            <label className="block text-[#B9B5A7] font-semibold mb-1">
+            <label className="block text-[#475569] font-semibold mb-1">
               {configProvider === 'google' ? 'Google Client ID' : configProvider === 'facebook' ? 'Facebook App ID' : 'TikTok Client Key'} *
             </label>
             <input
@@ -108,12 +108,12 @@ export const ConfigureModal: React.FC<ConfigureModalProps> = ({
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
               placeholder="Paste Client ID / App ID"
-              className="w-full bg-[#11110D] border border-[#393426] rounded-xl px-3 py-2 text-[#F5F2E8] font-mono focus:border-[#C9A227] focus:outline-none"
+              className="w-full bg-[#FFFFFF] border border-[#CBD5E1] rounded-xl px-3 py-2 text-[#0F172A] font-mono focus:border-[#2563EB] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-[#B9B5A7] font-semibold mb-1">
+            <label className="block text-[#475569] font-semibold mb-1">
               {configProvider === 'google' ? 'Google Client Secret' : configProvider === 'facebook' ? 'Facebook App Secret' : 'TikTok Client Secret'} *
             </label>
             <input
@@ -122,22 +122,22 @@ export const ConfigureModal: React.FC<ConfigureModalProps> = ({
               value={clientSecret}
               onChange={(e) => setClientSecret(e.target.value)}
               placeholder="Paste Client Secret / App Secret"
-              className="w-full bg-[#11110D] border border-[#393426] rounded-xl px-3 py-2 text-[#F5F2E8] font-mono focus:border-[#C9A227] focus:outline-none"
+              className="w-full bg-[#FFFFFF] border border-[#CBD5E1] rounded-xl px-3 py-2 text-[#0F172A] font-mono focus:border-[#2563EB] focus:outline-none"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#393426]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#CBD5E1]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-[#B9B5A7] font-semibold rounded-xl"
+              className="px-4 py-2 bg-[#F8FAFC] hover:bg-[#CBD5E1] border border-[#CBD5E1] text-[#475569] font-semibold rounded-xl"
             >
               {lang === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel'}
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] font-bold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Saving...' : (lang === 'my' ? 'သိမ်းဆည်းမည်' : 'Save')}</span>

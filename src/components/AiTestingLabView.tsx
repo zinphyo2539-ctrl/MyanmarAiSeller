@@ -271,24 +271,24 @@ export const AiTestingLabView: React.FC<AiTestingLabViewProps> = ({
   return (
     <div className="space-y-4">
       {/* Top Banner & Control Zone */}
-      <div className="bg-[#181810] border border-[#393426] rounded-2xl p-4 sm:p-5 shadow-lg space-y-4">
+      <div className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Title & Diagnostic Context */}
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#C9A227]/10 border border-[#C9A227]/40 flex items-center justify-center text-[#C9A227] shrink-0 mt-0.5">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB] shrink-0 mt-0.5">
               <FlaskConical className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-base sm:text-lg font-bold text-[#F5F2E8]">
+                <h1 className="text-base sm:text-lg font-bold text-[#0F172A]">
                   {lang === 'my' ? 'AI Chat စမ်းသပ်ခန်း' : 'AI Chat Testing Lab'}
                 </h1>
-                <span className="text-[11px] text-[#A88419] font-mono font-semibold flex items-center gap-1">
+                <span className="text-[11px] text-[#2563EB] font-mono font-semibold flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   {lang === 'my' ? 'သီးသန့်စမ်းသပ်ပတ်ဝန်းကျင်' : 'Isolated QA Session'}
                 </span>
               </div>
-              <p className="text-xs text-[#817D70] mt-0.5">
+              <p className="text-xs text-[#64748B] mt-0.5">
                 {lang === 'my'
                   ? 'အမှန်တကယ် Groq AI Model ကို စီးပွားရေး Database မထိခိုက်စေဘဲ အစုံအလင် စမ်းသပ်စစ်ဆေးနိုင်သော Lab ဖြစ်ပါသည်။'
                   : 'Manual QA console for Groq-powered AI conversations with multi-turn context and strict database isolation.'}
@@ -388,12 +388,12 @@ export const AiTestingLabView: React.FC<AiTestingLabViewProps> = ({
       </div>
 
       {/* Main Conversation Canvas (Optimized for Huawei MatePad 11.5 & Mobile) */}
-      <div className="bg-[#181810] border border-[#393426] rounded-2xl flex flex-col h-[520px] sm:h-[580px] shadow-xl overflow-hidden">
+      <div className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl flex flex-col h-[520px] sm:h-[580px] shadow-sm overflow-hidden">
         {/* Stream Header */}
-        <div className="px-4 py-2.5 bg-[#11110D] border-b border-[#393426] flex items-center justify-between text-xs">
+        <div className="px-4 py-2.5 bg-[#F8FAFC] border-b border-[#CBD5E1] flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#50C878] animate-pulse" />
-            <span className="font-semibold text-[#F5F2E8]">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
+            <span className="font-semibold text-[#0F172A]">
               {lang === 'my' ? 'စကားဝိုင်း စမ်းသပ်ခန်း တိုက်ရိုက်မှတ်တမ်း' : 'Live Test Session Stream'}
             </span>
           </div>

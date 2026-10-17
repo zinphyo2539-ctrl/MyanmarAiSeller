@@ -249,7 +249,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   // Render: Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0B0B09] text-[#F5F2E8] flex flex-col items-center justify-center p-6 space-y-4">
+      <div data-theme="storefront" className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] flex flex-col items-center justify-center p-6 space-y-4 font-sans">
         <RefreshCw className="w-8 h-8 text-[#C9A227] animate-spin" />
         <p className="text-sm text-[#B9B5A7] font-medium">
           {lang === 'my' ? 'စတိုးအချက်အလက်များ ဆွဲတင်နေသည်...' : 'Loading Storefront...'}
@@ -261,36 +261,36 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   // Render: 404 / Unpublished State
   if (notFound) {
     return (
-      <div className="min-h-screen bg-[#0B0B09] text-[#F5F2E8] flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-md bg-[#181810] border border-[#393426] rounded-3xl p-8 text-center space-y-5 shadow-2xl">
-          <div className="w-16 h-16 bg-[#1E1D14] border border-[#E06B61]/40 rounded-2xl flex items-center justify-center mx-auto text-[#E06B61]">
+      <div data-theme="storefront" className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] flex flex-col items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-md bg-[var(--surface-card)] border border-[var(--border-base)] rounded-3xl p-8 text-center space-y-5 shadow-2xl">
+          <div className="w-16 h-16 bg-[var(--surface-elevated)] border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto text-red-500">
             <Store className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#F5F2E8]">
+            <h1 className="text-xl font-bold text-[var(--text-main)]">
               {lang === 'my' ? 'စတိုး မတွေ့ရှိပါ သို့မဟုတ် မဖွင့်သေးပါ' : 'Store Not Found or Unpublished'}
             </h1>
-            <p className="text-xs text-[#817D70] mt-2 leading-relaxed">
+            <p className="text-xs text-[var(--text-secondary)] mt-2 leading-relaxed">
               {lang === 'my'
                 ? `"${slug}" အမည်ရှိ စတိုးကို မတွေ့ရှိရပါ။ စတိုးလိပ်စာမှန်ကန်မှု ရှိမရှိ သို့မဟုတ် ကုန်သည်မှ ဖွင့်လှစ်ထားခြင်း ရှိမရှိ စစ်ဆေးပါ။`
                 : `The storefront for "${slug}" is either unavailable or has not been published yet by the merchant.`}
             </p>
           </div>
 
-          <div className="pt-3 border-t border-[#393426] flex flex-col gap-2.5">
+          <div className="pt-3 border-t border-[var(--border-base)] flex flex-col gap-2.5">
             <button
               type="button"
               onClick={fetchStoreData}
-              className="w-full py-2.5 px-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-xs font-semibold text-[#F5F2E8] rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full py-2.5 px-4 bg-[var(--surface-elevated)] hover:bg-[var(--surface-card)] border border-[var(--border-base)] text-xs font-semibold text-[var(--text-main)] rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-4 h-4 text-[#C9A227]" />
+              <RefreshCw className="w-4 h-4 text-[var(--action-primary)]" />
               <span>{lang === 'my' ? 'ပြန်လည်စစ်ဆေးမည်' : 'Retry'}</span>
             </button>
             {onNavigateToMerchant && (
               <button
                 type="button"
                 onClick={onNavigateToMerchant}
-                className="w-full py-2 text-xs text-[#817D70] hover:text-[#C9A227] transition-colors cursor-pointer"
+                className="w-full py-2 text-xs text-[var(--text-muted)] hover:text-[var(--action-primary)] transition-colors cursor-pointer"
               >
                 {lang === 'my' ? 'ကုန်သည် Dashboard သို့ သွားမည်' : 'Go to Merchant Workspace'}
               </button>
@@ -304,17 +304,17 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   // Render: Network or API Error
   if (fetchError) {
     return (
-      <div className="min-h-screen bg-[#0B0B09] text-[#F5F2E8] flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-md bg-[#181810] border border-[#393426] rounded-3xl p-8 text-center space-y-4">
-          <AlertCircle className="w-12 h-12 text-[#E06B61] mx-auto" />
-          <h2 className="text-lg font-bold text-[#F5F2E8]">
+      <div data-theme="storefront" className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] flex flex-col items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-md bg-[var(--surface-card)] border border-[var(--border-base)] rounded-3xl p-8 text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+          <h2 className="text-lg font-bold text-[var(--text-main)]">
             {lang === 'my' ? 'ချိတ်ဆက်မှု အခက်အခဲ ဖြစ်ပေါ်နေပါသည်' : 'Connection Error'}
           </h2>
-          <p className="text-xs text-[#817D70]">{fetchError}</p>
+          <p className="text-xs text-[var(--text-secondary)]">{fetchError}</p>
           <button
             type="button"
             onClick={fetchStoreData}
-            className="px-5 py-2.5 bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] font-bold text-xs rounded-xl cursor-pointer"
+            className="px-5 py-2.5 bg-[var(--action-primary)] hover:bg-[var(--action-hover)] text-neutral-950 font-bold text-xs rounded-xl cursor-pointer"
           >
             {lang === 'my' ? 'ပြန်လည်ကြိုးစားမည်' : 'Retry'}
           </button>
@@ -324,7 +324,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0B09] text-[#F5F2E8] font-sans pb-28">
+    <div data-theme="storefront" className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] font-sans pb-28">
       {/* Top Banner / Store Header */}
       <header className="sticky top-0 z-30 bg-[#0B0B09]/95 backdrop-blur-md border-b border-[#393426] px-4 py-3.5">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
@@ -475,22 +475,22 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
               return (
                 <div
                   key={product.id}
-                  className="bg-[#181810] border border-[#393426] hover:border-[#C9A227]/40 rounded-2xl overflow-hidden flex flex-col justify-between transition-colors shadow-lg"
+                  className="bg-[#1A1A1A] border border-white/[0.08] hover:border-[#C9A227]/40 rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200 shadow-xl group"
                 >
                   {/* Product Image & Badges */}
-                  <div className="relative aspect-video sm:aspect-4/3 w-full bg-[#11110D] overflow-hidden flex items-center justify-center">
+                  <div className="relative aspect-square w-full bg-[#11110D] overflow-hidden flex items-center justify-center">
                     {product.imageUrl ? (
                       <img
                         src={product.imageUrl}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           // Fallback to placeholder if image link breaks
                           (e.target as HTMLElement).style.display = 'none';
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-[#817D70] p-4 text-center">
+                      <div className="w-full h-full flex flex-col items-center justify-center text-[#817D70] p-4 text-center bg-[#1E1D14]">
                         <Package className="w-10 h-10 text-[#776324] mb-1" />
                         <span className="text-[10px] font-mono uppercase tracking-wider text-[#B9B5A7]">
                           {product.sku || 'CATALOG ITEM'}
@@ -499,37 +499,37 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                     )}
 
                     {product.discount && (
-                      <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-[#C9A227] text-[#0B0B09] font-bold text-[10px] flex items-center gap-1 shadow-md">
+                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-amber-500 text-neutral-950 font-bold text-[10px] flex items-center gap-1 shadow-lg">
                         <Tag className="w-3 h-3" />
                         <span>{product.discount}</span>
                       </div>
                     )}
 
                     {totalStock === 0 ? (
-                      <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-[#E06B61] text-[#F5F2E8] font-bold text-[10px] shadow-md">
+                      <div className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-red-600 text-white font-bold text-[10px] shadow-lg">
                         {lang === 'my' ? 'ပစ္စည်းပြတ်' : 'Sold Out'}
                       </div>
                     ) : (
-                      <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-[#181810]/90 backdrop-blur-sm border border-[#393426] text-[#65B985] font-mono text-[10px] shadow-md">
+                      <div className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-neutral-900/80 backdrop-blur-md border border-white/10 text-emerald-400 font-mono text-[10px] shadow-lg">
                         {totalStock} {lang === 'my' ? 'ခုကျန်' : 'in stock'}
                       </div>
                     )}
                   </div>
 
                   {/* Product Details */}
-                  <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="p-4.5 flex-1 flex flex-col justify-between space-y-3.5">
                     <div>
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-sm font-bold text-[#F5F2E8] leading-tight">
+                        <h3 className="text-sm font-bold text-[#F8FAFC] leading-snug">
                           {product.name}
                         </h3>
-                        <span className="text-sm font-bold font-mono text-[#C9A227] shrink-0">
+                        <span className="text-sm font-bold font-mono text-amber-400 shrink-0">
                           {product.price.toLocaleString()} MMK
                         </span>
                       </div>
 
                       {product.description && (
-                        <p className="text-xs text-[#817D70] mt-1.5 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-[#A1A1AA] mt-1.5 line-clamp-2 leading-relaxed">
                           {product.description}
                         </p>
                       )}
@@ -537,8 +537,8 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
 
                     {/* Variant Selector */}
                     {activeVariants.length > 0 && (
-                      <div className="space-y-1.5 pt-2 border-t border-[#393426]">
-                        <div className="flex items-center justify-between text-[10px] text-[#817D70]">
+                      <div className="space-y-1.5 pt-2 border-t border-white/[0.06]">
+                        <div className="flex items-center justify-between text-[10px] text-[#A1A1AA]">
                           <span className="font-semibold uppercase tracking-wider">
                             {lang === 'my' ? 'အရွယ်အစား / အရောင်' : 'Select Option'}
                           </span>
@@ -568,10 +568,10 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                                 }
                                 className={`px-2.5 py-1 rounded-lg text-[11px] font-mono border transition-all cursor-pointer ${
                                   isSelected
-                                    ? 'bg-[#C9A227] text-[#0B0B09] border-[#C9A227] font-bold shadow-sm'
+                                    ? 'bg-amber-500 text-neutral-950 border-amber-400 font-bold shadow-sm'
                                     : isZero
-                                    ? 'bg-[#11110D] border-[#393426] text-[#817D70] opacity-40 cursor-not-allowed line-through'
-                                    : 'bg-[#1E1D14] hover:bg-[#252419] border-[#393426] text-[#F5F2E8]'
+                                    ? 'bg-neutral-900 border-white/5 text-neutral-600 opacity-40 cursor-not-allowed line-through'
+                                    : 'bg-neutral-800 hover:bg-neutral-700 border-white/10 text-neutral-200'
                                 }`}
                               >
                                 {v.color} / {v.size}
@@ -587,13 +587,13 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                       type="button"
                       disabled={isOutOfStock}
                       onClick={() => handleAddToCart(product)}
-                      className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                      className={`w-full py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                         isOutOfStock
-                          ? 'bg-[#1E1D14] border border-[#393426] text-[#817D70] opacity-50 cursor-not-allowed'
-                          : 'bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] shadow-md active:scale-[0.98]'
+                          ? 'bg-neutral-800 border border-white/5 text-neutral-500 opacity-50 cursor-not-allowed'
+                          : 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-lg active:scale-[0.98]'
                       }`}
                     >
-                      <ShoppingCart className="w-3.5 h-3.5" />
+                      <ShoppingCart className="w-4 h-4" />
                       <span>
                         {isOutOfStock
                           ? (lang === 'my' ? 'ပစ္စည်း ကုန်နေပါသည်' : 'Out of Stock')

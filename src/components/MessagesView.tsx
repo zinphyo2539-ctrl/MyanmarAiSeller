@@ -82,16 +82,16 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
   return (
     <div className="space-y-4">
       {/* Top Controls: Channel Tabs and Human Review Queue */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#181810] border border-[#393426] p-3 rounded-2xl">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#FFFFFF] border border-[#CBD5E1] p-3 rounded-2xl">
         {/* Channel Segmented Control */}
-        <div className="flex items-center gap-1 bg-[#11110D] p-1 rounded-xl border border-[#393426]/70">
+        <div className="flex items-center gap-1 bg-[#F8FAFC] p-1 rounded-xl border border-[#CBD5E1]">
           <button
             type="button"
             onClick={() => setSelectedChannel('all')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
               selectedChannel === 'all'
-                ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
-                : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
+                ? 'bg-[#2563EB] text-white shadow-sm'
+                : 'text-[#475569] hover:text-[#0F172A]'
             }`}
           >
             {lang === 'my' ? 'အားလုံး' : 'All Channels'}

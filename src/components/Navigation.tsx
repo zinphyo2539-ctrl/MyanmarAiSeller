@@ -70,7 +70,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   return (
     <nav
       aria-label="Primary Mobile Navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 bg-[#11110D]/95 backdrop-blur-md border-t border-[#393426] transition-all"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#CBD5E1] transition-all"
     >
       <div className="max-w-6xl mx-auto px-2">
         <div className="grid grid-cols-5 items-center h-16">
@@ -85,22 +85,22 @@ export const Navigation: React.FC<NavigationProps> = ({
                 type="button"
                 onClick={() => onSelectTab(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative min-h-[48px] flex flex-col items-center justify-center py-1 px-1 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] rounded-lg ${
+                className={`relative min-h-[48px] flex flex-col items-center justify-center py-1 px-1 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] rounded-lg ${
                   isActive
-                    ? 'text-[#E0BD55]'
-                    : 'text-[#817D70] hover:text-[#B9B5A7]'
+                    ? 'text-[#1D4ED8]'
+                    : 'text-[#64748B] hover:text-[#475569]'
                 }`}
               >
                 <div className="relative">
                   <Icon
                     className={`w-5 h-5 transition-transform ${
-                      isActive ? 'scale-110 text-[#C9A227]' : ''
+                      isActive ? 'scale-110 text-[#2563EB]' : ''
                     }`}
                   />
                   {item.badge !== undefined && item.badge > 0 && (
                     <span
                       aria-label={`${item.badge} notifications`}
-                      className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C9A227] text-[#0B0B09] text-[10px] font-bold flex items-center justify-center font-mono tabular-nums leading-none shadow"
+                      className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-[#2563EB] text-white text-[10px] font-bold flex items-center justify-center font-mono tabular-nums leading-none shadow"
                     >
                       {item.badge > 99 ? '99+' : item.badge}
                     </span>
@@ -108,7 +108,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 </div>
                 <span
                   className={`text-[10px] font-medium tracking-tight mt-1 truncate max-w-full ${
-                    isActive ? 'font-semibold text-[#E0BD55]' : 'text-[#817D70]'
+                    isActive ? 'font-semibold text-[#1D4ED8]' : 'text-[#64748B]'
                   }`}
                 >
                   {label}
@@ -116,7 +116,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 {isActive && (
                   <span
                     aria-hidden="true"
-                    className="absolute bottom-1 w-6 h-0.5 rounded-full bg-[#C9A227]"
+                    className="absolute bottom-1 w-6 h-0.5 rounded-full bg-[#2563EB]"
                   />
                 )}
               </button>

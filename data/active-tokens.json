@@ -678,5 +678,38 @@
       "provider": "local"
     },
     "createdAt": 1792264348628
+  },
+  "mm_token_8295bf5b743466bfa28717c6fb13d25ad8bbf869ebf2eae24ac24dbc0a0793f7": {
+    "user": {
+      "id": "user_owner_001",
+      "name": "Ko Aung (Merchant Owner)",
+      "email": "aung@yangonstyle.mm",
+      "role": "merchant_admin",
+      "merchantId": "merchant_001",
+      "provider": "local"
+    },
+    "createdAt": 1792265811986
+  },
+  "mm_token_3c95812f6214df0d8a123da0774ba22c51f7557418fef93a9266c12e40977b6d": {
+    "user": {
+      "id": "user_owner_001",
+      "name": "Ko Aung (Merchant Owner)",
+      "email": "aung@yangonstyle.mm",
+      "role": "merchant_admin",
+      "merchantId": "merchant_001",
+      "provider": "local"
+    },
+    "createdAt": 1792265816144
+  },
+  "mm_token_b7e99313d9520f4e35e61fc794a69a3e94c5f10a5d1e5c3d63c0d2fecb50d077": {
+    "user": {
+      "id": "user_owner_001",
+      "name": "Ko Aung (Merchant Owner)",
+      "email": "aung@yangonstyle.mm",
+      "role": "merchant_admin",
+      "merchantId": "merchant_001",
+      "provider": "local"
+    },
+    "createdAt": 1792268338994
   }
 }

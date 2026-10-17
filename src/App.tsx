@@ -648,21 +648,21 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0B09] text-[#F5F2E8] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#E9EEF5] text-[#0F172A] flex flex-col font-sans">
       {/* Top Application Header Bar */}
-      <header className="sticky top-0 z-40 bg-[#0B0B09]/95 backdrop-blur-md border-b border-[#393426] px-4 py-3">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 py-3 shadow-xs">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           {/* Brand Wordmark (Zone 1) */}
           <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-[#181810] border border-[#C9A227]/40 flex items-center justify-center text-[#C9A227]">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB]">
               <Bot className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-sm sm:text-base font-bold tracking-tight text-[#F5F2E8] block leading-tight">
+              <span className="text-sm sm:text-base font-bold tracking-tight text-[#0F172A] block leading-tight">
                 Myanmar AI Seller
               </span>
-              <span className="text-[10px] text-[#A88419] font-mono block leading-none">
-                Groq AI · Dark Yellow Edition
+              <span className="text-[10px] text-[#2563EB] font-mono block leading-none font-semibold">
+                Enterprise Edition
               </span>
             </div>
           </div>
@@ -670,7 +670,7 @@ export default function App() {
           {/* Desktop Navigation Links (Zone 2 - Single line, clean typography) */}
           <nav
             aria-label="Desktop Primary Navigation"
-            className="hidden md:flex items-center gap-1 bg-[#11110D] p-1 rounded-xl border border-[#393426]/70"
+            className="hidden md:flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1]"
           >
             {((user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local')
               ? ['home', 'messages', 'inventory', 'ai', 'profile', 'lab']
@@ -691,12 +691,12 @@ export default function App() {
                   key={tab}
                   type="button"
                   onClick={() => setCurrentTab(tab as NavigationDestination)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
+                      ? 'bg-[#2563EB] text-white shadow-sm'
                       : tab === 'lab'
-                      ? 'text-[#C9A227] hover:text-[#E0BD55]'
-                      : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
+                      ? 'text-[#2563EB] hover:text-[#1D4ED8] font-bold'
+                      : 'text-[#475569] hover:text-[#0F172A]'
                   }`}
                 >
                   {tab === 'lab' && <FlaskConical className="w-3.5 h-3.5" />}
@@ -714,8 +714,8 @@ export default function App() {
                 onClick={() => setCurrentTab('lab')}
                 className={`md:hidden px-2.5 py-1.5 border text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
                   currentTab === 'lab'
-                    ? 'bg-[#C9A227] text-[#0B0B09] border-[#C9A227]'
-                    : 'bg-[#181810] hover:bg-[#252419] border-[#C9A227]/40 text-[#C9A227] hover:text-[#F5F2E8]'
+                    ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                    : 'bg-white hover:bg-[#F8FAFC] border-[#CBD5E1] text-[#2563EB] hover:text-[#1D4ED8]'
                 }`}
                 title={lang === 'my' ? 'AI Chat စမ်းသပ်ခန်း' : 'AI Testing Lab'}
               >
@@ -727,16 +727,16 @@ export default function App() {
             <button
               type="button"
               onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
-              className="px-2.5 py-1.5 bg-[#181810] hover:bg-[#252419] border border-[#393426] text-xs font-semibold text-[#B9B5A7] hover:text-[#F5F2E8] rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+              className="px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-semibold text-[#475569] hover:text-[#0F172A] rounded-lg transition-colors cursor-pointer flex items-center gap-1"
             >
-              <Globe className="w-3.5 h-3.5 text-[#C9A227]" />
+              <Globe className="w-3.5 h-3.5 text-[#2563EB]" />
               <span className="font-mono uppercase">{lang}</span>
             </button>
 
             <button
               type="button"
               onClick={handleLogout}
-              className="p-1.5 bg-[#181810] hover:bg-[#252419] border border-[#393426] text-[#817D70] hover:text-[#E06B61] rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#64748B] hover:text-[#E06B61] rounded-lg transition-colors cursor-pointer"
               title={lang === 'my' ? 'အကောင့်ထွက်မည်' : 'Sign Out'}
             >
               <LogOut className="w-4 h-4" />
