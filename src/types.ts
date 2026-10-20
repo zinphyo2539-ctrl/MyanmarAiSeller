@@ -19,6 +19,7 @@ export interface Product {
   discount: string | null;
   status: string;
   imageUrl?: string | null;
+  category?: string | null;
 }
 
 export interface OrderItem {
@@ -57,6 +58,24 @@ export interface StoreSettings {
   deliveryInfo: string;
   paymentInstructions: string;
   isPublished: boolean;
+}
+
+export interface MarketplaceStore {
+  slug: string;
+  storeName: string;
+  brandName?: string;
+  description: string;
+  logoUrl?: string;
+  coverUrl?: string;
+  deliveryInfo?: string;
+  productCount: number;
+  products: Product[];
+}
+
+export interface MarketplaceResponse {
+  stores: MarketplaceStore[];
+  totalStores: number;
+  totalProducts: number;
 }
 
 export interface AiConfig {

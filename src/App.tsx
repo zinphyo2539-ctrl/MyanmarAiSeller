@@ -45,6 +45,8 @@ import { AiTestingLabView } from './components/AiTestingLabView';
 import { ConfigureModal } from './components/ConfigureModal';
 import { PublicStoreModal } from './components/PublicStoreModal';
 import { CustomerStorefrontView } from './components/CustomerStorefrontView';
+import { MarketplaceView } from './components/MarketplaceView';
+import { OnboardingView } from './components/OnboardingView';
 
 export default function App() {
   const [lang, setLang] = useState<'my' | 'en'>('my');
@@ -93,7 +95,7 @@ export default function App() {
   const [configTargetProvider, setConfigTargetProvider] = useState<'google' | 'facebook' | 'tiktok'>('google');
   const [isPublicStoreOpen, setIsPublicStoreOpen] = useState(false);
 
-  // Dedicated Public Storefront Routing Detection
+  // Dedicated Public Storefront & Marketplace Routing Detection
   const [publicStoreSlug, setPublicStoreSlug] = useState<string | null>(() => {
     try {
       if (typeof window === 'undefined') return null;
@@ -113,28 +115,75 @@ export default function App() {
     }
   });
 
+  const [isMarketplace, setIsMarketplace] = useState<boolean>(() => {
+    try {
+      if (typeof window === 'undefined') return false;
+      if (window.location.pathname.startsWith('/marketplace')) return true;
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('page') === 'marketplace' || params.has('marketplace')) return true;
+      if (window.location.hash.includes('marketplace')) return true;
+      return false;
+    } catch {
+      return false;
+    }
+  });
+
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(() => {
+    try {
+      if (typeof window === 'undefined') return null;
+      const params = new URLSearchParams(window.location.search);
+      return params.get('product') || null;
+    } catch {
+      return null;
+    }
+  });
+
   useEffect(() => {
     const handleLocationChange = () => {
       try {
-        const pathMatch = window.location.pathname.match(/^\/store\/([a-zA-Z0-9_-]+)/);
-        if (pathMatch) {
-          setPublicStoreSlug(pathMatch[1]);
+        const path = window.location.pathname;
+        const search = window.location.search;
+        const hash = window.location.hash;
+
+        if (path.startsWith('/marketplace') || search.includes('page=marketplace') || hash.includes('marketplace')) {
+          setIsMarketplace(true);
+          setPublicStoreSlug(null);
+          setSelectedProductId(null);
           return;
         }
-        const params = new URLSearchParams(window.location.search);
+
+        const pathMatch = path.match(/^\/store\/([a-zA-Z0-9_-]+)/);
+        if (pathMatch) {
+          setPublicStoreSlug(pathMatch[1]);
+          setIsMarketplace(false);
+          const params = new URLSearchParams(search);
+          setSelectedProductId(params.get('product') || null);
+          return;
+        }
+
+        const params = new URLSearchParams(search);
         const querySlug = params.get('store');
         if (querySlug) {
           setPublicStoreSlug(querySlug);
+          setIsMarketplace(false);
+          setSelectedProductId(params.get('product') || null);
           return;
         }
-        const hashMatch = window.location.hash.match(/#\/?store\/([a-zA-Z0-9_-]+)/) || window.location.hash.match(/#.*store=([a-zA-Z0-9_-]+)/);
+
+        const hashMatch = hash.match(/#\/?store\/([a-zA-Z0-9_-]+)/) || hash.match(/#.*store=([a-zA-Z0-9_-]+)/);
         if (hashMatch) {
           setPublicStoreSlug(hashMatch[1]);
+          setIsMarketplace(false);
           return;
         }
+
         setPublicStoreSlug(null);
+        setIsMarketplace(false);
+        setSelectedProductId(null);
       } catch {
         setPublicStoreSlug(null);
+        setIsMarketplace(false);
+        setSelectedProductId(null);
       }
     };
 
@@ -145,6 +194,17 @@ export default function App() {
       window.removeEventListener('hashchange', handleLocationChange);
     };
   }, []);
+
+  // Sync document title with active customer or merchant context
+  useEffect(() => {
+    if (isMarketplace) {
+      document.title = 'ShopSone (ဆိုင်စုံ) - ဆိုင်စုံ၊ ပစ္စည်းစုံ၊ တစ်နေရာတည်း | Powered by Myanmar AI Seller';
+    } else if (publicStoreSlug) {
+      document.title = `${publicStoreSlug} | Powered by Myanmar AI Seller`;
+    } else {
+      document.title = 'Myanmar AI Seller - Merchant Platform';
+    }
+  }, [isMarketplace, publicStoreSlug]);
 
   const getHeaders = useCallback((): Record<string, string> => {
     const token = authToken || localStorage.getItem('myanmar_seller_token');
@@ -552,12 +612,79 @@ export default function App() {
     return (
       <CustomerStorefrontView
         slug={publicStoreSlug}
+        initialProductId={selectedProductId}
+        onNavigateToMarketplace={() => {
+          try {
+            window.history.pushState({}, '', '/marketplace');
+          } catch {}
+          setIsMarketplace(true);
+          setPublicStoreSlug(null);
+          setSelectedProductId(null);
+        }}
         onNavigateToMerchant={() => {
           try {
             window.history.pushState({}, '', '/');
           } catch {}
           setPublicStoreSlug(null);
+          setIsMarketplace(false);
+          setSelectedProductId(null);
         }}
+      />
+    );
+  }
+
+  // Dedicated Public Multi-Store Marketplace (Accessible to all shoppers without merchant authentication)
+  if (isMarketplace) {
+    return (
+      <MarketplaceView
+        onSelectStore={(slug, productId) => {
+          try {
+            const url = productId ? `/store/${slug}?product=${productId}` : `/store/${slug}`;
+            window.history.pushState({}, '', url);
+          } catch {}
+          setPublicStoreSlug(slug);
+          setSelectedProductId(productId || null);
+          setIsMarketplace(false);
+        }}
+        onNavigateToMerchant={() => {
+          try {
+            window.history.pushState({}, '', '/');
+          } catch {}
+          setIsMarketplace(false);
+          setPublicStoreSlug(null);
+          setSelectedProductId(null);
+        }}
+      />
+    );
+  }
+
+  // Authenticated but requires shop onboarding
+  if (isAuthenticated === true && user && !user.merchantId) {
+    return (
+      <OnboardingView
+        user={user}
+        lang={lang}
+        onCompleteOnboarding={async (onboardingData) => {
+          const res = await fetch('/api/merchant/onboard', {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(onboardingData)
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Onboarding failed');
+          }
+          if (data.token) {
+            try {
+              localStorage.setItem('myanmar_seller_token', data.token);
+              localStorage.setItem('myanmar_seller_user', JSON.stringify(data.user));
+            } catch {}
+            setAuthToken(data.token);
+            setUser(data.user);
+          }
+          await fetchAllData();
+        }}
+        onLogout={handleLogout}
       />
     );
   }
@@ -609,6 +736,20 @@ export default function App() {
             >
               <ShieldCheck className="w-4 h-4 text-[#C9A227]" />
               <span>{lang === 'my' ? 'စတိုးအကောင့်ဖြင့် ဝင်ရောက်မည် (Yangon Style)' : 'Sign In to Merchant Workspace (Yangon Style)'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  window.history.pushState({}, '', '/marketplace');
+                } catch {}
+                setIsMarketplace(true);
+              }}
+              className="w-full py-2.5 px-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#2563EB]/50 text-xs font-bold text-[#60A5FA] hover:text-white rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <Store className="w-4 h-4 text-[#60A5FA]" />
+              <span>{lang === 'my' ? 'ShopSone (ဆိုင်စုံ) သို့ သွားမည်' : 'Explore ShopSone Marketplace'}</span>
             </button>
 
             <button
@@ -723,6 +864,22 @@ export default function App() {
                 <span>Lab</span>
               </button>
             )}
+
+            {/* Public Marketplace Link */}
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  window.history.pushState({}, '', '/marketplace');
+                } catch {}
+                setIsMarketplace(true);
+              }}
+              className="px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+              title={lang === 'my' ? 'ဆိုင်စုံ (ShopSone) သို့ သွားမည်' : 'View ShopSone Marketplace'}
+            >
+              <Store className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span className="hidden sm:inline">{lang === 'my' ? 'ဆိုင်စုံ' : 'ShopSone'}</span>
+            </button>
 
             <button
               type="button"

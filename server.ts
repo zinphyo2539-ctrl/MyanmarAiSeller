@@ -177,6 +177,17 @@ export function initPassportStrategies() {
 initPassportStrategies();
 
 const DEFAULT_DB = {
+  users: {
+    "user_owner_001": {
+      id: "user_owner_001",
+      name: "Ko Aung (Merchant Owner)",
+      email: "aung@yangonstyle.mm",
+      role: "merchant_admin",
+      merchantId: "merchant_001",
+      provider: "local",
+      createdAt: new Date().toISOString()
+    }
+  },
   merchants: {
     "merchant_001": {
       id: "merchant_001",
@@ -327,6 +338,17 @@ function readDb() {
       try {
         const parsed = JSON.parse(data);
         if (!parsed.conversations) parsed.conversations = [];
+        if (!parsed.users) parsed.users = {
+          "user_owner_001": {
+            id: "user_owner_001",
+            name: "Ko Aung (Merchant Owner)",
+            email: "aung@yangonstyle.mm",
+            role: "merchant_admin",
+            merchantId: "merchant_001",
+            provider: "local",
+            createdAt: new Date().toISOString()
+          }
+        };
         return parsed;
       } catch (parseErr: any) {
         dbIntegrityError = `Database JSON parsing error: ${parseErr.message}`;
@@ -425,17 +447,28 @@ function authMiddleware(req: any, res: any, next: any) {
   }
 
   if (user) {
-    req.user = user;
     const db = readDb();
-    const merchantId = user.merchantId || 'merchant_001';
+    if (!db.users) db.users = {};
+    const dbUser = db.users[user.id] || user;
+    req.user = dbUser;
+
+    const merchantId = dbUser.merchantId;
+    if (!merchantId) {
+      return res.status(403).json({
+        error: 'Merchant onboarding required. Please complete shop setup.',
+        code: 'ONBOARDING_REQUIRED',
+        user: dbUser
+      });
+    }
+
     const merchant = db.merchants[merchantId];
     if (!merchant) {
-      return res.status(403).json({ error: 'Unauthorized: Merchant not found' });
+      return res.status(403).json({ error: 'Unauthorized: Merchant workspace not found', code: 'MERCHANT_NOT_FOUND' });
     }
     req.merchant = merchant;
     return next();
   }
-  res.status(401).json({ error: 'Unauthorized: Authentication required' });
+  return res.status(401).json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' });
 }
 
 // Auth Routes
@@ -577,7 +610,29 @@ app.get('/api/auth/google/callback', (req: any, res: any, next: any) => {
         return res.redirect('/?error=login_failed');
       }
 
-      const token = createAuthToken(user);
+      const email = user.emails?.[0]?.value || user.email || `${user.id || 'google_user'}@shop-sone.mm`;
+      const providerId = `google_${user.id || crypto.randomBytes(6).toString('hex')}`;
+
+      const appUser = withDbTransaction((db) => {
+        if (!db.users) db.users = {};
+        let existing = Object.values(db.users).find((u: any) => u.email === email || u.providerId === providerId);
+        if (!existing) {
+          const newUserId = providerId;
+          existing = {
+            id: newUserId,
+            email,
+            name: user.displayName || user.name || 'Merchant Owner',
+            merchantId: null,
+            provider: 'google',
+            providerId,
+            createdAt: new Date().toISOString()
+          };
+          db.users[newUserId] = existing;
+        }
+        return existing;
+      });
+
+      const token = createAuthToken(appUser);
       req.session.save(() => {
         return res.send(`
           <!DOCTYPE html>
@@ -600,11 +655,11 @@ app.get('/api/auth/google/callback', (req: any, res: any, next: any) => {
                   type: 'OAUTH_AUTH_SUCCESS',
                   provider: 'google',
                   token: ${JSON.stringify(token)},
-                  user: ${JSON.stringify(user)}
+                  user: ${JSON.stringify(appUser)}
                 };
                 try {
                   localStorage.setItem('myanmar_seller_token', ${JSON.stringify(token)});
-                  localStorage.setItem('myanmar_seller_user', JSON.stringify(${JSON.stringify(user)}));
+                  localStorage.setItem('myanmar_seller_user', JSON.stringify(${JSON.stringify(appUser)}));
                 } catch(e) {}
 
                 try {
@@ -689,17 +744,23 @@ app.post('/api/auth/configure-provider', (req: any, res: any) => {
 
 app.post('/api/auth/dev-login', (req: any, res: any) => {
   const db = readDb();
-  const targetMerchant = db.merchants['merchant_001'];
-  const devUser = {
-    id: 'user_owner_001',
-    name: 'Ko Aung (Merchant Owner)',
-    email: targetMerchant?.email || 'aung@yangonstyle.mm',
-    role: 'merchant_admin',
-    merchantId: 'merchant_001',
-    provider: 'local'
-  };
+  if (!db.users) db.users = {};
+  const devId = 'user_owner_001';
+  let devUser = db.users[devId];
+  if (!devUser) {
+    devUser = {
+      id: devId,
+      name: 'Ko Aung (Merchant Owner)',
+      email: 'aung@yangonstyle.mm',
+      role: 'merchant_admin',
+      merchantId: 'merchant_001',
+      provider: 'local',
+      createdAt: new Date().toISOString()
+    };
+    db.users[devId] = devUser;
+  }
   const token = createAuthToken(devUser);
-  res.json({ success: true, token, user: devUser });
+  res.json({ success: true, token, user: devUser, requiresOnboarding: !devUser.merchantId });
 });
 
 app.get('/api/auth/me', (req: any, res: any) => {
@@ -716,15 +777,32 @@ app.get('/api/auth/me', (req: any, res: any) => {
   }
 
   if (tokenUser) {
-    return res.json({ isAuthenticated: true, user: tokenUser, token });
+    const db = readDb();
+    if (!db.users) db.users = {};
+    const dbUser = db.users[tokenUser.id] || tokenUser;
+    const sessionToken = token || createAuthToken(dbUser);
+    return res.json({
+      isAuthenticated: true,
+      user: dbUser,
+      requiresOnboarding: !dbUser.merchantId,
+      token: sessionToken
+    });
   }
 
   if (req.isAuthenticated && req.isAuthenticated() && req.user) {
-    const sessionToken = createAuthToken(req.user);
-    return res.json({ isAuthenticated: true, user: req.user, token: sessionToken });
+    const db = readDb();
+    if (!db.users) db.users = {};
+    const dbUser = db.users[req.user.id] || req.user;
+    const sessionToken = createAuthToken(dbUser);
+    return res.json({
+      isAuthenticated: true,
+      user: dbUser,
+      requiresOnboarding: !dbUser.merchantId,
+      token: sessionToken
+    });
   }
 
-  res.json({ isAuthenticated: false, user: null });
+  res.json({ isAuthenticated: false, user: null, requiresOnboarding: false });
 });
 
 app.post('/api/auth/logout', (req: any, res: any) => {
@@ -801,6 +879,111 @@ app.put('/api/merchant/store', authMiddleware, async (req: any, res: any) => {
   }
 });
 
+app.post('/api/merchant/onboard', authMiddleware, async (req: any, res: any) => {
+  try {
+    const currentUser = req.user;
+    if (currentUser.merchantId) {
+      return res.status(400).json({ error: 'Merchant workspace already configured for this user.' });
+    }
+
+    const { storeName, slug, description, deliveryInfo, paymentInstructions, ownerName, phone, isPublished } = req.body;
+    if (!storeName || !slug || !storeName.trim() || !slug.trim()) {
+      return res.status(400).json({ error: 'Store name and unique public slug are required.' });
+    }
+
+    const normalizedSlug = slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-');
+    if (normalizedSlug.length < 3) {
+      return res.status(400).json({ error: 'Slug must be at least 3 alphanumeric characters.' });
+    }
+
+    const newMerchant = await withDbTransaction((db) => {
+      if (!db.merchants) db.merchants = {};
+      if (!db.users) db.users = {};
+
+      const existingSlug = Object.values(db.merchants).find((m: any) => m.store && m.store.slug === normalizedSlug);
+      if (existingSlug) {
+        throw new Error(`Store slug "${normalizedSlug}" is already taken. Please choose another unique slug.`);
+      }
+
+      const merchantId = `merchant_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      const merchantObj = {
+        id: merchantId,
+        shopName: storeName.trim(),
+        ownerName: ownerName ? ownerName.trim() : (currentUser.name || 'Merchant Owner'),
+        email: currentUser.email || '',
+        phone: phone ? phone.trim() : '',
+        store: {
+          slug: normalizedSlug,
+          storeName: storeName.trim(),
+          brandName: storeName.trim(),
+          description: description ? description.trim() : '',
+          logoUrl: '',
+          coverUrl: '',
+          deliveryInfo: deliveryInfo ? deliveryInfo.trim() : 'Standard delivery within 2-3 days.',
+          paymentInstructions: paymentInstructions ? paymentInstructions.trim() : 'KBZPay: 09-XXXXXXXXX',
+          isPublished: isPublished ?? true
+        },
+        aiConfig: {
+          enabled: true,
+          preferredLanguage: "myanmar",
+          replyStyle: "friendly",
+          customInstructions: "Customer များကို ယဉ်ကျေးပြီး ဖော်ရွေစွာ ပြန်ဖြေပါ။",
+          salesBehavior: {
+            greeting: "greet_new",
+            responseLength: "balanced",
+            emojiPreference: "moderate",
+            productRecommendation: "answer_first",
+            followUp: "needed_only",
+            salesApproach: "helpful_recommendations",
+            discountBehavior: "verified_only",
+            uncertainPolicy: "escalate_to_human"
+          },
+          humanHandoff: {
+            enabled: true,
+            triggerOnUncertain: true,
+            triggerOnComplaint: true,
+            triggerOnHumanRequest: true,
+            notificationChannel: "telegram_staff"
+          },
+          schemaVersion: 1,
+          updatedAt: new Date().toISOString()
+        }
+      };
+
+      db.merchants[merchantId] = merchantObj;
+
+      if (db.users[currentUser.id]) {
+        db.users[currentUser.id].merchantId = merchantId;
+      }
+      currentUser.merchantId = merchantId;
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'ONBOARD_MERCHANT_SHOP',
+        actor: currentUser.id,
+        details: `Successfully onboarded merchant shop "${storeName}" with slug "${normalizedSlug}".`,
+        timestamp: new Date().toISOString()
+      });
+
+      return merchantObj;
+    });
+
+    const updatedUser = { ...currentUser, merchantId: newMerchant.id };
+    const newToken = createAuthToken(updatedUser);
+
+    res.status(201).json({
+      success: true,
+      merchant: newMerchant,
+      user: updatedUser,
+      token: newToken
+    });
+  } catch (err: any) {
+    const status = err.message.includes('already taken') ? 409 : 400;
+    res.status(status).json({ error: err.message || 'Onboarding failed' });
+  }
+});
+
 // Public Storefront Data
 app.get('/api/public/store/:slug', (req: any, res: any) => {
   const db = readDb();
@@ -817,6 +1000,93 @@ app.get('/api/public/store/:slug', (req: any, res: any) => {
     store: merchantEntry.store,
     products
   });
+});
+
+// Public Multi-Store Marketplace Data
+app.get('/api/public/marketplace', (req: any, res: any) => {
+  try {
+    const db = readDb();
+    const query = typeof req.query.q === 'string' ? req.query.q.trim().toLowerCase() : '';
+    const categoryQuery = typeof req.query.category === 'string' ? req.query.category.trim().toLowerCase() : '';
+
+    const merchantsList = Object.values(db.merchants || {}) as any[];
+
+    // Strict eligibility: merchant must have a store, a valid slug, and isPublished === true
+    const publishedMerchants = merchantsList.filter((m: any) => {
+      return m && m.store && typeof m.store.slug === 'string' && m.store.slug.trim().length > 0 && m.store.isPublished === true;
+    });
+
+    const stores = [];
+    let totalProductsCount = 0;
+
+    for (const merchant of publishedMerchants) {
+      // Only active products for this merchant
+      let activeProducts = (db.products || []).filter((p: any) => p.merchantId === merchant.id && p.status === 'active');
+
+      if (categoryQuery) {
+        activeProducts = activeProducts.filter((p: any) => (p.category || '').toLowerCase() === categoryQuery);
+      }
+
+      if (query) {
+        const storeMatch = (merchant.store.storeName || '').toLowerCase().includes(query) ||
+                           (merchant.store.description || '').toLowerCase().includes(query) ||
+                           (merchant.store.slug || '').toLowerCase().includes(query);
+        const productMatches = activeProducts.filter((p: any) =>
+          (p.name || '').toLowerCase().includes(query) ||
+          (p.description || '').toLowerCase().includes(query)
+        );
+
+        if (!storeMatch && productMatches.length === 0) {
+          continue;
+        }
+
+        if (!storeMatch && productMatches.length > 0) {
+          activeProducts = productMatches;
+        }
+      }
+
+      totalProductsCount += activeProducts.length;
+
+      // Sanitize store and products - NEVER expose credentials, tokens, or private merchant info
+      stores.push({
+        slug: merchant.store.slug,
+        storeName: merchant.store.storeName,
+        brandName: merchant.store.brandName || '',
+        description: merchant.store.description || '',
+        logoUrl: merchant.store.logoUrl || '',
+        coverUrl: merchant.store.coverUrl || '',
+        deliveryInfo: merchant.store.deliveryInfo || '',
+        productCount: activeProducts.length,
+        products: activeProducts.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          sku: p.sku || '',
+          price: p.price,
+          currency: p.currency || 'MMK',
+          description: p.description || '',
+          discount: p.discount || null,
+          category: p.category || null,
+          imageUrl: p.imageUrl || null,
+          variants: (p.variants || []).map((v: any) => ({
+            id: v.id,
+            color: v.color,
+            size: v.size,
+            stock: v.stock,
+            sku: v.sku || ''
+          }))
+        }))
+      });
+    }
+
+    res.json({
+      stores,
+      totalStores: stores.length,
+      totalProducts: totalProductsCount
+    });
+  } catch (err: any) {
+    console.error('Error fetching marketplace data:', err);
+    res.status(500).json({ error: 'Failed to fetch marketplace data' });
+  }
 });
 
 // Public Server-Validated Checkout & Order Creation

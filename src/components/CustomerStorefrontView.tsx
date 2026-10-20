@@ -28,6 +28,8 @@ import { Product, ProductVariant, StoreSettings } from '../types';
 interface CustomerStorefrontViewProps {
   slug: string;
   onNavigateToMerchant?: () => void;
+  onNavigateToMarketplace?: () => void;
+  initialProductId?: string | null;
 }
 
 interface CartItem {
@@ -43,9 +45,12 @@ interface CartItem {
 
 export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   slug,
-  onNavigateToMerchant
+  onNavigateToMerchant,
+  onNavigateToMarketplace,
+  initialProductId
 }) => {
   const [lang, setLang] = useState<'my' | 'en'>('my');
+  const [copiedStoreLink, setCopiedStoreLink] = useState(false);
   const [store, setStore] = useState<StoreSettings | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,6 +122,37 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   useEffect(() => {
     fetchStoreData();
   }, [fetchStoreData]);
+
+  // Auto-scroll / highlight initial product from Marketplace direct link
+  useEffect(() => {
+    if (initialProductId && products.length > 0) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`product-${initialProductId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [initialProductId, products]);
+
+  const handleCopyStoreLink = () => {
+    try {
+      const url = `${window.location.origin}/store/${slug}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedStoreLink(true);
+      setTimeout(() => setCopiedStoreLink(false), 2500);
+    } catch {}
+  };
 
   // Handle Cart Operations
   const handleAddToCart = (product: Product) => {
@@ -347,7 +383,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                 </h1>
                 <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-[#65B985]/15 border border-[#65B985]/30 text-[#65B985] text-[10px] font-semibold">
                   <ShieldCheck className="w-3 h-3" />
-                  <span>{lang === 'my' ? 'အတည်ပြုပြီး' : 'Verified'}</span>
+                  <span>{lang === 'my' ? 'ဖွင့်လှစ်ပြီး' : 'Published'}</span>
                 </span>
               </div>
               <p className="text-[11px] text-[#817D70] truncate max-w-xs sm:max-w-md">
@@ -357,6 +393,43 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* Back to Marketplace */}
+            {onNavigateToMarketplace && (
+              <button
+                type="button"
+                onClick={onNavigateToMarketplace}
+                className="px-2.5 py-1.5 rounded-xl bg-[#181810] hover:bg-[#1E1D14] border border-[#2563EB]/40 hover:border-[#2563EB] text-xs font-semibold text-[#F5F2E8] hover:text-[#93C5FD] flex items-center gap-1.5 transition-colors cursor-pointer"
+                title={lang === 'my' ? 'ဆိုင်စုံ (ShopSone) သို့ သွားမည်' : 'ShopSone Marketplace'}
+              >
+                <Store className="w-3.5 h-3.5 text-[#3B82F6]" />
+                <span className="hidden sm:inline">{lang === 'my' ? 'ဆိုင်စုံ' : 'ShopSone'}</span>
+              </button>
+            )}
+
+            {/* Copy Direct Store Link */}
+            <button
+              type="button"
+              onClick={handleCopyStoreLink}
+              className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                copiedStoreLink
+                  ? 'bg-[#65B985]/20 border-[#65B985] text-[#65B985]'
+                  : 'bg-[#181810] hover:bg-[#1E1D14] border-[#393426] text-[#B9B5A7] hover:text-[#F5F2E8]'
+              }`}
+              title={lang === 'my' ? 'စတိုးလင့်ခ် ကူးယူမည်' : 'Copy Store Link'}
+            >
+              {copiedStoreLink ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#65B985]" />
+                  <span className="hidden sm:inline">{lang === 'my' ? 'ကူးပြီး' : 'Copied'}</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-[#C9A227]" />
+                  <span className="hidden sm:inline">{lang === 'my' ? 'လင့်ခ်ကူးရန်' : 'Copy Link'}</span>
+                </>
+              )}
+            </button>
+
             {/* Language Switcher */}
             <button
               type="button"
@@ -475,7 +548,12 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
               return (
                 <div
                   key={product.id}
-                  className="bg-[#1A1A1A] border border-white/[0.08] hover:border-[#C9A227]/40 rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200 shadow-xl group"
+                  id={`product-${product.id}`}
+                  className={`bg-[#1A1A1A] border rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 shadow-xl group ${
+                    product.id === initialProductId
+                      ? 'border-[#C9A227] ring-2 ring-[#C9A227]/50 shadow-2xl scale-[1.01]'
+                      : 'border-white/[0.08] hover:border-[#C9A227]/40'
+                  }`}
                 >
                   {/* Product Image & Badges */}
                   <div className="relative aspect-square w-full bg-[#11110D] overflow-hidden flex items-center justify-center">
