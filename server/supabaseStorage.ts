@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getErrorChain } from './diagnostics.ts';
 
 export const SUPABASE_ENV_VARS = {
   URL: 'SUPABASE_URL',
@@ -129,11 +130,6 @@ export function getSupabaseClient(): SupabaseClient {
   return cachedClient;
 }
 
-/**
- * Validates image buffer magic bytes / signatures and claimed MIME type.
- * Supports JPEG, PNG, WEBP.
- * Rejects SVG, HTML, executables, mismatched signatures, and empty files.
- */
 export function validateImageBuffer(buffer: Buffer, mimetype: string): {
   isValid: boolean;
   error?: string;
@@ -143,7 +139,6 @@ export function validateImageBuffer(buffer: Buffer, mimetype: string): {
     return { isValid: false, error: 'Uploaded file is empty or invalid.' };
   }
 
-  // Max 5 MiB check
   const MAX_SIZE = 5 * 1024 * 1024;
   if (buffer.length > MAX_SIZE) {
     return { isValid: false, error: 'File size exceeds 5 MiB maximum limit.' };
@@ -151,10 +146,7 @@ export function validateImageBuffer(buffer: Buffer, mimetype: string): {
 
   const normalizedMime = (mimetype || '').toLowerCase().trim();
 
-  // Check magic bytes
-  // JPEG: FF D8 FF
   const isJpeg = buffer.length > 2 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
-  // PNG: 89 50 4E 47 0D 0A 1A 0A
   const isPng =
     buffer.length > 7 &&
     buffer[0] === 0x89 &&
@@ -165,7 +157,6 @@ export function validateImageBuffer(buffer: Buffer, mimetype: string): {
     buffer[5] === 0x0a &&
     buffer[6] === 0x1a &&
     buffer[7] === 0x0a;
-  // WEBP: RIFF [4 bytes size] WEBP
   const isWebp =
     buffer.length > 11 &&
     buffer[0] === 0x52 &&
@@ -177,7 +168,6 @@ export function validateImageBuffer(buffer: Buffer, mimetype: string): {
     buffer[10] === 0x42 &&
     buffer[11] === 0x50;
 
-  // Check for SVG / HTML injection attempts in buffer text
   const sampleHeader = buffer.subarray(0, 256).toString('utf8').toLowerCase();
   if (
     sampleHeader.includes('<svg') ||
@@ -216,10 +206,6 @@ export function validateImageBuffer(buffer: Buffer, mimetype: string): {
   };
 }
 
-/**
- * Uploads an authenticated product image buffer to Supabase Storage.
- * Path format: {merchantId}/products/{timestamp}_{random}.{ext}
- */
 export async function uploadProductImageToSupabase(
   merchantId: string,
   fileBuffer: Buffer,
@@ -253,13 +239,11 @@ export async function uploadProductImageToSupabase(
   });
 
   if (error) {
+    const errorChain = getErrorChain(error);
     console.error('[SupabaseStorage] Upload network/provider failure:', {
-      message: error.message,
       bucket: bucket,
       path: objectPath,
-      name: error.name,
-      // @ts-ignore
-      code: error.code || 'UNKNOWN_ERROR'
+      chain: errorChain,
     });
     throw new Error(`Storage upload failed: ${error.message}`);
   }

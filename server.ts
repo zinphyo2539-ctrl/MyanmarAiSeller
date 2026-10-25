@@ -1352,6 +1352,46 @@ app.post('/api/merchant/upload-image', authMiddleware, upload.single('image'), a
   }
 });
 
+// Diagnostic Connectivity Endpoint
+app.get('/api/diag/connectivity', authMiddleware, async (req: any, res: any) => {
+  const supabaseUrl = process.env.SUPABASE_URL || 'missing_url';
+  const urlObj = new URL(supabaseUrl);
+  const hostname = urlObj.hostname;
+  const start = Date.now();
+  
+  const { lookup } = await import('dns').then(m => m.promises);
+  
+  let dnsResult: any = {};
+  try {
+    dnsResult = await lookup(hostname);
+  } catch (err: any) {
+    dnsResult = { error: err.code, message: err.message };
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(`${supabaseUrl}/rest/v1/`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    res.json({
+      status: 'success',
+      hostname,
+      dns: dnsResult,
+      duration: Date.now() - start,
+      httpStatus: response.status
+    });
+  } catch (err: any) {
+    const { getErrorChain } = await import('./server/diagnostics.ts');
+    res.json({
+      status: 'failed',
+      hostname,
+      dns: dnsResult,
+      duration: Date.now() - start,
+      error: getErrorChain(err)
+    });
+  }
+});
+
 // Cloudflare Workers AI Product Photo Generator Endpoint
 app.post('/api/merchant/ai-generate-photo', authMiddleware, upload.single('image'), async (req: any, res: any) => {
   try {

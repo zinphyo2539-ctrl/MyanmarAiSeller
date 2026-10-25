@@ -842,5 +842,17 @@
       "createdAt": "2026-10-23T22:54:21.010Z"
     },
     "createdAt": 1792796061010
+  },
+  "mm_token_b6c25317a0cbf533da93a34be4bacc7a18ec596a48c88a6e64eae6a023c13474": {
+    "user": {
+      "id": "user_owner_001",
+      "name": "Ko Aung (Merchant Owner)",
+      "email": "aung@yangonstyle.mm",
+      "role": "merchant_admin",
+      "merchantId": "merchant_001",
+      "provider": "local",
+      "createdAt": "2026-10-25T08:54:31.389Z"
+    },
+    "createdAt": 1792918471390
   }
 }
