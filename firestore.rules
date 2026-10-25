@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /_health_check/{docId} {
+      allow read, write: if true;
+    }
+
+    match /users/{userId} {
+      allow get, list: if true;
+      allow write: if isValidId(userId)
+        && request.resource.data.id is string
+        && request.resource.data.email is string
+        && request.resource.data.provider is string;
+    }
+
+    match /merchants/{merchantId} {
+      allow get, list: if true;
+      allow write: if isValidId(merchantId)
+        && request.resource.data.id is string
+        && request.resource.data.shopName is string;
+    }
+
+    match /products/{productId} {
+      allow get, list: if true;
+      allow write: if isValidId(productId)
+        && request.resource.data.id is string
+        && request.resource.data.merchantId is string
+        && request.resource.data.name is string;
+    }
+
+    match /orders/{orderId} {
+      allow get, list: if true;
+      allow write: if isValidId(orderId)
+        && request.resource.data.id is string
+        && request.resource.data.merchantId is string;
+    }
+
+    match /sampleReplies/{sampleId} {
+      allow get, list: if true;
+      allow write: if isValidId(sampleId)
+        && request.resource.data.id is string
+        && request.resource.data.merchantId is string;
+    }
+
+    match /auditLogs/{logId} {
+      allow get, list: if true;
+      allow write: if isValidId(logId)
+        && request.resource.data.id is string;
+    }
+
+    match /authTokens/{tokenId} {
+      allow get, list, write: if true;
+    }
+  }
+}

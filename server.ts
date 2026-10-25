@@ -16,6 +16,16 @@ import { initStorageAdapter, getStorageStatus } from './server/storage.ts';
 import { validateProductImageUrl } from './server/validator.ts';
 import multer from 'multer';
 import { uploadProductImageToSupabase, initSupabaseStorageAdapter } from './server/supabaseStorage.ts';
+import {
+  initPersistence,
+  getDb,
+  withDbTransaction,
+  saveAuthToken,
+  getUserByAuthToken,
+  deleteAuthToken,
+  type UserRecord,
+  type DbState
+} from './server/db.ts';
 
 dotenv.config();
 
@@ -50,46 +60,14 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 // Token store for resilient cross-origin iframe authentication
-let activeTokens: Record<string, { user: any; createdAt: number }> = {};
-
-function loadActiveTokens() {
-  try {
-    if (fs.existsSync(TOKENS_FILE)) {
-      activeTokens = JSON.parse(fs.readFileSync(TOKENS_FILE, 'utf-8'));
-    }
-  } catch (e) {
-    activeTokens = {};
-  }
-}
-
-function saveActiveTokens() {
-  try {
-    fs.writeFileSync(TOKENS_FILE, JSON.stringify(activeTokens, null, 2), 'utf-8');
-  } catch (e) {
-    console.error('Failed to save active tokens', e);
-  }
-}
-
-loadActiveTokens();
-
 export function createAuthToken(user: any): string {
   const token = 'mm_token_' + crypto.randomBytes(32).toString('hex');
-  activeTokens[token] = { user, createdAt: Date.now() };
-  saveActiveTokens();
+  saveAuthToken(token, user);
   return token;
 }
 
 export function getUserByToken(token: string | null | undefined): any | null {
-  if (!token) return null;
-  const entry = activeTokens[token];
-  if (!entry) return null;
-  // Tokens valid for 30 days
-  if (Date.now() - entry.createdAt > 30 * 24 * 60 * 60 * 1000) {
-    delete activeTokens[token];
-    saveActiveTokens();
-    return null;
-  }
-  return entry.user;
+  return getUserByAuthToken(token);
 }
 
 const app = express();
@@ -306,129 +284,9 @@ const DEFAULT_DB = {
   ]
 };
 
-let dbIntegrityError: string | null = null;
-let lastBackupPath: string | null = null;
-
-function readDb() {
-  if (dbIntegrityError) {
-    console.warn(`WARNING: readDb called while database is in integrity-error state: ${dbIntegrityError}`);
-    return DEFAULT_DB;
-  }
-
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      const data = fs.readFileSync(DB_FILE, 'utf-8');
-      if (data.trim() === '') {
-        dbIntegrityError = 'Database file exists but is empty (zero bytes or whitespace only)';
-        console.error(`CRITICAL INTEGRITY ERROR: ${dbIntegrityError}. Refusing to overwrite with default data.`);
-        try {
-          let backupPath = `${DB_FILE}.empty.${Date.now()}`;
-          let counter = 1;
-          while (fs.existsSync(backupPath)) {
-            backupPath = `${DB_FILE}.empty.${Date.now()}_${counter++}`;
-          }
-          fs.copyFileSync(DB_FILE, backupPath);
-          lastBackupPath = backupPath;
-          console.error(`Empty DB backed up safely to ${backupPath}`);
-        } catch (backupErr) {
-          console.error("Failed to backup empty DB file", backupErr);
-        }
-        return DEFAULT_DB;
-      }
-      try {
-        const parsed = JSON.parse(data);
-        if (!parsed.conversations) parsed.conversations = [];
-        if (!parsed.users) parsed.users = {
-          "user_owner_001": {
-            id: "user_owner_001",
-            name: "Ko Aung (Merchant Owner)",
-            email: "aung@yangonstyle.mm",
-            role: "merchant_admin",
-            merchantId: "merchant_001",
-            provider: "local",
-            createdAt: new Date().toISOString()
-          }
-        };
-        return parsed;
-      } catch (parseErr: any) {
-        dbIntegrityError = `Database JSON parsing error: ${parseErr.message}`;
-        console.error(`CRITICAL: Database JSON parsing error detected. Preserving corrupted database file as backup instead of destructive overwrite.`, parseErr);
-        try {
-          let backupPath = `${DB_FILE}.corrupt.${Date.now()}`;
-          let counter = 1;
-          while (fs.existsSync(backupPath)) {
-            backupPath = `${DB_FILE}.corrupt.${Date.now()}_${counter++}`;
-          }
-          fs.copyFileSync(DB_FILE, backupPath);
-          lastBackupPath = backupPath;
-          console.error(`Corrupted DB backed up safely to ${backupPath}`);
-        } catch (backupErr) {
-          dbIntegrityError += ` (Backup creation also failed: ${backupErr})`;
-          console.error("CRITICAL: Failed to backup corrupted DB file", backupErr);
-        }
-        return DEFAULT_DB;
-      }
-    }
-  } catch (err) {
-    console.error("Error reading DB file", err);
-  }
-
-  // Missing database file (first-time initialization)
-  if (!fs.existsSync(DB_FILE)) {
-    try {
-      writeDbInternal(DEFAULT_DB);
-    } catch (initErr) {
-      console.error("Failed to initialize missing database file", initErr);
-    }
-  }
-  return DEFAULT_DB;
-}
-
-function writeDbInternal(data: any) {
-  const tempFile = `${DB_FILE}.tmp.${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-  fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
-  fs.renameSync(tempFile, DB_FILE);
-}
-
-function writeDb(data: any) {
-  if (dbIntegrityError) {
-    throw new Error(`Write protection violation: Database is in an unsafe integrity error state (${dbIntegrityError}). Write operation rejected to prevent data loss.`);
-  }
-  try {
-    writeDbInternal(data);
-  } catch (err: any) {
-    console.error("Error writing DB file atomically", err);
-    throw err;
-  }
-}
-
-// Mutex / Transaction queue to serialize all database read-modify-write operations (Single-node concurrency safety)
-let dbMutationQueue: Promise<any> = Promise.resolve();
-
-export function withDbTransaction<T>(mutator: (db: any) => T): Promise<T> {
-  return new Promise((resolve, reject) => {
-    dbMutationQueue = dbMutationQueue.then(async () => {
-      try {
-        const db = readDb();
-        const result = mutator(db);
-        writeDb(db);
-        resolve(result);
-        return result;
-      } catch (err) {
-        reject(err);
-      }
-    }).catch((queueErr) => {
-      console.error("Mutation queue error:", queueErr);
-    });
-  });
-}
-
-if (!fs.existsSync(DB_FILE)) {
-  try {
-    writeDbInternal(DEFAULT_DB);
-  } catch (e) {
-    console.error("Failed initial DB write", e);
-  }
+// Authoritative persistence bridge to Cloud Firestore + local backup
+export function readDb(): DbState {
+  return getDb();
 }
 
 // Base Authentication Middleware (verifies user token/session without requiring merchantId)
@@ -449,7 +307,22 @@ function requireAuth(req: any, res: any, next: any) {
   if (user) {
     const db = readDb();
     if (!db.users) db.users = {};
-    const dbUser = db.users[user.id] || user;
+    let dbUser = (user.id && db.users[user.id]) ? db.users[user.id] : user;
+
+    // Auto-heal merchantId if missing from user record but a merchant exists with this user's email
+    if (!dbUser.merchantId && dbUser.email) {
+      const email = dbUser.email.trim().toLowerCase();
+      const matchingMerchant = Object.values(db.merchants || {}).find((m: any) => 
+        m.email && m.email.trim().toLowerCase() === email
+      );
+      if (matchingMerchant) {
+        dbUser.merchantId = matchingMerchant.id;
+        if (dbUser.id) {
+          db.users[dbUser.id] = dbUser;
+        }
+      }
+    }
+
     req.user = dbUser;
     return next();
   }
@@ -612,30 +485,59 @@ app.get('/api/auth/google/callback', (req: any, res: any, next: any) => {
     if (!user) {
       return res.redirect('/?error=google_failed');
     }
-    req.login(user, (loginErr: any) => {
+    req.login(user, async (loginErr: any) => {
       if (loginErr) {
         console.error('Login session establishment error:', loginErr);
         return res.redirect('/?error=login_failed');
       }
 
-      const email = user.emails?.[0]?.value || user.email || `${user.id || 'google_user'}@shop-sone.mm`;
-      const providerId = `google_${user.id || crypto.randomBytes(6).toString('hex')}`;
+      const rawEmail = user.emails?.[0]?.value || user.email || '';
+      const email = rawEmail.trim().toLowerCase();
+      const googleId = user.id || (user._json && user._json.sub) || '';
+      const providerId = `google_${googleId || crypto.randomBytes(6).toString('hex')}`;
 
-      const appUser = withDbTransaction((db) => {
+      // Await database transaction so appUser is a concrete UserRecord (not a pending Promise)
+      const appUser = await withDbTransaction(async (db) => {
         if (!db.users) db.users = {};
-        let existing = Object.values(db.users).find((u: any) => u.email === email || u.providerId === providerId);
+        if (!db.merchants) db.merchants = {};
+
+        // 1. Search for existing user by providerId, Google sub ID, or case-insensitive email
+        let existing = Object.values(db.users).find((u: any) =>
+          (u.providerId && u.providerId === providerId) ||
+          (googleId && (u.id === googleId || u.id === `google_${googleId}`)) ||
+          (email && u.email && u.email.trim().toLowerCase() === email)
+        );
+
+        // Also check if any merchant exists with this user's verified email
+        const matchingMerchant = Object.values(db.merchants).find((m: any) =>
+          (email && m.email && m.email.trim().toLowerCase() === email) ||
+          (user.displayName && m.ownerName && m.ownerName.trim().toLowerCase() === user.displayName.trim().toLowerCase())
+        );
+
         if (!existing) {
           const newUserId = providerId;
           existing = {
             id: newUserId,
-            email,
-            name: user.displayName || user.name || 'Merchant Owner',
-            merchantId: null,
+            email: rawEmail || `${newUserId}@shop-sone.mm`,
+            name: user.displayName || user.name?.givenName || 'Merchant Owner',
+            merchantId: matchingMerchant ? matchingMerchant.id : null,
             provider: 'google',
             providerId,
+            role: 'merchant_admin',
             createdAt: new Date().toISOString()
           };
           db.users[newUserId] = existing;
+          console.log(`[GoogleAuth] Created new user ${newUserId} (merchantId: ${existing.merchantId})`);
+        } else {
+          // If existing user was found but lacks merchantId, link to existing merchant profile
+          if (!existing.merchantId && matchingMerchant) {
+            existing.merchantId = matchingMerchant.id;
+            existing.updatedAt = new Date().toISOString();
+            console.log(`[GoogleAuth] Recovered and linked merchant ${matchingMerchant.id} to returning user ${existing.id}`);
+          }
+          if (!existing.providerId) {
+            existing.providerId = providerId;
+          }
         }
         return existing;
       });
@@ -787,7 +689,22 @@ app.get('/api/auth/me', (req: any, res: any) => {
   if (tokenUser) {
     const db = readDb();
     if (!db.users) db.users = {};
-    const dbUser = db.users[tokenUser.id] || tokenUser;
+    let dbUser = (tokenUser.id && db.users[tokenUser.id]) ? db.users[tokenUser.id] : tokenUser;
+
+    // Auto-heal merchantId if missing from user record but a merchant exists with this user's email
+    if (!dbUser.merchantId && dbUser.email) {
+      const email = dbUser.email.trim().toLowerCase();
+      const matchingMerchant = Object.values(db.merchants || {}).find((m: any) => 
+        m.email && m.email.trim().toLowerCase() === email
+      );
+      if (matchingMerchant) {
+        dbUser.merchantId = matchingMerchant.id;
+        if (dbUser.id) {
+          db.users[dbUser.id] = dbUser;
+        }
+      }
+    }
+
     const sessionToken = token || createAuthToken(dbUser);
     return res.json({
       isAuthenticated: true,
@@ -800,7 +717,22 @@ app.get('/api/auth/me', (req: any, res: any) => {
   if (req.isAuthenticated && req.isAuthenticated() && req.user) {
     const db = readDb();
     if (!db.users) db.users = {};
-    const dbUser = db.users[req.user.id] || req.user;
+    let dbUser = (req.user.id && db.users[req.user.id]) ? db.users[req.user.id] : req.user;
+
+    // Auto-heal merchantId if missing
+    if (!dbUser.merchantId && dbUser.email) {
+      const email = dbUser.email.trim().toLowerCase();
+      const matchingMerchant = Object.values(db.merchants || {}).find((m: any) => 
+        m.email && m.email.trim().toLowerCase() === email
+      );
+      if (matchingMerchant) {
+        dbUser.merchantId = matchingMerchant.id;
+        if (dbUser.id) {
+          db.users[dbUser.id] = dbUser;
+        }
+      }
+    }
+
     const sessionToken = createAuthToken(dbUser);
     return res.json({
       isAuthenticated: true,
@@ -817,12 +749,10 @@ app.post('/api/auth/logout', (req: any, res: any) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7).trim();
-    delete activeTokens[token];
-    saveActiveTokens();
+    deleteAuthToken(token);
   }
   if (req.query.token) {
-    delete activeTokens[String(req.query.token).trim()];
-    saveActiveTokens();
+    deleteAuthToken(String(req.query.token).trim());
   }
   req.logout((err: any) => {
     if (err) return res.status(500).json({ error: 'Logout failed' });
@@ -960,8 +890,18 @@ app.post('/api/merchant/onboard', requireAuth, async (req: any, res: any) => {
 
       db.merchants[merchantId] = merchantObj;
 
-      if (db.users[currentUser.id]) {
+      if (currentUser.id && db.users[currentUser.id]) {
         db.users[currentUser.id].merchantId = merchantId;
+        db.users[currentUser.id].updatedAt = new Date().toISOString();
+      } else {
+        const u = Object.values(db.users).find((userRec: any) => 
+          (currentUser.email && userRec.email && userRec.email.trim().toLowerCase() === currentUser.email.trim().toLowerCase()) ||
+          (currentUser.providerId && userRec.providerId && userRec.providerId === currentUser.providerId)
+        );
+        if (u) {
+          u.merchantId = merchantId;
+          u.updatedAt = new Date().toISOString();
+        }
       }
       currentUser.merchantId = merchantId;
 
@@ -969,7 +909,7 @@ app.post('/api/merchant/onboard', requireAuth, async (req: any, res: any) => {
         id: `log_${Date.now()}`,
         merchantId,
         action: 'ONBOARD_MERCHANT_SHOP',
-        actor: currentUser.id,
+        actor: currentUser.id || 'owner',
         details: `Successfully onboarded merchant shop "${storeName}" with slug "${normalizedSlug}".`,
         timestamp: new Date().toISOString()
       });
@@ -2296,6 +2236,13 @@ app.use((err: any, req: any, res: any, next: any) => {
 
 // Start Server & Mount Vite Middleware
 async function startServer() {
+  try {
+    await initPersistence();
+    console.log('[Server] Database persistence layer ready.');
+  } catch (initErr) {
+    console.error('[Server] Persistence initialization error (continuing with cache):', initErr);
+  }
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: {

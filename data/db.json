@@ -1,182 +1,220 @@
 {
+  "users": {
+    "google_108037106339950406469": {
+      "name": "Zin Phyo Htike",
+      "id": "google_108037106339950406469",
+      "merchantId": "merchant_001",
+      "role": "merchant_admin",
+      "createdAt": "2026-10-25T10:51:48.631Z",
+      "providerId": "google_108037106339950406469",
+      "email": "zinphyo2539@gmail.com",
+      "provider": "google"
+    },
+    "test_user_1792925158395": {
+      "id": "test_user_1792925158395",
+      "provider": "google",
+      "email": "test@shopsone.mm",
+      "name": "Test Merchant",
+      "merchantId": "merchant_001",
+      "createdAt": "2026-10-25T10:45:58.395Z",
+      "role": "merchant_admin"
+    },
+    "user_owner_001": {
+      "id": "user_owner_001",
+      "name": "Ko Aung (Merchant Owner)",
+      "email": "aung@yangonstyle.mm",
+      "role": "merchant_admin",
+      "merchantId": "merchant_001",
+      "provider": "local",
+      "createdAt": "2026-10-25T10:52:19.888Z"
+    }
+  },
   "merchants": {
     "merchant_001": {
-      "id": "merchant_001",
-      "shopName": "Yangon Style Fashion & Apparel",
       "ownerName": "Ko Aung",
-      "email": "aung@yangonstyle.mm",
       "store": {
         "slug": "yangon-style",
-        "storeName": "Yangon Style Fashion & Apparel",
-        "description": "Premium fashion apparel in Yangon with instant AI customer service.",
-        "logoUrl": "",
         "coverUrl": "",
+        "logoUrl": "",
         "deliveryInfo": "Yangon city-wide delivery within 2-3 days. Delivery fee 2,500 MMK.",
         "paymentInstructions": "KBZPay: 09-912345678 (Ko Aung)\nWavePay: 09-912345678",
-        "isPublished": true
+        "storeName": "Yangon Style Fashion & Apparel",
+        "isPublished": true,
+        "description": "Premium fashion apparel in Yangon with instant AI customer service."
       },
       "aiConfig": {
         "enabled": true,
+        "updatedAt": "2026-10-15T11:29:45.556Z",
         "preferredLanguage": "myanmar",
-        "replyStyle": "friendly",
+        "schemaVersion": 1,
         "customInstructions": "Customer များကို ယဉ်ကျေးပြီး ဖော်ရွေစွာ ပြန်ဖြေပါ။ မေးခွန်းကို တိုက်ရိုက်ဖြေပြီး လိုအပ်ပါက Product ရဲ့ အားသာချက်ကို အတိုချုံးရှင်းပြပါ။ စျေးနှုန်း၊ Variant နဲ့ Stock ကို သက်ဆိုင်ရာ Database မှာ စစ်ဆေးပြီးမှ ဖြေပါ။ Customer က ဝယ်ယူရန် စိတ်ဝင်စားပါက အော်ဒါတင်နိုင်ရန် ရှင်းလင်းစွာ လမ်းညွှန်ပါ။ မသေချာသောအချက်များကို မခန့်မှန်းပါနှင့်။ လိုအပ်ပါက လူထံ လွှဲပြောင်းပါ။",
         "salesBehavior": {
           "greeting": "greet_new",
-          "responseLength": "balanced",
-          "emojiPreference": "moderate",
-          "productRecommendation": "answer_first",
           "followUp": "needed_only",
+          "emojiPreference": "moderate",
           "salesApproach": "helpful_recommendations",
+          "productRecommendation": "answer_first",
           "discountBehavior": "verified_only",
-          "uncertainPolicy": "escalate_to_human"
+          "uncertainPolicy": "escalate_to_human",
+          "responseLength": "balanced"
         },
+        "replyStyle": "friendly",
         "humanHandoff": {
-          "enabled": true,
           "triggerOnUncertain": true,
-          "triggerOnComplaint": true,
           "triggerOnHumanRequest": true,
-          "notificationChannel": "telegram_staff"
-        },
-        "schemaVersion": 1,
-        "updatedAt": "2026-10-15T11:29:45.556Z"
-      }
+          "triggerOnComplaint": true,
+          "notificationChannel": "telegram_staff",
+          "enabled": true
+        }
+      },
+      "email": "aung@yangonstyle.mm",
+      "id": "merchant_001",
+      "shopName": "Yangon Style Fashion & Apparel"
     }
   },
-  "sampleReplies": [
-    {
-      "id": "sample_1",
-      "merchantId": "merchant_001",
-      "customerMessage": "ဒီအင်္ကျီ အနက်ရောင် M Size ရှိလား။",
-      "preferredReply": "မင်္ဂလာပါရှင့်။ အနက်ရောင် M Size လေးကို စစ်ဆေးပေးပါမယ်နော်။",
-      "category": "Stock and variants",
-      "createdAt": "2026-10-15T11:29:45.556Z",
-      "updatedAt": "2026-10-15T11:29:45.556Z"
-    },
-    {
-      "id": "sample_2",
-      "merchantId": "merchant_001",
-      "customerMessage": "စျေးနှုန်းဘယ်လောက်လဲ ပို့ခဘယ်လောက်ကျလဲ။",
-      "preferredReply": "မင်္ဂလာပါရှင်။ ကုန်ပစ္စည်းစျေးနှုန်းကတော့ Product description မှာ ကြည့်လို့ရပါတယ်ရှင်။ ရန်ကုန်မြို့တွင်း ပို့ခက 2,500 ကျပ် ဖြစ်ပါတယ်။",
-      "category": "Price",
-      "createdAt": "2026-10-15T11:29:45.556Z",
-      "updatedAt": "2026-10-15T11:29:45.556Z"
-    },
-    {
-      "id": "sample_3",
-      "merchantId": "merchant_001",
-      "customerMessage": "ငွေဘယ်လိုလွှဲရမလဲ KBZPay နဲ့ရလား။",
-      "preferredReply": "ဟုတ်ကဲ့ရှင်၊ KBZPay (09-912345678) နဲ့ KBZ Bank Account တို့ဖြင့် ငွေပေးချေနိုင်ပါတယ်။ ငွေလွှဲပြီးပါက မျက်နှာပြင်ဖမ်းယူမှု (Screenshot) ပို့ပေးပါရန် မေတ္တာရပ်ခံပါတယ်ရှင်။",
-      "category": "Payment instructions",
-      "createdAt": "2026-10-15T11:29:45.556Z",
-      "updatedAt": "2026-10-15T11:29:45.556Z"
-    }
-  ],
   "products": [
     {
-      "id": "prod_1",
-      "merchantId": "merchant_001",
       "name": "Premium Cotton Oversized T-Shirt",
       "sku": "TS-COTTON-BLK-M",
-      "price": 18500,
-      "currency": "MMK",
-      "description": "100% Cotton premium breathable fabric. Oversized casual fit.",
+      "discount": "10% OFF during weekend promo",
+      "merchantId": "merchant_001",
+      "id": "prod_1",
       "variants": [
         {
-          "id": "v1",
           "color": "Black",
-          "size": "M",
+          "id": "v1",
           "stock": 15,
+          "size": "M",
           "sku": "TS-COTTON-BLK-M"
         },
         {
-          "id": "v2",
           "color": "Black",
-          "size": "L",
+          "id": "v2",
           "stock": 8,
-          "sku": "TS-COTTON-BLK-L"
+          "sku": "TS-COTTON-BLK-L",
+          "size": "L"
         },
         {
-          "id": "v3",
+          "sku": "TS-COTTON-WHT-M",
+          "stock": 12,
           "color": "White",
           "size": "M",
-          "stock": 12,
-          "sku": "TS-COTTON-WHT-M"
+          "id": "v3"
         },
         {
-          "id": "v4",
-          "color": "White",
+          "sku": "TS-COTTON-WHT-L",
           "size": "L",
+          "id": "v4",
           "stock": 0,
-          "sku": "TS-COTTON-WHT-L"
+          "color": "White"
         }
       ],
-      "discount": "10% OFF during weekend promo",
-      "status": "active"
+      "currency": "MMK",
+      "status": "active",
+      "description": "100% Cotton premium breathable fabric. Oversized casual fit.",
+      "price": 18500
     },
     {
-      "id": "prod_2",
-      "merchantId": "merchant_001",
-      "name": "Classic Denim Casual Jacket",
-      "sku": "JKT-DENIM-BLU",
-      "price": 35000,
       "currency": "MMK",
-      "description": "High quality durable denim jacket for all seasons.",
-      "variants": [
-        {
-          "id": "v5",
-          "color": "Dark Blue",
-          "size": "Free Size",
-          "stock": 5,
-          "sku": "JKT-DENIM-BLU-F"
-        }
-      ],
-      "discount": null,
-      "status": "active"
-    },
-    {
-      "id": "prod_1792262639020_d396",
-      "merchantId": "merchant_001",
-      "name": "Automated Test Silk Scarf",
-      "sku": "SKU-TEST-1792262639000",
-      "price": 25000,
-      "currency": "MMK",
-      "description": "Premium Burmese handmade silk scarf",
       "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
       "variants": [
         {
+          "sku": "SKU-TEST-RED-1792262639000",
           "id": "v_1792262639020_0_y8",
           "color": "Red",
-          "size": "Standard",
           "stock": 15,
-          "sku": "SKU-TEST-RED-1792262639000"
+          "size": "Standard"
         }
       ],
+      "merchantId": "merchant_001",
+      "status": "active",
+      "description": "Premium Burmese handmade silk scarf",
+      "name": "Automated Test Silk Scarf",
+      "discount": null,
+      "price": 25000,
+      "sku": "SKU-TEST-1792262639000",
+      "id": "prod_1792262639020_d396"
+    },
+    {
+      "id": "prod_1792262776578_j20d",
+      "imageUrl": null,
+      "variants": [
+        {
+          "sku": "SKU-TEST-RED-1792262776561",
+          "id": "v_1792262776578_0_3m",
+          "color": "Red",
+          "size": "Standard",
+          "stock": 15
+        }
+      ],
+      "sku": "SKU-TEST-1792262776561",
+      "currency": "MMK",
+      "name": "Automated Test Silk Scarf",
+      "description": "Premium Burmese handmade silk scarf",
+      "merchantId": "merchant_001",
+      "price": 25000,
       "discount": null,
       "status": "active"
     },
     {
-      "id": "prod_1792262776578_j20d",
-      "merchantId": "merchant_001",
-      "name": "Automated Test Silk Scarf",
-      "sku": "SKU-TEST-1792262776561",
-      "price": 25000,
-      "currency": "MMK",
-      "description": "Premium Burmese handmade silk scarf",
-      "imageUrl": null,
+      "sku": "JKT-DENIM-BLU",
       "variants": [
         {
-          "id": "v_1792262776578_0_3m",
-          "color": "Red",
-          "size": "Standard",
-          "stock": 15,
-          "sku": "SKU-TEST-RED-1792262776561"
+          "size": "Free Size",
+          "sku": "JKT-DENIM-BLU-F",
+          "id": "v5",
+          "stock": 5,
+          "color": "Dark Blue"
         }
       ],
+      "currency": "MMK",
+      "description": "High quality durable denim jacket for all seasons.",
+      "price": 35000,
+      "id": "prod_2",
+      "merchantId": "merchant_001",
+      "name": "Classic Denim Casual Jacket",
       "discount": null,
       "status": "active"
+    },
+    {
+      "merchantId": "merchant_001",
+      "name": "Silk Scarf Test",
+      "status": "active",
+      "price": 25000,
+      "id": "test_prod_1792925158576",
+      "currency": "MMK"
     }
   ],
   "orders": [],
+  "sampleReplies": [
+    {
+      "merchantId": "merchant_001",
+      "customerMessage": "ဒီအင်္ကျီ အနက်ရောင် M Size ရှိလား။",
+      "id": "sample_1",
+      "category": "Stock and variants",
+      "updatedAt": "2026-10-15T11:29:45.556Z",
+      "createdAt": "2026-10-15T11:29:45.556Z",
+      "preferredReply": "မင်္ဂလာပါရှင့်။ အနက်ရောင် M Size လေးကို စစ်ဆေးပေးပါမယ်နော်။"
+    },
+    {
+      "id": "sample_2",
+      "category": "Price",
+      "customerMessage": "စျေးနှုန်းဘယ်လောက်လဲ ပို့ခဘယ်လောက်ကျလဲ။",
+      "createdAt": "2026-10-15T11:29:45.556Z",
+      "merchantId": "merchant_001",
+      "updatedAt": "2026-10-15T11:29:45.556Z",
+      "preferredReply": "မင်္ဂလာပါရှင်။ ကုန်ပစ္စည်းစျေးနှုန်းကတော့ Product description မှာ ကြည့်လို့ရပါတယ်ရှင်။ ရန်ကုန်မြို့တွင်း ပို့ခက 2,500 ကျပ် ဖြစ်ပါတယ်။"
+    },
+    {
+      "updatedAt": "2026-10-15T11:29:45.556Z",
+      "createdAt": "2026-10-15T11:29:45.556Z",
+      "preferredReply": "ဟုတ်ကဲ့ရှင်၊ KBZPay (09-912345678) နဲ့ KBZ Bank Account တို့ဖြင့် ငွေပေးချေနိုင်ပါတယ်။ ငွေလွှဲပြီးပါက မျက်နှာပြင်ဖမ်းယူမှု (Screenshot) ပို့ပေးပါရန် မေတ္တာရပ်ခံပါတယ်ရှင်။",
+      "category": "Payment instructions",
+      "id": "sample_3",
+      "merchantId": "merchant_001",
+      "customerMessage": "ငွေဘယ်လိုလွှဲရမလဲ KBZPay နဲ့ရလား။"
+    }
+  ],
   "auditLogs": [
     {
       "id": "log_1792169514703",

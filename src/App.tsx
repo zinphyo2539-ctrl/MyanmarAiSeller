@@ -18,10 +18,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Lock,
-  FlaskConical,
-  Share2,
-  Truck,
-  Users
+  FlaskConical
 } from 'lucide-react';
 
 import {
@@ -728,114 +725,79 @@ export default function App() {
     );
   }
 
-  // Unauthenticated Login Screen
+  // Unauthenticated Login Screen (Only the Login Box is displayed)
   if (isAuthenticated === false) {
     return (
-      <main className="min-h-screen bg-[#F1F5F9] text-[#0F172A] flex flex-col justify-center items-center p-4 sm:p-6">
-        <div className="w-full max-w-lg space-y-6">
-          {/* 4 Large Orange 3D Pillar Logos: Social Media / Seller / Deli / Customers */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white border border-orange-200 rounded-2xl p-4 text-center shadow-md flex flex-col items-center gap-2 transform hover:scale-105 transition-all">
-              <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
-                <Share2 className="w-7 h-7" />
-              </div>
-              <span className="text-xs font-bold text-[#0F172A]">
-                {lang === 'my' ? 'ဆိုရှယ်မီဒီယာ' : 'Social Media'}
-              </span>
+      <main className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-center items-center p-4 sm:p-6">
+        <div className="w-full max-w-md bg-white border border-[#CBD5E1] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-center mx-auto text-[#2563EB] shadow-xs">
+              <Lock className="w-7 h-7" />
             </div>
-
-            <div className="bg-white border border-orange-200 rounded-2xl p-4 text-center shadow-md flex flex-col items-center gap-2 transform hover:scale-105 transition-all">
-              <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-rose-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
-                <Store className="w-7 h-7" />
-              </div>
-              <span className="text-xs font-bold text-[#0F172A]">
-                {lang === 'my' ? 'ဆိုင် / ကုန်သည်' : 'Seller Store'}
-              </span>
-            </div>
-
-            <div className="bg-white border border-orange-200 rounded-2xl p-4 text-center shadow-md flex flex-col items-center gap-2 transform hover:scale-105 transition-all">
-              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-700 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
-                <Truck className="w-7 h-7" />
-              </div>
-              <span className="text-xs font-bold text-[#0F172A]">
-                {lang === 'my' ? 'ပို့ဆောင်ရေး (Deli)' : 'Delivery (Deli)'}
-              </span>
-            </div>
-
-            <div className="bg-white border border-orange-200 rounded-2xl p-4 text-center shadow-md flex flex-col items-center gap-2 transform hover:scale-105 transition-all">
-              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
-                <Users className="w-7 h-7" />
-              </div>
-              <span className="text-xs font-bold text-[#0F172A]">
-                {lang === 'my' ? 'ဝယ်သူများ' : 'Customers'}
-              </span>
-            </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
+              ShopSone (ဆိုင်စုံ)
+            </h1>
+            <p className="text-xs text-[#2563EB] font-mono font-semibold">
+              Myanmar AI Seller
+            </p>
+            <p className="text-xs text-[#64748B] max-w-xs mx-auto">
+              {lang === 'my'
+                ? 'လူမှုကွန်ရက် ကုန်သည်များအတွက် သီးသန့် AI အရောင်းကွပ်ကဲမှု စနစ်'
+                : 'Mobile-First AI Sales Operating System for Social Merchants.'}
+            </p>
           </div>
 
-          <div className="w-full bg-white border border-[#CBD5E1] rounded-3xl p-6 sm:p-8 space-y-6 shadow-md">
-            <div className="text-center space-y-2">
-              <div className="w-14 h-14 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-center mx-auto text-[#2563EB]">
-                <Lock className="w-7 h-7" />
+          {authError && (
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 space-y-1">
+              <div className="flex items-center gap-1.5 font-bold">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>{lang === 'my' ? 'ချိတ်ဆက်မှု မအောင်မြင်ပါ' : 'Sign-In Error'}</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
-                Myanmar AI Seller
-              </h1>
-              <p className="text-xs text-[#64748B] max-w-xs mx-auto">
-                {lang === 'my'
-                  ? 'လူမှုကွန်ရက် ကုန်သည်များအတွက် သီးသန့် AI အရောင်းကွပ်ကဲမှု စနစ်'
-                  : 'Mobile-First AI Sales Operating System for Social Merchants.'}
-              </p>
+              <p className="text-[11px] leading-relaxed">{authError}</p>
             </div>
+          )}
 
-            {authError && (
-              <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 space-y-1">
-                <div className="flex items-center gap-1.5 font-bold">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-                  <span>{lang === 'my' ? 'ချိတ်ဆက်မှု မအောင်မြင်ပါ' : 'Sign-In Error'}</span>
-                </div>
-                <p className="text-[11px] leading-relaxed">{authError}</p>
-              </div>
-            )}
+          <div className="space-y-3">
+            <button
+              type="button"
+              disabled={authLoading}
+              onClick={handleGoogleLogin}
+              className="w-full py-3 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+            >
+              <svg className="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
+                <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
+              </svg>
+              <span>{authLoading ? (lang === 'my' ? 'ဝင်ရောက်နေသည်...' : 'Connecting...') : (lang === 'my' ? 'Google ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with Google')}</span>
+            </button>
 
-            <div className="space-y-3">
-              <button
-                type="button"
-                disabled={authLoading}
-                onClick={handleGoogleLogin}
-                className="w-full py-3 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                <span>{authLoading ? (lang === 'my' ? 'ဝင်ရောက်နေသည်...' : 'Connecting...') : (lang === 'my' ? 'Google ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with Google')}</span>
-              </button>
+            <button
+              type="button"
+              disabled={authLoading}
+              onClick={handleFacebookLogin}
+              className="w-full py-3 px-4 bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+            >
+              <span>{lang === 'my' ? 'Facebook ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with Facebook'}</span>
+            </button>
 
-              <button
-                type="button"
-                disabled={authLoading}
-                onClick={handleFacebookLogin}
-                className="w-full py-3 px-4 bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                <span>{lang === 'my' ? 'Facebook ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with Facebook'}</span>
-              </button>
+            <button
+              type="button"
+              disabled={authLoading}
+              onClick={handleTiktokLogin}
+              className="w-full py-3 px-4 bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+            >
+              <span>{lang === 'my' ? 'TikTok ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with TikTok'}</span>
+            </button>
+          </div>
 
-              <button
-                type="button"
-                disabled={authLoading}
-                onClick={handleTiktokLogin}
-                className="w-full py-3 px-4 bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                <span>{lang === 'my' ? 'TikTok ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with TikTok'}</span>
-              </button>
-            </div>
-
-            <div className="pt-2 border-t border-[#CBD5E1] flex items-center justify-between text-xs text-[#64748B]">
-              <span>{lang === 'my' ? 'လုံခြုံစိတ်ချရသော စနစ်' : 'Authoritative Security'}</span>
-              <button
-                type="button"
-                onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
-                className="hover:text-[#0F172A] text-[#2563EB] font-semibold"
-              >
-                {lang === 'my' ? 'English' : 'မြန်မာ'}
-              </button>
-            </div>
+          <div className="pt-2 border-t border-[#CBD5E1] flex items-center justify-between text-xs text-[#64748B]">
+            <span>{lang === 'my' ? 'လုံခြုံစိတ်ချရသော စနစ်' : 'Authoritative Security'}</span>
+            <button
+              type="button"
+              onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
+              className="hover:text-[#0F172A] text-[#2563EB] font-semibold cursor-pointer"
+            >
+              {lang === 'my' ? 'English' : 'မြန်မာ'}
+            </button>
           </div>
         </div>
 

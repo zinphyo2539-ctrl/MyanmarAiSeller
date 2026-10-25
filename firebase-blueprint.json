@@ -1,0 +1,148 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "Authenticated merchant user account with verified identity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "merchantId": { "type": "string" },
+        "provider": { "type": "string" },
+        "providerId": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "email", "provider", "role", "createdAt"]
+    },
+    "merchant": {
+      "title": "Merchant",
+      "description": "Merchant workspace profile, settings, AI personality, and public storefront details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shopName": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "store": { "type": "object" },
+        "aiConfig": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "shopName", "ownerName", "email", "store", "aiConfig"]
+    },
+    "product": {
+      "title": "Product",
+      "description": "Catalog merchandise items with pricing, inventory variants, and image URLs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "merchantId": { "type": "string" },
+        "name": { "type": "string" },
+        "sku": { "type": "string" },
+        "price": { "type": "number" },
+        "currency": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "variants": { "type": "array" },
+        "discount": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "merchantId", "name", "price", "currency", "status"]
+    },
+    "order": {
+      "title": "Order",
+      "description": "Customer orders submitted from public storefront",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "merchantId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "deliveryAddress": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "currency": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "merchantId", "customerName", "customerPhone", "totalAmount", "status"]
+    },
+    "sampleReply": {
+      "title": "SampleReply",
+      "description": "AI training examples for merchant customer service personality",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "merchantId": { "type": "string" },
+        "customerMessage": { "type": "string" },
+        "preferredReply": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "merchantId", "customerMessage", "preferredReply"]
+    },
+    "auditLog": {
+      "title": "AuditLog",
+      "description": "System and administrative action logs for security tracing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "merchantId": { "type": "string" },
+        "action": { "type": "string" },
+        "actor": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "merchantId", "action", "actor", "timestamp"]
+    },
+    "healthCheck": {
+      "title": "HealthCheck",
+      "description": "Database connectivity probe",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "Stores user identity and merchant ownership mappings"
+    },
+    "/merchants/{merchantId}": {
+      "schema": "merchant",
+      "description": "Stores merchant store settings, AI config, and shop info"
+    },
+    "/products/{productId}": {
+      "schema": "product",
+      "description": "Stores product catalog items"
+    },
+    "/orders/{orderId}": {
+      "schema": "order",
+      "description": "Stores merchant sales orders"
+    },
+    "/sampleReplies/{sampleId}": {
+      "schema": "sampleReply",
+      "description": "Stores merchant-specific AI training sample replies"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "auditLog",
+      "description": "Stores security and administrative audit entries"
+    },
+    "/_health_check/{docId}": {
+      "schema": "healthCheck",
+      "description": "Probe collection for database connectivity status"
+    }
+  }
+}
