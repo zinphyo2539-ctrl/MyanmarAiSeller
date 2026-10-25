@@ -253,7 +253,14 @@ export async function uploadProductImageToSupabase(
   });
 
   if (error) {
-    console.error('[SupabaseStorage] Upload failed:', error.message);
+    console.error('[SupabaseStorage] Upload network/provider failure:', {
+      message: error.message,
+      bucket: bucket,
+      path: objectPath,
+      name: error.name,
+      // @ts-ignore
+      code: error.code || 'UNKNOWN_ERROR'
+    });
     throw new Error(`Storage upload failed: ${error.message}`);
   }
 
