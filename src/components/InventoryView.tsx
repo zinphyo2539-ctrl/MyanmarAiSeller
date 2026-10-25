@@ -13,7 +13,8 @@ import {
   Save,
   Tag,
   ImageIcon,
-  Upload
+  Upload,
+  Bot
 } from 'lucide-react';
 import { Product, Variant } from '../types';
 
@@ -128,6 +129,52 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     } finally {
       setUploadingImage(false);
       e.target.value = '';
+    }
+  };
+
+  // AI Generator State
+  const [aiStyle, setAiStyle] = useState('clean_white_studio');
+  const [aiCustomPrompt, setAiCustomPrompt] = useState('');
+  const [generatingAiPhoto, setGeneratingAiPhoto] = useState(false);
+  const [aiGeneratedPreviewUrl, setAiGeneratedPreviewUrl] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
+
+  const handleGenerateAiPhoto = async () => {
+    if (!formData.imageUrl || generatingAiPhoto) return;
+    setGeneratingAiPhoto(true);
+    setAiError(null);
+    try {
+      const res = await fetch('/api/merchant/ai-generate-photo', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          imageUrl: formData.imageUrl,
+          style: aiStyle,
+          prompt: aiCustomPrompt
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'AI photo generation failed');
+      }
+      setAiGeneratedPreviewUrl(data.generatedImageUrl);
+      if (typeof data.remainingQuota === 'number') {
+        setRemainingQuota(data.remainingQuota);
+      }
+    } catch (err: any) {
+      setAiError(err.message || 'Failed to generate AI product photo');
+    } finally {
+      setGeneratingAiPhoto(false);
+    }
+  };
+
+  const handleApproveAiPhoto = () => {
+    if (aiGeneratedPreviewUrl) {
+      setFormData(prev => ({ ...prev, imageUrl: aiGeneratedPreviewUrl }));
+      setAiGeneratedPreviewUrl(null);
+      setUploadSuccessMessage(lang === 'my' ? 'AI ပုံကို အတည်ပြု၍ သတ်မှတ်ပြီးပါပြီ!' : 'AI photo approved and applied!');
+      setTimeout(() => setUploadSuccessMessage(null), 3000);
     }
   };
 
@@ -662,6 +709,128 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Cloudflare Workers AI Product Photo Generator */}
+              <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 border border-blue-200 p-4 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">
+                        {lang === 'my' ? 'AI နဲ့ ကုန်ပစ္စည်းပုံ ပြင်မယ်' : 'AI Product Photo Generator'}
+                      </h4>
+                      <span className="text-[10px] text-blue-600 font-mono">
+                        Powered by Cloudflare Workers AI {remainingQuota !== null ? `(Quota: ${remainingQuota}/3 left)` : ''}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
+                    {lang === 'my' ? 'ဗီဇုအယ်လ် စတိုင် (Visual Style)' : 'Visual Style'}
+                  </label>
+                  <select
+                    value={aiStyle}
+                    onChange={(e) => setAiStyle(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="clean_white_studio">{lang === 'my' ? 'သန့်ရှင်းဖြူစင်သော စတူဒီယို (Clean White Studio)' : 'Clean White Studio'}</option>
+                    <option value="premium_studio">{lang === 'my' ? 'ဇိမ်ခံပရီမီယံ စတူဒီယို (Premium Studio)' : 'Premium Studio'}</option>
+                    <option value="minimal_lifestyle">{lang === 'my' ? 'မင်နီမယ်လ် လိုက်ဖ်စတိုင် (Minimal Lifestyle)' : 'Minimal Lifestyle'}</option>
+                    <option value="social_commerce">{lang === 'my' ? 'ဆိုရှယ်ကူးတို့ ရောင်းတန်း (Social Commerce)' : 'Social Commerce'}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1 text-[11px]">
+                    {lang === 'my' ? 'အထူးညွှန်ကြားချက်များ (Optional Prompt)' : 'Custom Prompt (Optional)'}
+                  </label>
+                  <input
+                    type="text"
+                    value={aiCustomPrompt}
+                    onChange={(e) => setAiCustomPrompt(e.target.value)}
+                    placeholder={lang === 'my' ? 'ဥပမာ - ရွှေရောင်အလင်းတန်းများ ထည့်ပါ' : 'e.g. dramatic lighting, golden tones'}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                {aiError && (
+                  <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-[11px] text-red-700">
+                    {aiError}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    disabled={generatingAiPhoto || !formData.imageUrl}
+                    onClick={handleGenerateAiPhoto}
+                    className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 shadow-sm"
+                  >
+                    <Bot className="w-3.5 h-3.5" />
+                    <span>
+                      {generatingAiPhoto
+                        ? (lang === 'my' ? 'AI ပုံဖန်တီးနေသည်...' : 'Generating AI Photo...')
+                        : (lang === 'my' ? 'AI ပုံဖန်တီးမည် (Generate)' : 'Generate AI Photo')}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Side by Side Preview: Original vs AI Generated */}
+                {aiGeneratedPreviewUrl && (
+                  <div className="mt-3 p-3 bg-white border border-emerald-200 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-700">
+                        {lang === 'my' ? 'AI ဖန်တီးထားသော ပုံအသစ် (Preview)' : 'AI Generated Preview'}
+                      </span>
+                      <span className="text-[10px] text-slate-500">
+                        {lang === 'my' ? 'အတည်မပြုမီ မူရင်းအတိုင်း ရှိပါသေးသည်' : 'Original preserved until approval'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 items-center">
+                      <div>
+                        <span className="text-[10px] text-slate-500 block mb-1 font-semibold">{lang === 'my' ? 'မူရင်းပုံ' : 'Original'}</span>
+                        <div className="w-full h-24 rounded-xl border border-slate-200 overflow-hidden bg-slate-100 flex items-center justify-center">
+                          {formData.imageUrl ? (
+                            <img src={formData.imageUrl} alt="Original" className="w-full h-full object-cover" />
+                          ) : (
+                            <ImageIcon className="w-6 h-6 text-slate-400" />
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] text-emerald-600 block mb-1 font-semibold">{lang === 'my' ? 'AI အသစ်' : 'Generated'}</span>
+                        <div className="w-full h-24 rounded-xl border border-emerald-300 overflow-hidden bg-emerald-50 flex items-center justify-center">
+                          <img src={aiGeneratedPreviewUrl} alt="AI Generated" className="w-full h-full object-cover" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setAiGeneratedPreviewUrl(null)}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] rounded-lg"
+                      >
+                        {lang === 'my' ? 'ပယ်ဖျက်မည် (Cancel)' : 'Discard'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleApproveAiPhoto}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg flex items-center gap-1 shadow-sm"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{lang === 'my' ? 'အတည်ပြုပြီး သိမ်းမည် (Approve & Save)' : 'Approve & Use'}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

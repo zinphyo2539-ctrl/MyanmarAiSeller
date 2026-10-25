@@ -154,8 +154,12 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 py-3.5 shadow-xs">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center text-[#2563EB] shadow-xs">
-              <Store className="w-5 h-5 text-[#2563EB]" />
+            <div className="w-9 h-9 rounded-xl bg-white border border-[#DBEAFE] flex items-center justify-center overflow-hidden shadow-xs">
+              <img
+                src="/assets/aistudio/1792178753519_42de44bf.jpg"
+                alt="ShopSone"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-1.5">

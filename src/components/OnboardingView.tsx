@@ -80,8 +80,12 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
       <div className="w-full max-w-xl bg-white border border-[#CBD5E1] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-center mx-auto text-[#2563EB]">
-            <Store className="w-7 h-7" />
+          <div className="w-16 h-16 bg-white border border-blue-200 rounded-2xl flex items-center justify-center mx-auto overflow-hidden shadow-sm">
+            <img
+              src="/assets/aistudio/1792178753519_42de44bf.jpg"
+              alt="ShopSone"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
             {lang === 'my' ? 'ShopSone တွင် သင့်ဆိုင်အသစ် ဖွင့်လှစ်ပါ' : 'Open Your Shop on ShopSone'}

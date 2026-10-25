@@ -431,8 +431,8 @@ if (!fs.existsSync(DB_FILE)) {
   }
 }
 
-// Authentication Middleware (supports Bearer token, query token, and session cookies)
-function authMiddleware(req: any, res: any, next: any) {
+// Base Authentication Middleware (verifies user token/session without requiring merchantId)
+function requireAuth(req: any, res: any, next: any) {
   let user: any = null;
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -451,7 +451,16 @@ function authMiddleware(req: any, res: any, next: any) {
     if (!db.users) db.users = {};
     const dbUser = db.users[user.id] || user;
     req.user = dbUser;
+    return next();
+  }
+  return res.status(401).json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' });
+}
 
+// Strict Merchant Workspace Authentication Middleware (requires merchantId and active merchant)
+function authMiddleware(req: any, res: any, next: any) {
+  requireAuth(req, res, () => {
+    const db = readDb();
+    const dbUser = req.user;
     const merchantId = dbUser.merchantId;
     if (!merchantId) {
       return res.status(403).json({
@@ -467,8 +476,7 @@ function authMiddleware(req: any, res: any, next: any) {
     }
     req.merchant = merchant;
     return next();
-  }
-  return res.status(401).json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' });
+  });
 }
 
 // Auth Routes
@@ -879,7 +887,7 @@ app.put('/api/merchant/store', authMiddleware, async (req: any, res: any) => {
   }
 });
 
-app.post('/api/merchant/onboard', authMiddleware, async (req: any, res: any) => {
+app.post('/api/merchant/onboard', requireAuth, async (req: any, res: any) => {
   try {
     const currentUser = req.user;
     if (currentUser.merchantId) {
@@ -984,6 +992,20 @@ app.post('/api/merchant/onboard', authMiddleware, async (req: any, res: any) => 
   }
 });
 
+// Dedicated CORS Middleware for Public APIs (Supports AETHER Virtual City & 3P integrations)
+app.use('/api/public', (req: any, res: any, next: any) => {
+  const allowedOrigin = process.env.AETHER_ORIGIN || '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Max-Age', '86400');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 // Public Storefront Data
 app.get('/api/public/store/:slug', (req: any, res: any) => {
   const db = readDb();
@@ -1008,6 +1030,7 @@ app.get('/api/public/marketplace', (req: any, res: any) => {
     const db = readDb();
     const query = typeof req.query.q === 'string' ? req.query.q.trim().toLowerCase() : '';
     const categoryQuery = typeof req.query.category === 'string' ? req.query.category.trim().toLowerCase() : '';
+    const isSummary = req.query.summary === 'true' || req.query.summary === '1';
 
     const merchantsList = Object.values(db.merchants || {}) as any[];
 
@@ -1057,7 +1080,7 @@ app.get('/api/public/marketplace', (req: any, res: any) => {
         coverUrl: merchant.store.coverUrl || '',
         deliveryInfo: merchant.store.deliveryInfo || '',
         productCount: activeProducts.length,
-        products: activeProducts.map((p: any) => ({
+        products: isSummary ? [] : activeProducts.map((p: any) => ({
           id: p.id,
           name: p.name,
           sku: p.sku || '',
@@ -1326,6 +1349,154 @@ app.post('/api/merchant/upload-image', authMiddleware, upload.single('image'), a
     const isConfigError = msg.includes('unconfigured') || msg.includes('Missing required Supabase') || msg.includes('unavailable');
     const status = isConfigError ? 503 : 400;
     res.status(status).json({ error: msg });
+  }
+});
+
+// Cloudflare Workers AI Product Photo Generator Endpoint
+app.post('/api/merchant/ai-generate-photo', authMiddleware, upload.single('image'), async (req: any, res: any) => {
+  try {
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim();
+    const apiToken = process.env.CLOUDFLARE_API_TOKEN?.trim();
+
+    if (!accountId || !apiToken) {
+      return res.status(503).json({
+        error: 'Cloudflare Workers AI is not configured. Please set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN.'
+      });
+    }
+
+    const merchantId = req.merchant?.id || req.user?.merchantId;
+    if (!merchantId) {
+      return res.status(401).json({ error: 'Unauthorized: Merchant identity not verified.' });
+    }
+
+    // Quota check (3 per day)
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const db = readDb();
+    const merchant = db.merchants[merchantId];
+    if (!merchant) {
+      return res.status(404).json({ error: 'Merchant not found' });
+    }
+
+    const usage = merchant.aiPhotoUsage || { date: '', count: 0 };
+    if (usage.date !== todayStr) {
+      usage.date = todayStr;
+      usage.count = 0;
+    }
+
+    if (usage.count >= 3) {
+      return res.status(429).json({
+        error: 'Daily AI photo generation quota (3/3) exhausted for today.'
+      });
+    }
+
+    // Get input image buffer
+    let imageBuffer: Buffer | null = null;
+    if (req.file) {
+      imageBuffer = req.file.buffer;
+    } else if (req.body.imageUrl) {
+      const imgUrl = req.body.imageUrl;
+      if (imgUrl.startsWith('data:image')) {
+        const base64Data = imgUrl.split(',')[1];
+        if (base64Data) {
+          imageBuffer = Buffer.from(base64Data, 'base64');
+        }
+      } else {
+        const fetchRes = await fetch(imgUrl);
+        if (fetchRes.ok) {
+          const arrBuf = await fetchRes.arrayBuffer();
+          imageBuffer = Buffer.from(arrBuf);
+        }
+      }
+    }
+
+    if (!imageBuffer || imageBuffer.length === 0) {
+      return res.status(400).json({ error: 'Source product image is required for AI generation.' });
+    }
+
+    if (imageBuffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ error: 'Input image size must not exceed 5 MiB.' });
+    }
+
+    const style = req.body.style || 'clean_white_studio';
+    const stylePrompts: Record<string, string> = {
+      clean_white_studio: 'Clean White Studio background, professional e-commerce product photography, studio lighting, crisp shadows, high resolution',
+      premium_studio: 'Luxurious dark studio background, elegant dramatic product lighting, high-end e-commerce aesthetic, professional presentation',
+      minimal_lifestyle: 'Natural minimalist interior, soft daylight, aesthetic lifestyle e-commerce setup, warm and inviting atmosphere',
+      social_commerce: 'Vibrant engaging social media background, trendy e-commerce aesthetic, catchy lighting, highly appealing product shot'
+    };
+
+    const promptText = stylePrompts[style] || stylePrompts.clean_white_studio;
+    const customPrompt = req.body.prompt ? ` ${req.body.prompt.trim()}` : '';
+
+    const cfUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0`;
+
+    const cfResponse = await fetch(cfUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: promptText + customPrompt,
+        image_b64: imageBuffer.toString('base64'),
+        strength: 0.5,
+        num_steps: 20
+      })
+    });
+
+    if (!cfResponse.ok) {
+      const errText = await cfResponse.text();
+      console.error('[CloudflareAI] Error response:', cfResponse.status, errText);
+      return res.status(502).json({ error: `Cloudflare Workers AI generation failed (HTTP ${cfResponse.status}): ${errText.slice(0, 150)}` });
+    }
+
+    const cfData = await cfResponse.json();
+    let generatedBuffer: Buffer | null = null;
+    if (cfData.result && cfData.result.image) {
+      generatedBuffer = Buffer.from(cfData.result.image, 'base64');
+    } else if (cfData.image) {
+      generatedBuffer = Buffer.from(cfData.image, 'base64');
+    } else {
+      generatedBuffer = Buffer.from(await cfResponse.arrayBuffer());
+    }
+
+    if (!generatedBuffer || generatedBuffer.length === 0) {
+      return res.status(502).json({ error: 'Cloudflare Workers AI returned an empty image result.' });
+    }
+
+    let persistentImageUrl = '';
+    try {
+      persistentImageUrl = await uploadProductImageToSupabase(
+        merchantId,
+        generatedBuffer,
+        'image/png',
+        `ai-gen-${Date.now()}.png`
+      );
+    } catch (storageErr) {
+      persistentImageUrl = `data:image/png;base64,${generatedBuffer.toString('base64')}`;
+    }
+
+    const updatedUsage = await withDbTransaction((db) => {
+      const m = db.merchants[merchantId];
+      if (!m.aiPhotoUsage) {
+        m.aiPhotoUsage = { date: todayStr, count: 0 };
+      }
+      if (m.aiPhotoUsage.date !== todayStr) {
+        m.aiPhotoUsage.date = todayStr;
+        m.aiPhotoUsage.count = 0;
+      }
+      m.aiPhotoUsage.count += 1;
+      return m.aiPhotoUsage;
+    });
+
+    res.json({
+      success: true,
+      generatedImageUrl: persistentImageUrl,
+      remainingQuota: Math.max(0, 3 - updatedUsage.count)
+    });
+  } catch (err: any) {
+    console.error('[AiGeneratePhoto] Error:', err);
+    res.status(500).json({ error: err.message || 'Internal server error during AI photo generation' });
   }
 });
 

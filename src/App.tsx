@@ -18,7 +18,10 @@ import {
   ShieldCheck,
   CheckCircle2,
   Lock,
-  FlaskConical
+  FlaskConical,
+  Share2,
+  Truck,
+  Users
 } from 'lucide-react';
 
 import {
@@ -375,6 +378,42 @@ export default function App() {
     }
   };
 
+  // Facebook Login Trigger
+  const handleFacebookLogin = () => {
+    setAuthLoading(true);
+    setAuthError(null);
+    const width = 540;
+    const height = 680;
+    const left = Math.max(0, window.screenX + (window.outerWidth - width) / 2);
+    const top = Math.max(0, window.screenY + (window.outerHeight - height) / 2);
+    const popup = window.open(
+      '/api/auth/facebook',
+      'facebook_oauth_popup',
+      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,status=no`
+    );
+    if (!popup || popup.closed) {
+      window.location.href = '/api/auth/facebook';
+    }
+  };
+
+  // TikTok Login Trigger
+  const handleTiktokLogin = () => {
+    setAuthLoading(true);
+    setAuthError(null);
+    const width = 540;
+    const height = 680;
+    const left = Math.max(0, window.screenX + (window.outerWidth - width) / 2);
+    const top = Math.max(0, window.screenY + (window.outerHeight - height) / 2);
+    const popup = window.open(
+      '/api/auth/tiktok',
+      'tiktok_oauth_popup',
+      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,status=no`
+    );
+    if (!popup || popup.closed) {
+      window.location.href = '/api/auth/tiktok';
+    }
+  };
+
   const handleDevLogin = async () => {
     setAuthLoading(true);
     setAuthError(null);
@@ -692,87 +731,111 @@ export default function App() {
   // Unauthenticated Login Screen
   if (isAuthenticated === false) {
     return (
-      <main className="min-h-screen bg-[#0B0B09] text-[#F5F2E8] flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md bg-[#181810] border border-[#393426] rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 bg-[#1E1D14] border border-[#C9A227]/40 rounded-2xl flex items-center justify-center mx-auto text-[#C9A227]">
-              <Lock className="w-7 h-7" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#F5F2E8]">
-              Myanmar AI Seller
-            </h1>
-            <p className="text-xs text-[#B9B5A7] max-w-xs mx-auto">
-              {lang === 'my'
-                ? 'လူမှုကွန်ရက် ကုန်သည်များအတွက် သီးသန့် AI အရောင်းကွပ်ကဲမှု စနစ်'
-                : 'Mobile-First AI Sales Operating System for Social Merchants.'}
-            </p>
-          </div>
-
-          {authError && (
-            <div className="p-3.5 bg-[#E06B61]/15 border border-[#E06B61]/40 rounded-xl text-xs text-[#E06B61] space-y-1">
-              <div className="flex items-center gap-1.5 font-bold">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{lang === 'my' ? 'ချိတ်ဆက်မှု မအောင်မြင်ပါ' : 'Sign-In Error'}</span>
+      <main className="min-h-screen bg-[#F1F5F9] text-[#0F172A] flex flex-col justify-center items-center p-4 sm:p-6">
+        <div className="w-full max-w-lg space-y-6">
+          {/* 4 Large Orange 3D Pillar Logos: Social Media / Seller / Deli / Customers */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white border border-orange-200 rounded-2xl p-4 text-center shadow-md flex flex-col items-center gap-2 transform hover:scale-105 transition-all">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+                <Share2 className="w-7 h-7" />
               </div>
-              <p className="text-[11px] leading-relaxed">{authError}</p>
+              <span className="text-xs font-bold text-[#0F172A]">
+                {lang === 'my' ? 'ဆိုရှယ်မီဒီယာ' : 'Social Media'}
+              </span>
             </div>
-          )}
 
-          <div className="space-y-3">
-            <button
-              type="button"
-              disabled={authLoading}
-              onClick={handleGoogleLogin}
-              className="w-full py-3 px-4 bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-md disabled:opacity-50"
-            >
-              <span>{authLoading ? (lang === 'my' ? 'ဝင်ရောက်နေသည်...' : 'Connecting...') : (lang === 'my' ? 'Google ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with Google')}</span>
-            </button>
+            <div className="bg-white border border-orange-200 rounded-2xl p-4 text-center shadow-md flex flex-col items-center gap-2 transform hover:scale-105 transition-all">
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-rose-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+                <Store className="w-7 h-7" />
+              </div>
+              <span className="text-xs font-bold text-[#0F172A]">
+                {lang === 'my' ? 'ဆိုင် / ကုန်သည်' : 'Seller Store'}
+              </span>
+            </div>
 
-            <button
-              type="button"
-              disabled={authLoading}
-              onClick={handleDevLogin}
-              className="w-full py-2.5 px-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-xs font-semibold text-[#B9B5A7] hover:text-[#F5F2E8] rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#C9A227]" />
-              <span>{lang === 'my' ? 'စတိုးအကောင့်ဖြင့် ဝင်ရောက်မည် (Yangon Style)' : 'Sign In to Merchant Workspace (Yangon Style)'}</span>
-            </button>
+            <div className="bg-white border border-orange-200 rounded-2xl p-4 text-center shadow-md flex flex-col items-center gap-2 transform hover:scale-105 transition-all">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-700 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+                <Truck className="w-7 h-7" />
+              </div>
+              <span className="text-xs font-bold text-[#0F172A]">
+                {lang === 'my' ? 'ပို့ဆောင်ရေး (Deli)' : 'Delivery (Deli)'}
+              </span>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                try {
-                  window.history.pushState({}, '', '/marketplace');
-                } catch {}
-                setIsMarketplace(true);
-              }}
-              className="w-full py-2.5 px-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#2563EB]/50 text-xs font-bold text-[#60A5FA] hover:text-white rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <Store className="w-4 h-4 text-[#60A5FA]" />
-              <span>{lang === 'my' ? 'ShopSone (ဆိုင်စုံ) သို့ သွားမည်' : 'Explore ShopSone Marketplace'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setConfigTargetProvider('google');
-                setIsConfigModalOpen(true);
-              }}
-              className="w-full py-2 px-4 bg-[#11110D] hover:bg-[#181810] border border-[#393426] text-xs font-medium text-[#817D70] hover:text-[#B9B5A7] rounded-xl transition-colors cursor-pointer"
-            >
-              {lang === 'my' ? 'OAuth Credentials ပြင်ဆင်ရန်' : 'Configure OAuth Credentials'}
-            </button>
+            <div className="bg-white border border-orange-200 rounded-2xl p-4 text-center shadow-md flex flex-col items-center gap-2 transform hover:scale-105 transition-all">
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+                <Users className="w-7 h-7" />
+              </div>
+              <span className="text-xs font-bold text-[#0F172A]">
+                {lang === 'my' ? 'ဝယ်သူများ' : 'Customers'}
+              </span>
+            </div>
           </div>
 
-          <div className="pt-2 border-t border-[#393426] flex items-center justify-between text-xs text-[#817D70]">
-            <span>{lang === 'my' ? 'လုံခြုံစိတ်ချရသော စနစ်' : 'Authoritative Security'}</span>
-            <button
-              type="button"
-              onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
-              className="hover:text-[#F5F2E8] text-[#C9A227] font-semibold"
-            >
-              {lang === 'my' ? 'English' : 'မြန်မာ'}
-            </button>
+          <div className="w-full bg-white border border-[#CBD5E1] rounded-3xl p-6 sm:p-8 space-y-6 shadow-md">
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-center mx-auto text-[#2563EB]">
+                <Lock className="w-7 h-7" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
+                Myanmar AI Seller
+              </h1>
+              <p className="text-xs text-[#64748B] max-w-xs mx-auto">
+                {lang === 'my'
+                  ? 'လူမှုကွန်ရက် ကုန်သည်များအတွက် သီးသန့် AI အရောင်းကွပ်ကဲမှု စနစ်'
+                  : 'Mobile-First AI Sales Operating System for Social Merchants.'}
+              </p>
+            </div>
+
+            {authError && (
+              <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>{lang === 'my' ? 'ချိတ်ဆက်မှု မအောင်မြင်ပါ' : 'Sign-In Error'}</span>
+                </div>
+                <p className="text-[11px] leading-relaxed">{authError}</p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                disabled={authLoading}
+                onClick={handleGoogleLogin}
+                className="w-full py-3 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                <span>{authLoading ? (lang === 'my' ? 'ဝင်ရောက်နေသည်...' : 'Connecting...') : (lang === 'my' ? 'Google ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with Google')}</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={authLoading}
+                onClick={handleFacebookLogin}
+                className="w-full py-3 px-4 bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                <span>{lang === 'my' ? 'Facebook ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with Facebook'}</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={authLoading}
+                onClick={handleTiktokLogin}
+                className="w-full py-3 px-4 bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                <span>{lang === 'my' ? 'TikTok ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with TikTok'}</span>
+              </button>
+            </div>
+
+            <div className="pt-2 border-t border-[#CBD5E1] flex items-center justify-between text-xs text-[#64748B]">
+              <span>{lang === 'my' ? 'လုံခြုံစိတ်ချရသော စနစ်' : 'Authoritative Security'}</span>
+              <button
+                type="button"
+                onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
+                className="hover:text-[#0F172A] text-[#2563EB] font-semibold"
+              >
+                {lang === 'my' ? 'English' : 'မြန်မာ'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -791,19 +854,23 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#E9EEF5] text-[#0F172A] flex flex-col font-sans">
       {/* Top Application Header Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 py-3 shadow-xs">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 sm:px-6 py-4 sm:py-5 shadow-xs">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           {/* Brand Wordmark (Zone 1) */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB]">
-              <Bot className="w-4 h-4" />
+          <div className="flex items-center gap-3 sm:gap-3.5 shrink-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border border-[#DBEAFE] flex items-center justify-center overflow-hidden shadow-sm">
+              <img
+                src="/assets/aistudio/1792178753519_42de44bf.jpg"
+                alt="ShopSone"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <span className="text-sm sm:text-base font-bold tracking-tight text-[#0F172A] block leading-tight">
-                Myanmar AI Seller
+              <span className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-[#0F172A] block leading-tight">
+                ShopSone (ဆိုင်စုံ)
               </span>
-              <span className="text-[10px] text-[#2563EB] font-mono block leading-none font-semibold">
-                Enterprise Edition
+              <span className="text-[11px] sm:text-xs text-[#2563EB] font-mono block leading-none font-semibold mt-1">
+                Myanmar AI Seller
               </span>
             </div>
           </div>
