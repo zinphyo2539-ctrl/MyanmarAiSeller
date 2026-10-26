@@ -841,7 +841,7 @@ export default function App() {
           {/* Desktop Navigation Links (Zone 2 - Single line, clean typography) */}
           <nav
             aria-label="Desktop Primary Navigation"
-            className="hidden md:flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1]"
+            className="hidden lg:flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1]"
           >
             {((user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local')
               ? ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile', 'lab']

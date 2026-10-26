@@ -77,7 +77,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   return (
     <nav
       aria-label="Primary Mobile Navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#CBD5E1] transition-all"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#CBD5E1] transition-all lg:hidden"
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="grid grid-cols-6 items-center h-16">
