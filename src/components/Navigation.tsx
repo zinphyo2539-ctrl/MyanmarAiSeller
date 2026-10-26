@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   MessageSquare,
   Package,
-  Bot,
   Store,
   Receipt,
   Sparkles
@@ -67,15 +66,9 @@ export const Navigation: React.FC<NavigationProps> = ({
       icon: Sparkles
     },
     {
-      id: 'ai',
-      labelMy: 'AI စနစ်',
-      labelEn: 'AI Seller',
-      icon: Bot
-    },
-    {
       id: 'profile',
-      labelMy: 'ပရိုဖိုင်',
-      labelEn: 'Profile',
+      labelMy: 'အကောင့် & AI',
+      labelEn: 'Account & AI',
       icon: Store,
       badge: badges.paymentsReviewCount > 0 ? badges.paymentsReviewCount : undefined
     }
@@ -87,7 +80,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#CBD5E1] transition-all"
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
-        <div className="grid grid-cols-7 items-center h-16">
+        <div className="grid grid-cols-6 items-center h-16">
           {destinations.map((item) => {
             const isActive = currentTab === item.id;
             const Icon = item.icon;

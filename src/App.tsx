@@ -39,7 +39,6 @@ import { Navigation } from './components/Navigation';
 import { HomeView } from './components/HomeView';
 import { MessagesView } from './components/MessagesView';
 import { InventoryView } from './components/InventoryView';
-import { AiSellerView } from './components/AiSellerView';
 import { ProfileView } from './components/ProfileView';
 import { AiTestingLabView } from './components/AiTestingLabView';
 import { ConfigureModal } from './components/ConfigureModal';
@@ -845,8 +844,8 @@ export default function App() {
             className="hidden md:flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1]"
           >
             {((user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local')
-              ? ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'ai', 'profile', 'lab']
-              : ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'ai', 'profile']
+              ? ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile', 'lab']
+              : ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile']
             ).map((tab) => {
               const isActive = currentTab === tab;
               const labels: Record<string, { my: string; en: string }> = {
@@ -855,8 +854,7 @@ export default function App() {
                 inventory: { my: 'စတော့', en: 'Inventory' },
                 accounting: { my: 'စာရင်းကိုင်', en: 'Accounting' },
                 aistudio: { my: 'AI Studio', en: 'AI Studio' },
-                ai: { my: 'AI စနစ်', en: 'AI Seller' },
-                profile: { my: 'ပရိုဖိုင်', en: 'Profile' },
+                profile: { my: 'အကောင့် & AI', en: 'Account & AI' },
                 lab: { my: 'AI စမ်းသပ်ခန်း', en: 'AI Testing Lab' }
               };
 
@@ -1019,22 +1017,6 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'ai' && (
-          <AiSellerView
-            config={aiConfig}
-            samples={samples}
-            products={products}
-            aiHealth={aiHealth}
-            lang={lang}
-            onUpdateConfig={handleUpdateAiConfig}
-            onAddSample={handleAddSample}
-            onUpdateSample={handleUpdateSample}
-            onDeleteSample={handleDeleteSample}
-            onTestPreview={handleTestPreview}
-            onOpenLab={() => setCurrentTab('lab')}
-          />
-        )}
-
         {currentTab === 'lab' && (user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local') && (
           <AiTestingLabView
             lang={lang}
@@ -1063,6 +1045,16 @@ export default function App() {
             onLogout={handleLogout}
             onOpenPublicStore={() => setIsPublicStoreOpen(true)}
             initialTab={subFilter}
+            config={aiConfig}
+            samples={samples}
+            products={products}
+            aiHealth={aiHealth}
+            onUpdateConfig={handleUpdateAiConfig}
+            onAddSample={handleAddSample}
+            onUpdateSample={handleUpdateSample}
+            onDeleteSample={handleDeleteSample}
+            onTestPreview={handleTestPreview}
+            onOpenLab={() => setCurrentTab('lab')}
           />
         )}
       </main>
