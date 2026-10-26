@@ -119,11 +119,17 @@ export default function App() {
   const [isMarketplace, setIsMarketplace] = useState<boolean>(() => {
     try {
       if (typeof window === 'undefined') return false;
-      if (window.location.pathname.startsWith('/marketplace')) return true;
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('page') === 'marketplace' || params.has('marketplace')) return true;
-      if (window.location.hash.includes('marketplace')) return true;
+      const path = window.location.pathname;
+      return path === '/' || path.startsWith('/marketplace');
+    } catch {
       return false;
+    }
+  });
+
+  const [isLoginView, setIsLoginView] = useState<boolean>(() => {
+    try {
+      if (typeof window === 'undefined') return false;
+      return window.location.pathname === '/login';
     } catch {
       return false;
     }
@@ -146,19 +152,13 @@ export default function App() {
         const search = window.location.search;
         const hash = window.location.hash;
 
-        if (path.startsWith('/marketplace') || search.includes('page=marketplace') || hash.includes('marketplace')) {
-          setIsMarketplace(true);
-          setPublicStoreSlug(null);
-          setSelectedProductId(null);
-          return;
-        }
+        setIsLoginView(path === '/login');
+        setIsMarketplace(path === '/' || path.startsWith('/marketplace') || search.includes('page=marketplace') || hash.includes('marketplace'));
 
         const pathMatch = path.match(/^\/store\/([a-zA-Z0-9_-]+)/);
         if (pathMatch) {
           setPublicStoreSlug(pathMatch[1]);
-          setIsMarketplace(false);
-          const params = new URLSearchParams(search);
-          setSelectedProductId(params.get('product') || null);
+          setSelectedProductId(new URLSearchParams(search).get('product') || null);
           return;
         }
 
@@ -166,7 +166,6 @@ export default function App() {
         const querySlug = params.get('store');
         if (querySlug) {
           setPublicStoreSlug(querySlug);
-          setIsMarketplace(false);
           setSelectedProductId(params.get('product') || null);
           return;
         }
@@ -174,16 +173,13 @@ export default function App() {
         const hashMatch = hash.match(/#\/?store\/([a-zA-Z0-9_-]+)/) || hash.match(/#.*store=([a-zA-Z0-9_-]+)/);
         if (hashMatch) {
           setPublicStoreSlug(hashMatch[1]);
-          setIsMarketplace(false);
           return;
         }
 
         setPublicStoreSlug(null);
-        setIsMarketplace(false);
         setSelectedProductId(null);
       } catch {
         setPublicStoreSlug(null);
-        setIsMarketplace(false);
         setSelectedProductId(null);
       }
     };
@@ -206,6 +202,15 @@ export default function App() {
       document.title = 'Myanmar AI Seller - Merchant Platform';
     }
   }, [isMarketplace, publicStoreSlug]);
+
+  // Redirect authenticated users away from login
+  useEffect(() => {
+    if (isLoginView && isAuthenticated === true) {
+      window.history.replaceState({}, '', '/');
+      setIsLoginView(false);
+      setIsMarketplace(true);
+    }
+  }, [isLoginView, isAuthenticated]);
 
   const getHeaders = useCallback((): Record<string, string> => {
     const token = authToken || localStorage.getItem('myanmar_seller_token');
@@ -262,7 +267,8 @@ export default function App() {
         storeRes,
         logsRes,
         statusRes,
-        healthRes
+        healthRes,
+        supportRes
       ] = await Promise.all([
         fetch('/api/dashboard/summary', { headers }).then(r => r.ok ? r.json() : null),
         fetch('/api/products', { headers }).then(r => r.ok ? r.json() : []),
@@ -273,13 +279,27 @@ export default function App() {
         fetch('/api/merchant/store', { headers }).then(r => r.ok ? r.json() : null),
         fetch('/api/audit-logs', { headers }).then(r => r.ok ? r.json() : []),
         fetch('/api/auth/config-status').then(r => r.ok ? r.json() : null),
-        fetch('/api/ai/health', { headers }).then(r => r.ok ? r.json() : null)
+        fetch('/api/ai/health', { headers }).then(r => r.ok ? r.json() : null),
+        fetch('/api/merchant/support/conversations', { headers }).then(r => r.ok ? r.json() : [])
       ]);
 
       if (summaryRes) setSummary(summaryRes);
       if (Array.isArray(productsRes)) setProducts(productsRes);
       if (Array.isArray(ordersRes)) setOrders(ordersRes);
-      if (Array.isArray(conversationsRes)) setConversations(conversationsRes);
+      
+      const supportConvs = Array.isArray(supportRes) 
+        ? supportRes.map((o: any) => ({
+            id: o.supportConversationId,
+            platform: 'support',
+            customerName: o.customerName,
+            status: 'processing',
+            lastActivityAt: o.createdAt,
+            lastMessagePreview: 'Order Support Started',
+            messages: []
+          })) 
+        : [];
+
+      setConversations([...(Array.isArray(conversationsRes) ? conversationsRes : []), ...supportConvs]);
       if (Array.isArray(samplesRes)) setSamples(samplesRes);
       if (configRes) setAiConfig(configRes);
       if (storeRes) setStore(storeRes);
@@ -552,7 +572,13 @@ export default function App() {
   };
 
   const handleSendConversationReply = async (convId: string, text: string) => {
-    const res = await fetch(`/api/conversations/${convId}/reply`, {
+    const conv = conversations.find(c => c.id === convId);
+    if (!conv) return;
+
+    const isSupport = conv.platform === 'support';
+    const endpoint = isSupport ? `/api/merchant/support/chat/${convId}` : `/api/conversations/${convId}/reply`;
+
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ text })
@@ -727,7 +753,7 @@ export default function App() {
   }
 
   // Unauthenticated Login Screen (Only the Login Box is displayed)
-  if (isAuthenticated === false) {
+  if (isLoginView || isAuthenticated === false) {
     return (
       <main className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-center items-center p-4 sm:p-6">
         <div className="w-full max-w-md bg-white border border-[#CBD5E1] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">

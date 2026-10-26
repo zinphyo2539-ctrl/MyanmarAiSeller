@@ -27,7 +27,13 @@ import {
   type UserRecord,
   type DbState,
   type AccountingEntryRecord,
-  type AiStudioGenerationRecord
+  type AiStudioGenerationRecord,
+  getFirestoreInstance,
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  addDoc
 } from './server/db.ts';
 
 dotenv.config();
@@ -967,7 +973,6 @@ app.get('/api/public/store/:slug', (req: any, res: any) => {
   });
 });
 
-// Public Multi-Store Marketplace Data
 app.get('/api/public/marketplace', (req: any, res: any) => {
   try {
     const db = readDb();
@@ -1055,6 +1060,109 @@ app.get('/api/public/marketplace', (req: any, res: any) => {
   }
 });
 
+// Guest Support Code Verification
+app.post('/api/public/support/verify', async (req: any, res: any) => {
+  try {
+    const { code, phone } = req.body;
+    if (!code || !phone) {
+      return res.status(400).json({ error: 'Support code and phone number are required' });
+    }
+
+    const db = readDb();
+    const hashedCode = crypto.createHash('sha256').update(code.trim()).digest('hex');
+    const order = db.orders.find((o: any) => o.supportCodeHash === hashedCode && o.customerPhone === phone.trim());
+
+    if (!order) {
+      return res.status(401).json({ error: 'Invalid support code or phone number' });
+    }
+
+    req.session.supportOrder = { orderId: order.id, merchantId: order.merchantId };
+    req.session.save();
+
+    res.json({ success: true, conversationId: order.supportConversationId });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/public/support/chat', async (req: any, res: any) => {
+  if (!req.session.supportOrder) {
+    return res.status(401).json({ error: 'No active support session' });
+  }
+  const db = getFirestoreInstance();
+  if (!db) return res.status(503).json({ error: 'Database unavailable' });
+  
+  const q = query(collection(db, 'orders', req.session.supportOrder.orderId, 'supportMessages'), orderBy('timestamp', 'asc'));
+  const snapshot = await getDocs(q);
+  const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  res.json(messages);
+});
+
+app.post('/api/public/support/chat', async (req: any, res: any) => {
+  if (!req.session.supportOrder) {
+    return res.status(401).json({ error: 'No active support session' });
+  }
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text required' });
+  
+  const db = getFirestoreInstance();
+  if (!db) return res.status(503).json({ error: 'Database unavailable' });
+  
+  const message = {
+    orderId: req.session.supportOrder.orderId,
+    sender: 'customer',
+    text: text.trim(),
+    timestamp: new Date().toISOString()
+  };
+  
+  await addDoc(collection(db, 'orders', req.session.supportOrder.orderId, 'supportMessages'), message);
+  res.json({ success: true });
+});
+
+app.get('/api/merchant/support/conversations', authMiddleware, async (req: any, res: any) => {
+  const db = getFirestoreInstance();
+  if (!db) return res.status(503).json({ error: 'Database unavailable' });
+  
+  // Find all orders for this merchant that have a supportConversationId
+  const q = query(collection(db, 'orders'), where('merchantId', '==', req.merchant.id));
+  const snapshot = await getDocs(q);
+  
+  const conversations = snapshot.docs
+    .map(doc => ({ id: doc.id, ...doc.data() }))
+    .filter((o: any) => o.supportConversationId);
+    
+  res.json(conversations);
+});
+
+app.post('/api/merchant/support/chat/:orderId', authMiddleware, async (req: any, res: any) => {
+  const { orderId } = req.params;
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text required' });
+  
+  const db = getFirestoreInstance();
+  if (!db) return res.status(503).json({ error: 'Database unavailable' });
+
+  // Security: verify order belongs to merchant
+  const q = query(collection(db, 'orders'), where('merchantId', '==', req.merchant.id));
+  const snapshot = await getDocs(q);
+  const isAuthorized = snapshot.docs.some(d => d.id === orderId);
+  
+  if (!isAuthorized) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+  
+  const message = {
+    orderId,
+    sender: 'human_staff',
+    senderName: req.merchant.shopName,
+    text: text.trim(),
+    timestamp: new Date().toISOString()
+  };
+  
+  await addDoc(collection(db, 'orders', orderId, 'supportMessages'), message);
+  res.json({ success: true });
+});
+
 // Public Server-Validated Checkout & Order Creation
 app.post('/api/public/store/:slug/orders', async (req: any, res: any) => {
   try {
@@ -1118,8 +1226,15 @@ app.post('/api/public/store/:slug/orders', async (req: any, res: any) => {
         createdAt: new Date().toISOString()
       };
 
-      db.orders.unshift(order);
-      return order;
+      const supportCode = crypto.randomBytes(12).toString('hex');
+      const orderWithSupport = {
+        ...order,
+        supportCodeHash: crypto.createHash('sha256').update(supportCode).digest('hex'),
+        supportConversationId: `chat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+      };
+
+      db.orders.unshift(orderWithSupport);
+      return { ...orderWithSupport, supportCode };
     });
 
     res.status(201).json({ success: true, order: newOrder });

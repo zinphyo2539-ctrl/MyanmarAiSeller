@@ -9,8 +9,25 @@ import {
   getDocs,
   query,
   where,
-  writeBatch
+  writeBatch,
+  addDoc,
+  orderBy
 } from 'firebase/firestore';
+
+export {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  writeBatch,
+  addDoc,
+  orderBy
+};
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -143,7 +160,7 @@ let initPromise: Promise<void> | null = null;
 let firestoreDb: any = null;
 
 // Initialize Firebase client
-function getFirestoreInstance() {
+export function getFirestoreInstance() {
   if (firestoreDb) return firestoreDb;
   try {
     if (!fs.existsSync(CONFIG_FILE)) {

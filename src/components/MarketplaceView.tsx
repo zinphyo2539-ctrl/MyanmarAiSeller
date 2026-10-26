@@ -150,55 +150,24 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] text-[#0F172A] font-sans pb-24">
-      {/* Top Application Bar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 py-3.5 shadow-xs">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-white border border-[#DBEAFE] flex items-center justify-center overflow-hidden shadow-xs">
-              <img
-                src="/assets/aistudio/1792178753519_42de44bf.jpg"
-                alt="ShopSone"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm sm:text-base font-bold text-[#0F172A] tracking-tight">
-                  ShopSone <span className="font-semibold text-[#2563EB]">(ဆိုင်စုံ)</span>
-                </span>
-                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#EFF6FF] border border-[#DBEAFE] text-[#1E40AF] text-[10px] font-semibold">
-                  <ShieldCheck className="w-3 h-3 text-[#2563EB]" />
-                  <span>{lang === 'my' ? 'ဖွင့်လှစ်ထားသော စတိုးများ' : 'Published Stores'}</span>
-                </span>
-              </div>
-              <p className="text-[11px] text-[#475569]">
-                {lang === 'my'
-                  ? 'ဆိုင်စုံ၊ ပစ္စည်းစုံ၊ တစ်နေရာတည်း • Powered by Myanmar AI Seller'
-                  : 'All Stores, All Products, in One Place • Powered by Myanmar AI Seller'}
-              </p>
-            </div>
+            <span className="text-base font-bold text-[#0F172A] tracking-tight">
+              ShopSone <span className="font-semibold text-[#2563EB]">(ဆိုင်စုံ)</span>
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Language Switch */}
-            <button
-              type="button"
-              onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
-              className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-semibold text-[#475569] hover:text-[#0F172A] transition-colors cursor-pointer"
-              title={lang === 'my' ? 'Switch to English' : 'မြန်မာဘာသာသို့ ပြောင်းမည်'}
-            >
-              {lang === 'my' ? 'EN' : 'မြန်မာ'}
-            </button>
-
             {/* Merchant Login Access */}
             {onNavigateToMerchant && (
               <button
                 type="button"
                 onClick={onNavigateToMerchant}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] hover:border-[#2563EB]/40 text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
               >
-                <LogIn className="w-3.5 h-3.5 text-[#2563EB]" />
-                <span className="hidden sm:inline">{lang === 'my' ? 'ကုန်သည် ဝင်ရန်' : 'Merchant Portal'}</span>
+                <LogIn className="w-3.5 h-3.5 text-white" />
+                <span>{lang === 'my' ? 'ကုန်သည် ဝင်ရန်' : 'Merchant Portal'}</span>
               </button>
             )}
           </div>

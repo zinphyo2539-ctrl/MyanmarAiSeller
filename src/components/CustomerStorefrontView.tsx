@@ -23,6 +23,7 @@ import {
   ExternalLink,
   Lock
 } from 'lucide-react';
+import { OrderSupportModal } from './OrderSupportModal';
 import { Product, ProductVariant, StoreSettings } from '../types';
 
 interface CustomerStorefrontViewProps {
@@ -79,6 +80,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   const [orderError, setOrderError] = useState<string | null>(null);
   const [createdOrder, setCreatedOrder] = useState<any>(null);
   const [copiedOrderId, setCopiedOrderId] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   // Load public store data from authoritative API
   const fetchStoreData = useCallback(async () => {
@@ -1001,6 +1003,22 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                       </button>
                     </div>
                   </div>
+                  {createdOrder?.supportCode && (
+                    <div className="flex items-center justify-between pt-2 border-t border-[#393426]/50">
+                      <span className="text-[#817D70] font-semibold">{lang === 'my' ? 'Support Code' : 'Support Code'}:</span>
+                      <div className="flex items-center gap-1.5 font-mono font-bold text-[#65B985]">
+                        <span>{createdOrder.supportCode}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyOrderId(createdOrder.supportCode)}
+                          className="p-1 hover:bg-[#1E1D14] rounded text-[#817D70] hover:text-[#F5F2E8]"
+                          title={lang === 'my' ? 'ကူးယူရန်' : 'Copy'}
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {copiedOrderId && (
                     <span className="text-[10px] text-[#65B985] block text-right">
                       {lang === 'my' ? 'ကူးယူပြီးပါပြီ' : 'Copied to clipboard!'}
@@ -1042,27 +1060,36 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
         </div>
       )}
 
+import { OrderSupportModal } from './OrderSupportModal';
+...
+  const [isPublicStoreOpen, setIsPublicStoreOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+...
       {/* Discreet Public Storefront Footer */}
       <footer className="mt-12 py-8 border-t border-[#393426] text-center text-xs text-[#817D70] space-y-2">
         <p>
           {store?.storeName} · {lang === 'my' ? 'တရားဝင် အတည်ပြုပြီး စတိုး' : 'Official Verified Storefront'}
         </p>
         <div className="flex items-center justify-center gap-3 text-[11px]">
-          <span>Powered by Myanmar AI Seller</span>
-          {onNavigateToMerchant && (
-            <>
-              <span>·</span>
-              <button
-                type="button"
-                onClick={onNavigateToMerchant}
-                className="text-[#817D70] hover:text-[#C9A227] underline cursor-pointer"
-              >
-                {lang === 'my' ? 'ကုန်သည် အကောင့်ဝင်ရန်' : 'Merchant Login'}
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={() => setIsSupportOpen(true)}
+            className="text-[#C9A227] hover:text-[#F5F2E8] underline cursor-pointer"
+          >
+            {lang === 'my' ? 'အော်ဒါ အကူအညီ' : 'Order Support'}
+          </button>
+          <span>·</span>
+          <button
+            type="button"
+            onClick={onNavigateToMerchant}
+            className="text-[#817D70] hover:text-[#C9A227] underline cursor-pointer"
+          >
+            {lang === 'my' ? 'ကုန်သည် အကောင့်ဝင်ရန်' : 'Merchant Login'}
+          </button>
         </div>
       </footer>
+
+      <OrderSupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} lang={lang} />
     </div>
   );
 };

@@ -71,7 +71,9 @@
         "currency": { "type": "string" },
         "paymentMethod": { "type": "string" },
         "status": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "createdAt": { "type": "string" },
+        "supportCodeHash": { "type": "string" },
+        "supportConversationId": { "type": "string" }
       },
       "required": ["id", "merchantId", "customerName", "customerPhone", "totalAmount", "status"]
     },
@@ -154,6 +156,19 @@
         "createdAt": { "type": "string" }
       },
       "required": ["id", "merchantId", "type", "status", "createdAt"]
+    },
+    "supportMessage": {
+      "title": "SupportMessage",
+      "description": "Messages in an order-linked support conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderId": { "type": "string" },
+        "sender": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "orderId", "sender", "text", "timestamp"]
     }
   },
   "firestore": {
@@ -188,6 +203,10 @@
     "/aiStudioGenerations/{genId}": {
       "schema": "aiStudioGeneration",
       "description": "Stores merchant AI Studio generated assets"
+    },
+    "/orders/{orderId}/supportMessages/{messageId}": {
+      "schema": "supportMessage",
+      "description": "Stores support messages linked to an order"
     },
     "/_health_check/{docId}": {
       "schema": "healthCheck",

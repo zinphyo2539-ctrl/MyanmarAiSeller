@@ -51,6 +51,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
   const filteredConversations = conversations.filter((c) => {
     if (selectedChannel === 'messenger' && c.platform !== 'messenger') return false;
     if (selectedChannel === 'tiktok' && c.platform !== 'tiktok') return false;
+    if (selectedChannel === 'support' && c.platform !== 'support') return false;
     if (showHumanReviewOnly && c.status !== 'needs_human_review' && !c.humanReviewReason) return false;
     return true;
   });
@@ -80,75 +81,87 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Top Controls: Channel Tabs and Human Review Queue */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#FFFFFF] border border-[#CBD5E1] p-3 rounded-2xl">
-        {/* Channel Segmented Control */}
-        <div className="flex items-center gap-1 bg-[#F8FAFC] p-1 rounded-xl border border-[#CBD5E1]">
-          <button
-            type="button"
-            onClick={() => setSelectedChannel('all')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              selectedChannel === 'all'
-                ? 'bg-[#2563EB] text-white shadow-sm'
-                : 'text-[#475569] hover:text-[#0F172A]'
-            }`}
-          >
-            {lang === 'my' ? 'အားလုံး' : 'All Channels'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedChannel('messenger')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              selectedChannel === 'messenger'
-                ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
-                : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-            }`}
-          >
-            Messenger
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedChannel('tiktok')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              selectedChannel === 'tiktok'
-                ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
-                : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-            }`}
-          >
-            TikTok
-          </button>
-        </div>
+    <>
+      <div className="space-y-4">
+        {/* Top Controls: Channel Tabs and Human Review Queue */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#FFFFFF] border border-[#CBD5E1] p-3 rounded-2xl">
+          {/* Channel Segmented Control */}
+          <div className="flex items-center gap-1 bg-[#F8FAFC] p-1 rounded-xl border border-[#CBD5E1]">
+            <button
+              type="button"
+              onClick={() => setSelectedChannel('all')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                selectedChannel === 'all'
+                  ? 'bg-[#2563EB] text-white shadow-sm'
+                  : 'text-[#475569] hover:text-[#0F172A]'
+              }`}
+            >
+              {lang === 'my' ? 'အားလုံး' : 'All Channels'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedChannel('messenger')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                selectedChannel === 'messenger'
+                  ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
+                  : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
+              }`}
+            >
+              Messenger
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedChannel('tiktok')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                selectedChannel === 'tiktok'
+                  ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
+                  : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
+              }`}
+            >
+              TikTok
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedChannel('support')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                selectedChannel === 'support'
+                  ? 'bg-[#65B985] text-white shadow-sm'
+                  : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
+              }`}
+            >
+              {lang === 'my' ? 'အော်ဒါအကူအညီ' : 'Order Support'}
+            </button>
+          </div>
+          
+          {/* Human Review Filter & Refresh */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowHumanReviewOnly(!showHumanReviewOnly)}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer ${
+                showHumanReviewOnly
+                  ? 'bg-[#E0BD55]/15 border-[#E0BD55] text-[#E0BD55]'
+                  : 'bg-[#1E1D14] border-[#393426] text-[#B9B5A7] hover:text-[#F5F2E8]'
+              }`}
+            >
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>
+                {lang === 'my' ? 'လူဖြေကြားရန် လိုအပ်မှု သီးသန့်' : 'Human Review Only'}
+              </span>
+            </button>
 
-        {/* Human Review Filter & Refresh */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowHumanReviewOnly(!showHumanReviewOnly)}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer ${
-              showHumanReviewOnly
-                ? 'bg-[#E0BD55]/15 border-[#E0BD55] text-[#E0BD55]'
-                : 'bg-[#1E1D14] border-[#393426] text-[#B9B5A7] hover:text-[#F5F2E8]'
-            }`}
-          >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>
-              {lang === 'my' ? 'လူဖြေကြားရန် လိုအပ်မှု သီးသန့်' : 'Human Review Only'}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="p-2 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-[#C9A227] rounded-xl transition-colors cursor-pointer"
-            title={lang === 'my' ? 'ပြန်လည်ရယူရန်' : 'Refresh'}
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="p-2 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-[#C9A227] rounded-xl transition-colors cursor-pointer"
+              title={lang === 'my' ? 'ပြန်လည်ရယူရန်' : 'Refresh'}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Inbox Content Area: Responsive Split List / Detail */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[500px]">
         {/* Left Column: Conversation List (or full view on mobile when none selected) */}
         <div
@@ -407,6 +420,6 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
