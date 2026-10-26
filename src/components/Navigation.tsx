@@ -86,7 +86,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       aria-label="Primary Mobile Navigation"
       className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#CBD5E1] transition-all"
     >
-      <div className="max-w-6xl mx-auto px-1 sm:px-2">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="grid grid-cols-7 items-center h-16">
           {destinations.map((item) => {
             const isActive = currentTab === item.id;

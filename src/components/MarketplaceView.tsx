@@ -152,7 +152,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
     <div className="min-h-screen bg-[#F1F5F9] text-[#0F172A] font-sans pb-24">
       {/* Top Application Bar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 py-3.5 shadow-xs">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-white border border-[#DBEAFE] flex items-center justify-center overflow-hidden shadow-xs">
               <img
@@ -296,7 +296,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">

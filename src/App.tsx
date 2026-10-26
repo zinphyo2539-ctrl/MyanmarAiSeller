@@ -819,7 +819,7 @@ export default function App() {
     <div className="min-h-screen bg-[#E9EEF5] text-[#0F172A] flex flex-col font-sans">
       {/* Top Application Header Bar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 sm:px-6 py-4 sm:py-5 shadow-xs">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
           {/* Brand Wordmark (Zone 1) */}
           <div className="flex items-center gap-3 sm:gap-3.5 shrink-0">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border border-[#DBEAFE] flex items-center justify-center overflow-hidden shadow-sm">
@@ -936,7 +936,7 @@ export default function App() {
       </header>
 
       {/* Main Content View Container (Padding bottom ensures persistent bottom nav never hides content) */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 pb-24">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         {dataError && (
           <div className="mb-4 p-3 bg-[#E06B61]/10 border border-[#E06B61]/40 rounded-xl text-xs text-[#E06B61] flex items-center justify-between gap-2">
             <span>{dataError}</span>
