@@ -121,7 +121,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   )}
                 </div>
                 <span
-                  className={`text-[10px] font-medium tracking-tight mt-1 truncate max-w-full ${
+                  className={`text-[9px] sm:text-[10px] font-medium tracking-tighter sm:tracking-tight mt-1 truncate max-w-full ${
                     isActive ? 'font-semibold text-[#1D4ED8]' : 'text-[#64748B]'
                   }`}
                 >
