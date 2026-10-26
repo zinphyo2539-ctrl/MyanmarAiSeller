@@ -13,6 +13,7 @@ export interface Product {
   name: string;
   sku: string;
   price: number;
+  costPrice?: number | null;
   currency: string;
   description: string;
   variants: Variant[];
@@ -186,7 +187,7 @@ export interface AiHealth {
   lastCheck: string;
 }
 
-export type NavigationDestination = 'home' | 'messages' | 'inventory' | 'ai' | 'profile' | 'lab';
+export type NavigationDestination = 'home' | 'messages' | 'inventory' | 'accounting' | 'aistudio' | 'ai' | 'profile' | 'lab';
 
 export interface TestLabMessage {
   id: string;
@@ -211,3 +212,87 @@ export interface TestLabStatus {
   sampleCount: number;
   timestamp: string;
 }
+
+// Accounting Types
+export type AccountingEntryType = 'income' | 'expense';
+
+export type AccountingCategory =
+  | 'cost_of_goods'
+  | 'delivery'
+  | 'advertising'
+  | 'rent'
+  | 'salaries'
+  | 'utilities'
+  | 'packaging'
+  | 'sales_revenue'
+  | 'service_fee'
+  | 'other_income'
+  | 'other_expense';
+
+export interface AccountingEntry {
+  id: string;
+  merchantId: string;
+  date: string;
+  type: AccountingEntryType;
+  category: AccountingCategory | string;
+  amount: number;
+  paymentMethod: string;
+  orderId?: string | null;
+  source?: 'manual' | 'order' | 'adjustment';
+  description: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinancialSummary {
+  salesRevenue: number;
+  cashReceived: number;
+  receivables: number;
+  cogs: number;
+  operatingExpenses: number;
+  grossProfit: number;
+  netProfit: number;
+  cashInflows: number;
+  cashOutflows: number;
+  netCashFlow: number;
+  missingCostPricesCount: number;
+  range: string;
+  startDate: string;
+  endDate: string;
+  orderCount: number;
+  transactionCount: number;
+}
+
+// AI Studio Types
+export type AiStudioImageMode =
+  | 'clean_background'
+  | 'premium_photo'
+  | 'social_ad'
+  | 'lifestyle'
+  | 'catalog';
+
+export type AiStudioCopyType =
+  | 'description_my'
+  | 'description_en'
+  | 'facebook_promo'
+  | 'tiktok_script'
+  | 'headline_cta'
+  | 'features_summary';
+
+export interface AiStudioGeneration {
+  id: string;
+  merchantId: string;
+  productId?: string | null;
+  productName?: string | null;
+  type: 'image' | 'copy';
+  mode?: string;
+  prompt?: string;
+  outputUrl?: string | null;
+  outputText?: string | null;
+  status: 'success' | 'failed';
+  savedToProduct?: boolean;
+  provider?: string;
+  createdAt: string;
+}
+

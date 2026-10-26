@@ -47,6 +47,8 @@ import { PublicStoreModal } from './components/PublicStoreModal';
 import { CustomerStorefrontView } from './components/CustomerStorefrontView';
 import { MarketplaceView } from './components/MarketplaceView';
 import { OnboardingView } from './components/OnboardingView';
+import { AccountingView } from './components/AccountingView';
+import { AiStudioView } from './components/AiStudioView';
 
 export default function App() {
   const [lang, setLang] = useState<'my' | 'en'>('my');
@@ -843,14 +845,16 @@ export default function App() {
             className="hidden md:flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1]"
           >
             {((user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local')
-              ? ['home', 'messages', 'inventory', 'ai', 'profile', 'lab']
-              : ['home', 'messages', 'inventory', 'ai', 'profile']
+              ? ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'ai', 'profile', 'lab']
+              : ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'ai', 'profile']
             ).map((tab) => {
               const isActive = currentTab === tab;
               const labels: Record<string, { my: string; en: string }> = {
                 home: { my: 'ပင်မ', en: 'Home' },
                 messages: { my: 'မက်ဆေ့ခ်ျ', en: 'Messages' },
                 inventory: { my: 'စတော့', en: 'Inventory' },
+                accounting: { my: 'စာရင်းကိုင်', en: 'Accounting' },
+                aistudio: { my: 'AI Studio', en: 'AI Studio' },
                 ai: { my: 'AI စနစ်', en: 'AI Seller' },
                 profile: { my: 'ပရိုဖိုင်', en: 'Profile' },
                 lab: { my: 'AI စမ်းသပ်ခန်း', en: 'AI Testing Lab' }
@@ -993,6 +997,25 @@ export default function App() {
             onDeleteProduct={handleDeleteProduct}
             initialFilter={subFilter}
             getHeaders={getHeaders}
+          />
+        )}
+
+        {currentTab === 'accounting' && (
+          <AccountingView
+            lang={lang}
+            getHeaders={getHeaders}
+            products={products}
+            onNavigateToInventory={() => setCurrentTab('inventory')}
+          />
+        )}
+
+        {currentTab === 'aistudio' && (
+          <AiStudioView
+            products={products}
+            lang={lang}
+            getHeaders={getHeaders}
+            onProductUpdated={() => fetchAllData()}
+            onNavigateToInventory={() => setCurrentTab('inventory')}
           />
         )}
 

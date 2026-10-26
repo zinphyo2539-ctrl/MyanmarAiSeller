@@ -16,6 +16,7 @@ import { initStorageAdapter, getStorageStatus } from './server/storage.ts';
 import { validateProductImageUrl } from './server/validator.ts';
 import multer from 'multer';
 import { uploadProductImageToSupabase, initSupabaseStorageAdapter } from './server/supabaseStorage.ts';
+import { GoogleGenAI } from '@google/genai';
 import {
   initPersistence,
   getDb,
@@ -24,7 +25,9 @@ import {
   getUserByAuthToken,
   deleteAuthToken,
   type UserRecord,
-  type DbState
+  type DbState,
+  type AccountingEntryRecord,
+  type AiStudioGenerationRecord
 } from './server/db.ts';
 
 dotenv.config();
@@ -1506,6 +1509,7 @@ app.post('/api/products', authMiddleware, async (req: any, res: any) => {
         name: name.trim(),
         sku: sku ? sku.trim() : `SKU-${Date.now()}`,
         price: Number(price),
+        costPrice: req.body.costPrice !== undefined && req.body.costPrice !== null ? Number(req.body.costPrice) : null,
         currency: 'MMK',
         description: description ? description.trim() : '',
         imageUrl: imageValidation.sanitizedUrl,
@@ -1553,7 +1557,8 @@ app.put('/api/products/:id', authMiddleware, async (req: any, res: any) => {
         ...db.products[prodIndex],
         ...updates,
         ...(sanitizedImageUrl !== undefined && { imageUrl: sanitizedImageUrl }),
-        price: updates.price !== undefined ? Number(updates.price) : db.products[prodIndex].price
+        price: updates.price !== undefined ? Number(updates.price) : db.products[prodIndex].price,
+        costPrice: updates.costPrice !== undefined ? (updates.costPrice !== null ? Number(updates.costPrice) : null) : db.products[prodIndex].costPrice
       };
       return db.products[prodIndex];
     });
@@ -2212,6 +2217,782 @@ app.get('/api/audit-logs', authMiddleware, (req: any, res: any) => {
   const db = readDb();
   const logs = db.auditLogs.filter((l: any) => l.merchantId === req.merchant.id);
   res.json(logs);
+});
+
+// ==========================================
+// ACCOUNTING (စာရင်းကိုင်) API ENDPOINTS
+// ==========================================
+
+function getAccountingDateRange(range?: string, startQuery?: string, endQuery?: string): { start: string; end: string; label: string } {
+  const now = new Date();
+  if (range === 'today') {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString();
+    return { start, end, label: 'Today' };
+  }
+  if (range === 'week') {
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const start = new Date(sevenDaysAgo.getFullYear(), sevenDaysAgo.getMonth(), sevenDaysAgo.getDate()).toISOString();
+    const end = now.toISOString();
+    return { start, end, label: 'This Week' };
+  }
+  if (range === 'custom' && startQuery && endQuery) {
+    const start = new Date(startQuery).toISOString();
+    const end = new Date(new Date(endQuery).setHours(23, 59, 59, 999)).toISOString();
+    return { start, end, label: `${startQuery} to ${endQuery}` };
+  }
+  // Default: This month
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const end = now.toISOString();
+  return { start, end, label: 'This Month' };
+}
+
+// 1. Accounting Summary & Metrics Dashboard
+app.get('/api/accounting/summary', authMiddleware, (req: any, res: any) => {
+  try {
+    const db = readDb();
+    const merchantId = req.merchant.id;
+    const { range, startDate, endDate } = req.query;
+    const dateRange = getAccountingDateRange(String(range || 'month'), String(startDate || ''), String(endDate || ''));
+
+    const merchantOrders = (db.orders || []).filter((o: any) => o.merchantId === merchantId);
+    const merchantEntries = (db.accountingEntries || []).filter((e: any) => e.merchantId === merchantId);
+    const merchantProducts = (db.products || []).filter((p: any) => p.merchantId === merchantId);
+
+    // Orders in date range
+    const ordersInRange = merchantOrders.filter((o: any) => {
+      const orderDate = o.createdAt || '';
+      return orderDate >= dateRange.start && orderDate <= dateRange.end;
+    });
+
+    // 1. Revenue Recognition: Confirmed or valid non-cancelled orders
+    const confirmedOrders = ordersInRange.filter((o: any) => o.status !== 'cancelled');
+    const orderSalesRevenue = confirmedOrders.reduce((sum: number, o: any) => sum + (Number(o.totalAmount) || 0), 0);
+
+    // 2. Cash Actually Received: Confirmed orders where paymentStatus is CONFIRMED
+    const paidOrders = confirmedOrders.filter((o: any) => o.paymentStatus === 'CONFIRMED');
+    const orderCashReceived = paidOrders.reduce((sum: number, o: any) => sum + (Number(o.totalAmount) || 0), 0);
+
+    // 3. Outstanding Receivables: Orders in range with pending payment
+    const pendingOrders = confirmedOrders.filter((o: any) => o.paymentStatus !== 'CONFIRMED');
+    const receivables = pendingOrders.reduce((sum: number, o: any) => sum + (Number(o.totalAmount) || 0), 0);
+
+    // 4. Calculate COGS for sold products in range based on historical/product cost basis
+    let orderCogs = 0;
+    let missingCostPricesCount = 0;
+
+    paidOrders.forEach((o: any) => {
+      if (Array.isArray(o.items)) {
+        o.items.forEach((item: any) => {
+          const product = merchantProducts.find((p: any) => p.id === item.productId);
+          const qty = Number(item.qty) || 1;
+          if (product && typeof product.costPrice === 'number' && product.costPrice > 0) {
+            orderCogs += product.costPrice * qty;
+          } else {
+            missingCostPricesCount += 1;
+          }
+        });
+      }
+    });
+
+    // Entries in date range
+    const entriesInRange = merchantEntries.filter((e: any) => {
+      const entryDate = e.date ? new Date(e.date).toISOString() : e.createdAt;
+      return entryDate >= dateRange.start && entryDate <= dateRange.end;
+    });
+
+    // Income entries (ignore order-sourced to prevent double counting order revenue)
+    const directIncomeEntries = entriesInRange.filter((e: any) => e.type === 'income' && e.source !== 'order');
+    const directIncomeTotal = directIncomeEntries.reduce((sum: number, e: any) => sum + (Number(e.amount) || 0), 0);
+
+    // Expense entries
+    const expenseEntries = entriesInRange.filter((e: any) => e.type === 'expense');
+    const directCogsExpenses = expenseEntries
+      .filter((e: any) => e.category === 'cost_of_goods')
+      .reduce((sum: number, e: any) => sum + (Number(e.amount) || 0), 0);
+    const operatingExpenses = expenseEntries
+      .filter((e: any) => e.category !== 'cost_of_goods')
+      .reduce((sum: number, e: any) => sum + (Number(e.amount) || 0), 0);
+
+    // Aggregate Financials
+    const totalSalesRevenue = orderSalesRevenue + directIncomeTotal;
+    const totalCashReceived = orderCashReceived + directIncomeTotal;
+    const totalCogs = orderCogs + directCogsExpenses;
+    const grossProfit = totalSalesRevenue - totalCogs;
+    const netProfit = grossProfit - operatingExpenses;
+
+    const cashInflows = totalCashReceived;
+    const cashOutflows = operatingExpenses + directCogsExpenses;
+    const netCashFlow = cashInflows - cashOutflows;
+
+    res.json({
+      salesRevenue: totalSalesRevenue,
+      cashReceived: totalCashReceived,
+      receivables,
+      cogs: totalCogs,
+      operatingExpenses,
+      grossProfit,
+      netProfit,
+      cashInflows,
+      cashOutflows,
+      netCashFlow,
+      missingCostPricesCount,
+      range: dateRange.label,
+      startDate: dateRange.start,
+      endDate: dateRange.end,
+      orderCount: ordersInRange.length,
+      transactionCount: entriesInRange.length
+    });
+  } catch (err: any) {
+    console.error('[AccountingSummary] Error:', err);
+    res.status(500).json({ error: err.message || 'Failed to calculate financial summary' });
+  }
+});
+
+// 2. Accounting Entries List with Search and Filter
+app.get('/api/accounting/entries', authMiddleware, (req: any, res: any) => {
+  try {
+    const db = readDb();
+    const merchantId = req.merchant.id;
+    let entries = (db.accountingEntries || []).filter((e: any) => e.merchantId === merchantId);
+
+    const { type, category, search, startDate, endDate, page, limit } = req.query;
+
+    if (type && type !== 'all') {
+      entries = entries.filter((e: any) => e.type === type);
+    }
+    if (category && category !== 'all') {
+      entries = entries.filter((e: any) => e.category === category);
+    }
+    if (startDate) {
+      entries = entries.filter((e: any) => (e.date || e.createdAt) >= String(startDate));
+    }
+    if (endDate) {
+      const endFormatted = new Date(new Date(String(endDate)).setHours(23, 59, 59, 999)).toISOString();
+      entries = entries.filter((e: any) => (e.date || e.createdAt) <= endFormatted);
+    }
+    if (search && String(search).trim()) {
+      const query = String(search).toLowerCase().trim();
+      entries = entries.filter((e: any) =>
+        (e.description && e.description.toLowerCase().includes(query)) ||
+        (e.category && e.category.toLowerCase().includes(query)) ||
+        (e.paymentMethod && e.paymentMethod.toLowerCase().includes(query)) ||
+        (e.orderId && e.orderId.toLowerCase().includes(query))
+      );
+    }
+
+    // Sort newest first
+    entries.sort((a: any, b: any) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime());
+
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.max(1, Math.min(100, Number(limit) || 20));
+    const totalCount = entries.length;
+    const paginated = entries.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+
+    res.json({
+      entries: paginated,
+      totalCount,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(totalCount / limitNum)
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to fetch accounting entries' });
+  }
+});
+
+// 3. Create Accounting Entry
+app.post('/api/accounting/entries', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { date, type, category, amount, paymentMethod, orderId, description } = req.body;
+    if (!type || !['income', 'expense'].includes(type)) {
+      return res.status(400).json({ error: 'Valid transaction type (income or expense) is required.' });
+    }
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ error: 'Valid positive amount in MMK is required.' });
+    }
+    if (!category || !String(category).trim()) {
+      return res.status(400).json({ error: 'Category is required.' });
+    }
+
+    const merchantId = req.merchant.id;
+    const newEntry: AccountingEntryRecord = await withDbTransaction((db) => {
+      if (!db.accountingEntries) db.accountingEntries = [];
+
+      const entry: AccountingEntryRecord = {
+        id: `acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        merchantId,
+        date: date || new Date().toISOString().slice(0, 10),
+        type,
+        category: String(category).trim(),
+        amount: numAmount,
+        paymentMethod: paymentMethod ? String(paymentMethod).trim() : 'Cash',
+        orderId: orderId ? String(orderId).trim() : null,
+        source: 'manual',
+        description: description ? String(description).trim() : '',
+        createdBy: req.user.id || 'owner',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      db.accountingEntries.unshift(entry);
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'CREATE_ACCOUNTING_ENTRY',
+        actor: req.user.id || 'owner',
+        details: `Created ${type} entry ${entry.id} for ${numAmount} MMK (${category})`,
+        timestamp: new Date().toISOString()
+      });
+
+      return entry;
+    });
+
+    res.status(201).json({ success: true, entry: newEntry });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to create accounting entry' });
+  }
+});
+
+// 4. Update Accounting Entry
+app.put('/api/accounting/entries/:id', authMiddleware, async (req: any, res: any) => {
+  try {
+    const entryId = req.params.id;
+    const merchantId = req.merchant.id;
+    const { date, type, category, amount, paymentMethod, description } = req.body;
+
+    const updated = await withDbTransaction((db) => {
+      const idx = (db.accountingEntries || []).findIndex((e: any) => e.id === entryId && e.merchantId === merchantId);
+      if (idx === -1) {
+        throw new Error('Accounting entry not found or unauthorized');
+      }
+
+      const existing = db.accountingEntries[idx];
+      const numAmount = amount !== undefined ? Number(amount) : existing.amount;
+      if (isNaN(numAmount) || numAmount <= 0) {
+        throw new Error('Amount must be a positive number in MMK');
+      }
+
+      db.accountingEntries[idx] = {
+        ...existing,
+        date: date || existing.date,
+        type: type && ['income', 'expense'].includes(type) ? type : existing.type,
+        category: category !== undefined ? String(category).trim() : existing.category,
+        amount: numAmount,
+        paymentMethod: paymentMethod !== undefined ? String(paymentMethod).trim() : existing.paymentMethod,
+        description: description !== undefined ? String(description).trim() : existing.description,
+        updatedAt: new Date().toISOString()
+      };
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'UPDATE_ACCOUNTING_ENTRY',
+        actor: req.user.id || 'owner',
+        details: `Updated entry ${entryId}`,
+        timestamp: new Date().toISOString()
+      });
+
+      return db.accountingEntries[idx];
+    });
+
+    res.json({ success: true, entry: updated });
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Failed to update entry' });
+  }
+});
+
+// 5. Delete Accounting Entry
+app.delete('/api/accounting/entries/:id', authMiddleware, async (req: any, res: any) => {
+  try {
+    const entryId = req.params.id;
+    const merchantId = req.merchant.id;
+
+    await withDbTransaction((db) => {
+      const idx = (db.accountingEntries || []).findIndex((e: any) => e.id === entryId && e.merchantId === merchantId);
+      if (idx === -1) {
+        throw new Error('Accounting entry not found or unauthorized');
+      }
+
+      db.accountingEntries.splice(idx, 1);
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'DELETE_ACCOUNTING_ENTRY',
+        actor: req.user.id || 'owner',
+        details: `Deleted entry ${entryId}`,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    res.json({ success: true, id: entryId });
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Failed to delete entry' });
+  }
+});
+
+// 6. Idempotent Order Reconciliation
+app.post('/api/accounting/reconcile-orders', authMiddleware, async (req: any, res: any) => {
+  try {
+    const merchantId = req.merchant.id;
+    const result = await withDbTransaction((db) => {
+      if (!db.accountingEntries) db.accountingEntries = [];
+      const merchantOrders = (db.orders || []).filter((o: any) => o.merchantId === merchantId && o.status !== 'cancelled');
+
+      let syncedCount = 0;
+      for (const order of merchantOrders) {
+        // Idempotency: check if already exists
+        const exists = db.accountingEntries.some((e: any) => e.merchantId === merchantId && e.orderId === order.id);
+        if (!exists) {
+          db.accountingEntries.push({
+            id: `acc_ord_${order.id}`,
+            merchantId,
+            date: (order.createdAt || new Date().toISOString()).slice(0, 10),
+            type: 'income',
+            category: 'sales_revenue',
+            amount: Number(order.totalAmount) || 0,
+            paymentMethod: order.paymentMethod || 'KBZPay',
+            orderId: order.id,
+            source: 'order',
+            description: `Auto-reconciled order #${order.id} from ${order.customerName}`,
+            createdBy: 'system_reconciliation',
+            createdAt: order.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+          syncedCount++;
+        }
+      }
+      return { totalOrders: merchantOrders.length, syncedCount };
+    });
+
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Order reconciliation failed' });
+  }
+});
+
+// 7. CSV Export for Accounting Records
+app.get('/api/accounting/export', authMiddleware, (req: any, res: any) => {
+  try {
+    const db = readDb();
+    const merchantId = req.merchant.id;
+    const entries = (db.accountingEntries || []).filter((e: any) => e.merchantId === merchantId);
+
+    const headers = ['Entry ID', 'Date', 'Type', 'Category', 'Amount (MMK)', 'Payment Method', 'Order ID', 'Source', 'Description', 'Created At'];
+    const rows = entries.map((e: any) => [
+      e.id,
+      e.date || '',
+      e.type || '',
+      e.category || '',
+      e.amount || 0,
+      `"${(e.paymentMethod || '').replace(/"/g, '""')}"`,
+      e.orderId || '',
+      e.source || 'manual',
+      `"${(e.description || '').replace(/"/g, '""')}"`,
+      e.createdAt || ''
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="shopsone-accounting-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.status(200).send('\uFEFF' + csvContent);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to export CSV' });
+  }
+});
+
+// ==========================================
+// AI STUDIO (AI စတူဒီယို) API ENDPOINTS
+// ==========================================
+
+// Helper: Synthesize a professional product studio image using high-resolution Canvas / SVG if upstream is offline
+function generateFallbackStudioImage(productName: string, mode: string, stylePrompt: string): Buffer {
+  const cleanName = (productName || 'ShopSone Merchandise').slice(0, 32);
+  const modeLabels: Record<string, string> = {
+    clean_background: 'Clean Studio Photo',
+    premium_photo: 'Premium Luxury Edition',
+    social_ad: 'Social Media Ad Shot',
+    lifestyle: 'Lifestyle Showcase',
+    catalog: 'Catalog Showcase'
+  };
+  const modeTitle = modeLabels[mode] || 'Product Studio';
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+    <defs>
+      <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0F172A" />
+        <stop offset="50%" stop-color="#1E293B" />
+        <stop offset="100%" stop-color="#0F172A" />
+      </linearGradient>
+      <linearGradient id="podiumGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#3B82F6" />
+        <stop offset="100%" stop-color="#1D4ED8" />
+      </linearGradient>
+      <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.4" />
+        <stop offset="100%" stop-color="#2563EB" stop-opacity="0" />
+      </linearGradient>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000" flood-opacity="0.6"/>
+      </filter>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#bgGrad)"/>
+    <circle cx="512" cy="480" r="340" fill="url(#glow)"/>
+    
+    <!-- Studio Light Pedestal -->
+    <ellipse cx="512" cy="680" rx="320" ry="80" fill="#090D16" opacity="0.8" />
+    <ellipse cx="512" cy="660" rx="280" ry="70" fill="url(#podiumGrad)" filter="url(#shadow)" />
+    
+    <!-- Product Showcase Box -->
+    <rect x="362" y="320" width="300" height="300" rx="40" fill="#FFFFFF" filter="url(#shadow)"/>
+    <rect x="372" y="330" width="280" height="280" rx="32" fill="#F8FAFC"/>
+    
+    <!-- Emblem -->
+    <circle cx="512" cy="450" r="50" fill="#EFF6FF" stroke="#3B82F6" stroke-width="4"/>
+    <path d="M492 450 L506 464 L536 434" fill="none" stroke="#2563EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Text Labels -->
+    <text x="512" y="550" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" fill="#0F172A">${cleanName}</text>
+    <text x="512" y="580" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#3B82F6">${modeTitle}</text>
+    
+    <!-- Studio Branding Badge -->
+    <rect x="382" y="860" width="260" height="44" rx="22" fill="#1E293B" stroke="#334155" stroke-width="1"/>
+    <text x="512" y="888" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#94A3B8">ShopSone AI Studio Verified</text>
+  </svg>`;
+
+  return Buffer.from(svg, 'utf-8');
+}
+
+// 1. AI Studio: Generate Product Image
+app.post('/api/ai-studio/generate-image', authMiddleware, upload.single('referenceImage'), async (req: any, res: any) => {
+  try {
+    const merchantId = req.merchant.id;
+    const { productId, mode, aspectRatio, customInstructions } = req.body;
+
+    const db = readDb();
+    let product: any = null;
+    if (productId) {
+      product = db.products.find((p: any) => p.id === productId && p.merchantId === merchantId);
+      if (!product) {
+        return res.status(404).json({ error: 'Selected product not found in your inventory' });
+      }
+    }
+
+    const productName = product ? product.name : (req.body.productName || 'Product');
+    const selectedMode = mode || 'clean_background';
+
+    const modePrompts: Record<string, string> = {
+      clean_background: 'Isolated product on pristine pure white e-commerce studio background, soft natural drop shadow, razor-sharp focus, commercial catalog quality',
+      premium_photo: 'High-end luxury product photography, dramatic studio rim lighting, matte dark slate surface, cinematic depth of field, 8k resolution look',
+      social_ad: 'Eye-catching vibrant social media advertisement background, trendy aesthetic, bright dynamic commercial lighting, engaging composition',
+      lifestyle: 'Authentic modern lifestyle setting, soft warm morning daylight, elegant styled interior showcase, natural organic ambiance',
+      catalog: 'Minimalist clean retail showcase, soft diffused daylight studio, crisp geometric pedestal, balanced professional framing'
+    };
+
+    const basePrompt = modePrompts[selectedMode] || modePrompts.clean_background;
+    const fullPrompt = `${basePrompt}. Product: ${productName}. ${customInstructions ? customInstructions.trim() : ''}`;
+
+    let generatedBuffer: Buffer | null = null;
+    let usedProvider = 'canvas_studio';
+
+    // Provider 1: Gemini API via @google/genai
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const ai = new GoogleGenAI({});
+        // Image generation via Gemini official image model
+        const response: any = await ai.models.generateContent({
+          model: 'gemini-3.1-flash-lite-image',
+          contents: fullPrompt
+        });
+        if (response && response.candidates && response.candidates[0]?.content?.parts) {
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData && part.inlineData.data) {
+              generatedBuffer = Buffer.from(part.inlineData.data, 'base64');
+              usedProvider = 'gemini-3.1-flash-lite-image';
+              break;
+            }
+          }
+        }
+      } catch (geminiErr: any) {
+        console.warn('[AiStudio] Gemini image generation fallback to Cloudflare/Canvas:', geminiErr.message);
+      }
+    }
+
+    // Provider 2: Cloudflare Workers AI if configured
+    if (!generatedBuffer && process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN) {
+      try {
+        const accountId = process.env.CLOUDFLARE_ACCOUNT_ID.trim();
+        const apiToken = process.env.CLOUDFLARE_API_TOKEN.trim();
+        const cfUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0`;
+
+        const cfRes = await fetch(cfUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            prompt: fullPrompt,
+            num_steps: 25
+          })
+        });
+
+        if (cfRes.ok) {
+          const cfData: any = await cfRes.json();
+          if (cfData.result && cfData.result.image) {
+            generatedBuffer = Buffer.from(cfData.result.image, 'base64');
+            usedProvider = 'cloudflare_sdxl';
+          } else if (cfData.image) {
+            generatedBuffer = Buffer.from(cfData.image, 'base64');
+            usedProvider = 'cloudflare_sdxl';
+          }
+        }
+      } catch (cfErr: any) {
+        console.warn('[AiStudio] Cloudflare generation fallback:', cfErr.message);
+      }
+    }
+
+    // High-Resolution Fallback if external API is unconfigured
+    if (!generatedBuffer) {
+      generatedBuffer = generateFallbackStudioImage(productName, selectedMode, fullPrompt);
+      usedProvider = 'studio_canvas_highres';
+    }
+
+    // Upload generated file to permanent storage
+    let finalImageUrl = '';
+    const isSvg = usedProvider === 'studio_canvas_highres';
+    const mime = isSvg ? 'image/svg+xml' : 'image/png';
+
+    try {
+      if (!isSvg) {
+        finalImageUrl = await uploadProductImageToSupabase(
+          merchantId,
+          generatedBuffer,
+          mime,
+          `ai-studio-${Date.now()}.png`
+        );
+      } else {
+        finalImageUrl = `data:image/svg+xml;utf8,${encodeURIComponent(generatedBuffer.toString('utf-8'))}`;
+      }
+    } catch (storageErr: any) {
+      console.warn('[AiStudio] Storage upload fallback to data URL:', storageErr.message);
+      finalImageUrl = isSvg
+        ? `data:image/svg+xml;utf8,${encodeURIComponent(generatedBuffer.toString('utf-8'))}`
+        : `data:image/png;base64,${generatedBuffer.toString('base64')}`;
+    }
+
+    // Record generation history
+    const generationId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    await withDbTransaction((db) => {
+      if (!db.aiStudioGenerations) db.aiStudioGenerations = [];
+      db.aiStudioGenerations.unshift({
+        id: generationId,
+        merchantId,
+        productId: product ? product.id : null,
+        productName,
+        type: 'image',
+        mode: selectedMode,
+        prompt: fullPrompt,
+        outputUrl: finalImageUrl,
+        status: 'success',
+        savedToProduct: false,
+        provider: usedProvider,
+        createdAt: new Date().toISOString()
+      });
+    });
+
+    res.json({
+      success: true,
+      imageUrl: finalImageUrl,
+      generationId,
+      mode: selectedMode,
+      provider: usedProvider
+    });
+  } catch (err: any) {
+    console.error('[AiStudioGenerateImage] Error:', err);
+    res.status(500).json({ error: err.message || 'Image generation failed in AI Studio' });
+  }
+});
+
+// 2. AI Studio: Apply Generated Image to Product
+app.post('/api/ai-studio/apply-image', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { productId, imageUrl, generationId } = req.body;
+    if (!productId || !imageUrl) {
+      return res.status(400).json({ error: 'Product ID and image URL are required' });
+    }
+
+    const merchantId = req.merchant.id;
+    const updatedProduct = await withDbTransaction((db) => {
+      const prodIndex = (db.products || []).findIndex((p: any) => p.id === productId && p.merchantId === merchantId);
+      if (prodIndex === -1) {
+        throw new Error('Product not found in your inventory');
+      }
+
+      // Strictly preserve name, price, stock, variants, and SKU
+      db.products[prodIndex] = {
+        ...db.products[prodIndex],
+        imageUrl
+      };
+
+      // Mark generation as saved to product
+      if (generationId && db.aiStudioGenerations) {
+        const gen = db.aiStudioGenerations.find((g: any) => g.id === generationId && g.merchantId === merchantId);
+        if (gen) gen.savedToProduct = true;
+      }
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'AI_STUDIO_APPLY_IMAGE',
+        actor: req.user.id || 'owner',
+        details: `Updated product image for ${db.products[prodIndex].name} (${productId}) via AI Studio`,
+        timestamp: new Date().toISOString()
+      });
+
+      return db.products[prodIndex];
+    });
+
+    res.json({ success: true, product: updatedProduct });
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Failed to apply image to product' });
+  }
+});
+
+// 3. AI Studio: Generate Copy & Descriptions
+app.post('/api/ai-studio/generate-copy', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { productId, copyType, tone, customInstructions } = req.body;
+    if (!productId) {
+      return res.status(400).json({ error: 'Product selection is required' });
+    }
+
+    const merchantId = req.merchant.id;
+    const db = readDb();
+    const product = (db.products || []).find((p: any) => p.id === productId && p.merchantId === merchantId);
+    if (!product) {
+      return res.status(404).json({ error: 'Selected product not found in your inventory' });
+    }
+
+    const copyTypePrompts: Record<string, string> = {
+      description_my: 'ရေးသားချက်ပုံစံ: မြန်မာဘာသာ ကုန်ပစ္စည်းအညွှန်း (Product Description). ကုန်သည်များ အရောင်းတင်ရန် သင့်လျော်သော ဖော်ပြချက်၊ အားသာချက်များ၊ ပါဝင်ပစ္စည်းနှင့် အရည်အသွေးများကို ယဉ်ကျေးဖော်ရွေစွာ ရေးပေးပါ။',
+      description_en: 'Format: Professional English e-commerce product description. Highlight key features, specifications, and consumer benefits with clear, engaging prose.',
+      facebook_promo: 'ရေးသားချက်ပုံစံ: Facebook အရောင်းတင်ပို့စ် (Social Commerce Post). ဆွဲဆောင်မှုရှိသော ခေါင်းစဉ်၊ အားသာချက်များ၊ စျေးနှုန်း၊ ဆက်သွယ်ရန် နှိုးဆော်ချက် (Call To Action) နှင့် လိုက်ဖက်သော Emoji များကို သုံး၍ ရေးပေးပါ။',
+      tiktok_script: 'ရေးသားချက်ပုံစံ: TikTok ဗီဒီယို ဇာတ်ညွှန်း (Short Video Script). Hook (ပထမ ၃ စက္ကန့် ဆွဲဆောင်မှု)၊ Product Showcase (ကုန်ပစ္စည်းပြသမှု)၊ နှင့် Call To Action (မှာယူရန် လမ်းညွှန်) အပိုင်း ၃ ပိုင်း ခွဲ၍ ရေးပေးပါ။',
+      headline_cta: 'ရေးသားချက်ပုံစံ: ဆွဲဆောင်မှုရှိသော ကြော်ငြာခေါင်းစဉ် ၃ ခုနှင့် Call-to-action စာသားတိုများ။ မျက်စိကျစေပြီး ချက်ချင်း ဝယ်ယူချင်စိတ်ဖြစ်ပေါ်စေမည့် အရေးအသား။',
+      features_summary: 'ရေးသားချက်ပုံစံ: အဓိက အချက်အလက်နှင့် အကျဉ်းချုပ် (Bullet Points). ဝယ်သူများ အချိန်တိုအတွင်း ရှင်းလင်းစွာ ဖတ်ရှုနိုင်သော အချက်များ။'
+    };
+
+    const selectedPrompt = copyTypePrompts[copyType] || copyTypePrompts.description_my;
+    const variantsText = product.variants ? product.variants.map((v: any) => `${v.color}/${v.size}`).join(', ') : 'Standard';
+
+    const systemPrompt = `You are an expert e-commerce copywriter specializing in social commerce in Myanmar.
+STRICT FACTUAL ACCURACY RULES:
+- Rely ONLY on verified facts: Name: "${product.name}", Price: ${product.price} MMK, SKU: "${product.sku}", Variants: "${variantsText}". Existing description: "${product.description || ''}".
+- NEVER invent discounts, certifications, materials, or guarantees not present in the verified facts.
+- Output ONLY the finished promotional copy. Do not add conversational preamble.`;
+
+    const userPrompt = `${selectedPrompt}
+Product Name: ${product.name}
+Price: ${product.price} MMK
+Variants: ${variantsText}
+${customInstructions ? `Additional Merchant Instructions: ${customInstructions}` : ''}`;
+
+    let generatedText = '';
+
+    // 1. Try Gemini API
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const ai = new GoogleGenAI({});
+        const result = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: `${systemPrompt}\n\n${userPrompt}`
+        });
+        generatedText = result.text || '';
+      } catch (geminiErr: any) {
+        console.warn('[AiStudio] Gemini copy generation fallback to Groq:', geminiErr.message);
+      }
+    }
+
+    // 2. Try Groq API fallback
+    if (!generatedText && process.env.GROQ_API_KEY) {
+      try {
+        const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.GROQ_API_KEY.trim()}`
+          },
+          body: JSON.stringify({
+            model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.7
+          })
+        });
+        if (groqRes.ok) {
+          const groqData: any = await groqRes.json();
+          generatedText = groqData.choices?.[0]?.message?.content || '';
+        }
+      } catch (groqErr: any) {
+        console.warn('[AiStudio] Groq copy generation error:', groqErr.message);
+      }
+    }
+
+    if (!generatedText) {
+      // Structured fallback
+      generatedText = `✨ ${product.name} ✨\n\n📌 စျေးနှုန်း: ${product.price.toLocaleString()} MMK\n📌 အမျိုးအစား: ${variantsText}\n\n${product.description || 'အရည်အသွေးမြင့်ပြီး စိတ်ချရသော ပစ္စည်းစစ်စစ်ဖြစ်ပါသည်။'}\n\n📩 အသေးစိတ်သိရှိလိုပါက Chat Box မှတစ်ဆင့် မေးမြန်းမှာယူနိုင်ပါပြီ။`;
+    }
+
+    // Record generation history
+    const generationId = `gen_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    await withDbTransaction((db) => {
+      if (!db.aiStudioGenerations) db.aiStudioGenerations = [];
+      db.aiStudioGenerations.unshift({
+        id: generationId,
+        merchantId,
+        productId: product.id,
+        productName: product.name,
+        type: 'copy',
+        mode: copyType,
+        outputText: generatedText,
+        status: 'success',
+        createdAt: new Date().toISOString()
+      });
+    });
+
+    res.json({
+      success: true,
+      generatedText,
+      copyType,
+      generationId
+    });
+  } catch (err: any) {
+    console.error('[AiStudioGenerateCopy] Error:', err);
+    res.status(500).json({ error: err.message || 'Failed to generate copy in AI Studio' });
+  }
+});
+
+// 4. AI Studio: Generation History
+app.get('/api/ai-studio/history', authMiddleware, (req: any, res: any) => {
+  try {
+    const db = readDb();
+    const merchantId = req.merchant.id;
+    const history = (db.aiStudioGenerations || []).filter((g: any) => g.merchantId === merchantId);
+    history.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    res.json(history.slice(0, 50));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to fetch AI Studio history' });
+  }
 });
 
 // Explicit API 404 Handler: intercepts ANY unmatched /api/* requests and returns JSON.

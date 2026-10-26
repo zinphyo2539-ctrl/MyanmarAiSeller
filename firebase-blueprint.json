@@ -113,6 +113,47 @@
         "timestamp": { "type": "string" }
       },
       "required": ["status"]
+    },
+    "accountingEntry": {
+      "title": "AccountingEntry",
+      "description": "Financial income and expense transaction records for merchant accounting",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "merchantId": { "type": "string" },
+        "date": { "type": "string" },
+        "type": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "orderId": { "type": "string" },
+        "source": { "type": "string" },
+        "description": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "merchantId", "date", "type", "category", "amount", "paymentMethod", "createdAt"]
+    },
+    "aiStudioGeneration": {
+      "title": "AiStudioGeneration",
+      "description": "AI generated product images, descriptions, and marketing copy records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "merchantId": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "type": { "type": "string" },
+        "mode": { "type": "string" },
+        "prompt": { "type": "string" },
+        "outputUrl": { "type": "string" },
+        "outputText": { "type": "string" },
+        "status": { "type": "string" },
+        "savedToProduct": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "merchantId", "type", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -139,6 +180,14 @@
     "/auditLogs/{logId}": {
       "schema": "auditLog",
       "description": "Stores security and administrative audit entries"
+    },
+    "/accountingEntries/{entryId}": {
+      "schema": "accountingEntry",
+      "description": "Stores merchant accounting income and expense entries"
+    },
+    "/aiStudioGenerations/{genId}": {
+      "schema": "aiStudioGeneration",
+      "description": "Stores merchant AI Studio generated assets"
     },
     "/_health_check/{docId}": {
       "schema": "healthCheck",

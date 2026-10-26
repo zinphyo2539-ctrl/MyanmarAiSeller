@@ -179,10 +179,21 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   };
 
   // Form State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    sku: string;
+    price: number;
+    costPrice?: number | string;
+    description: string;
+    discount: string;
+    status: string;
+    imageUrl: string;
+    variants: Array<{ color: string; size: string; stock: number; sku: string }>;
+  }>({
     name: '',
     sku: '',
     price: 15000,
+    costPrice: '',
     description: '',
     discount: '',
     status: 'active',
@@ -246,6 +257,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       name: '',
       sku: `SKU-${Date.now().toString().slice(-6)}`,
       price: 15000,
+      costPrice: '',
       description: '',
       discount: '',
       status: 'active',
@@ -264,6 +276,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       name: prod.name,
       sku: prod.sku,
       price: prod.price,
+      costPrice: prod.costPrice !== undefined && prod.costPrice !== null ? prod.costPrice : '',
       description: prod.description || '',
       discount: prod.discount || '',
       status: prod.status || 'active',
@@ -298,10 +311,15 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     setSaving(true);
     setFormError(null);
     try {
+      const payload = {
+        ...formData,
+        price: Number(formData.price),
+        costPrice: formData.costPrice !== '' && !isNaN(Number(formData.costPrice)) ? Number(formData.costPrice) : null
+      };
       if (editingProduct) {
-        await onUpdateProduct(editingProduct.id, formData);
+        await onUpdateProduct(editingProduct.id, payload);
       } else {
-        await onAddProduct(formData);
+        await onAddProduct(payload);
       }
       setIsModalOpen(false);
     } catch (err: any) {
@@ -598,7 +616,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-slate-700 font-semibold mb-1">
                     SKU *
@@ -613,7 +631,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                 </div>
                 <div>
                   <label className="block text-slate-700 font-semibold mb-1">
-                    {lang === 'my' ? 'စျေးနှုန်း (MMK)' : 'Price (MMK)'} *
+                    {lang === 'my' ? 'ရောင်းစျေး (MMK)' : 'Selling Price'} *
                   </label>
                   <input
                     type="number"
@@ -623,6 +641,21 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 font-mono focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">
+                    {lang === 'my' ? 'ဝယ်ရင်းစျေး (COGS)' : 'Cost Price (COGS)'}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500"
+                    placeholder="Optional"
+                    value={formData.costPrice}
+                    onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 font-mono focus:border-blue-500 focus:outline-none"
+                    title={lang === 'my' ? 'စာရင်းကိုင်တွက်ချက်မှုအတွက် ဝယ်ရင်းစရိတ်' : 'Purchase cost basis for COGS calculation'}
                   />
                 </div>
               </div>

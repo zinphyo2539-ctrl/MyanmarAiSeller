@@ -68,6 +68,7 @@ export interface ProductRecord {
   name: string;
   sku: string;
   price: number;
+  costPrice?: number | null;
   currency: string;
   description: string;
   imageUrl?: string | null;
@@ -79,6 +80,38 @@ export interface ProductRecord {
   updatedAt?: string;
 }
 
+export interface AccountingEntryRecord {
+  id: string;
+  merchantId: string;
+  date: string;
+  type: 'income' | 'expense';
+  category: string;
+  amount: number;
+  paymentMethod: string;
+  orderId?: string | null;
+  source?: 'manual' | 'order' | 'adjustment';
+  description: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AiStudioGenerationRecord {
+  id: string;
+  merchantId: string;
+  productId?: string | null;
+  productName?: string | null;
+  type: 'image' | 'copy';
+  mode?: string;
+  prompt?: string;
+  outputUrl?: string | null;
+  outputText?: string | null;
+  status: 'success' | 'failed';
+  savedToProduct?: boolean;
+  provider?: string;
+  createdAt: string;
+}
+
 export interface DbState {
   users: Record<string, UserRecord>;
   merchants: Record<string, MerchantRecord>;
@@ -87,6 +120,8 @@ export interface DbState {
   sampleReplies: any[];
   auditLogs: any[];
   conversations: any[];
+  accountingEntries: AccountingEntryRecord[];
+  aiStudioGenerations: AiStudioGenerationRecord[];
 }
 
 // In-memory cache
@@ -97,7 +132,9 @@ let inMemoryDb: DbState = {
   orders: [],
   sampleReplies: [],
   auditLogs: [],
-  conversations: []
+  conversations: [],
+  accountingEntries: [],
+  aiStudioGenerations: []
 };
 
 let activeTokensCache: Record<string, { user: UserRecord; createdAt: number }> = {};
@@ -137,7 +174,9 @@ function readLocalDbFile(): DbState {
           orders: parsed.orders || [],
           sampleReplies: parsed.sampleReplies || [],
           auditLogs: parsed.auditLogs || [],
-          conversations: parsed.conversations || []
+          conversations: parsed.conversations || [],
+          accountingEntries: parsed.accountingEntries || [],
+          aiStudioGenerations: parsed.aiStudioGenerations || []
         };
       }
     }
@@ -151,7 +190,9 @@ function readLocalDbFile(): DbState {
     orders: [],
     sampleReplies: [],
     auditLogs: [],
-    conversations: []
+    conversations: [],
+    accountingEntries: [],
+    aiStudioGenerations: []
   };
 }
 
@@ -309,7 +350,29 @@ export async function initPersistence(): Promise<void> {
         inMemoryDb.orders = orders;
       }
 
-      // 6. Fetch Auth Tokens from Firestore
+      // 6. Fetch Accounting Entries from Firestore
+      const accSnap = await getDocs(collection(db, 'accountingEntries'));
+      if (!accSnap.empty) {
+        const entries: AccountingEntryRecord[] = [];
+        accSnap.forEach((docSnap) => {
+          entries.push(docSnap.data() as AccountingEntryRecord);
+        });
+        inMemoryDb.accountingEntries = entries;
+        console.log(`[DbPersistence] Loaded ${entries.length} accounting entries from Cloud Firestore.`);
+      }
+
+      // 7. Fetch AI Studio Generations from Firestore
+      const genSnap = await getDocs(collection(db, 'aiStudioGenerations'));
+      if (!genSnap.empty) {
+        const gens: AiStudioGenerationRecord[] = [];
+        genSnap.forEach((docSnap) => {
+          gens.push(docSnap.data() as AiStudioGenerationRecord);
+        });
+        inMemoryDb.aiStudioGenerations = gens;
+        console.log(`[DbPersistence] Loaded ${gens.length} AI Studio generations from Cloud Firestore.`);
+      }
+
+      // 8. Fetch Auth Tokens from Firestore
       const tokensSnap = await getDocs(collection(db, 'authTokens'));
       if (!tokensSnap.empty) {
         tokensSnap.forEach((docSnap) => {
@@ -385,6 +448,18 @@ export function withDbTransaction<T>(mutator: (db: DbState) => T | Promise<T>): 
             // Sync sample replies
             for (const reply of inMemoryDb.sampleReplies) {
               await setDoc(doc(db, 'sampleReplies', reply.id), reply, { merge: true });
+            }
+            // Sync accounting entries
+            if (inMemoryDb.accountingEntries) {
+              for (const entry of inMemoryDb.accountingEntries) {
+                await setDoc(doc(db, 'accountingEntries', entry.id), entry, { merge: true });
+              }
+            }
+            // Sync AI studio generations
+            if (inMemoryDb.aiStudioGenerations) {
+              for (const gen of inMemoryDb.aiStudioGenerations) {
+                await setDoc(doc(db, 'aiStudioGenerations', gen.id), gen, { merge: true });
+              }
             }
           } catch (syncErr) {
             console.error('[DbPersistence] Background Firestore sync warning:', syncErr);

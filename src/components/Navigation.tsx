@@ -4,7 +4,9 @@ import {
   MessageSquare,
   Package,
   Bot,
-  Store
+  Store,
+  Receipt,
+  Sparkles
 } from 'lucide-react';
 import { NavigationDestination } from '../types';
 
@@ -34,7 +36,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   }> = [
     {
       id: 'home',
-      labelMy: 'ပင်မစာမျက်နှာ',
+      labelMy: 'ပင်မ',
       labelEn: 'Home',
       icon: LayoutDashboard
     },
@@ -47,20 +49,32 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
     {
       id: 'inventory',
-      labelMy: 'ကုန်ပစ္စည်း',
+      labelMy: 'စတော့',
       labelEn: 'Inventory',
       icon: Package,
       badge: badges.inventoryAlertCount > 0 ? badges.inventoryAlertCount : undefined
     },
     {
+      id: 'accounting',
+      labelMy: 'စာရင်းကိုင်',
+      labelEn: 'Accounting',
+      icon: Receipt
+    },
+    {
+      id: 'aistudio',
+      labelMy: 'AI Studio',
+      labelEn: 'AI Studio',
+      icon: Sparkles
+    },
+    {
       id: 'ai',
-      labelMy: 'AI အရောင်းအကူ',
+      labelMy: 'AI စနစ်',
       labelEn: 'AI Seller',
       icon: Bot
     },
     {
       id: 'profile',
-      labelMy: 'စတိုးနှင့်အကောင့်',
+      labelMy: 'ပရိုဖိုင်',
       labelEn: 'Profile',
       icon: Store,
       badge: badges.paymentsReviewCount > 0 ? badges.paymentsReviewCount : undefined
@@ -72,8 +86,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       aria-label="Primary Mobile Navigation"
       className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#CBD5E1] transition-all"
     >
-      <div className="max-w-6xl mx-auto px-2">
-        <div className="grid grid-cols-5 items-center h-16">
+      <div className="max-w-6xl mx-auto px-1 sm:px-2">
+        <div className="grid grid-cols-7 items-center h-16">
           {destinations.map((item) => {
             const isActive = currentTab === item.id;
             const Icon = item.icon;

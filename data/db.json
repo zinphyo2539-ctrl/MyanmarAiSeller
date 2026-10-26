@@ -1,218 +1,471 @@
 {
   "users": {
     "google_108037106339950406469": {
+      "provider": "google",
+      "createdAt": "2026-10-25T10:51:48.631Z",
       "name": "Zin Phyo Htike",
       "id": "google_108037106339950406469",
+      "email": "zinphyo2539@gmail.com",
       "merchantId": "merchant_001",
       "role": "merchant_admin",
-      "createdAt": "2026-10-25T10:51:48.631Z",
-      "providerId": "google_108037106339950406469",
-      "email": "zinphyo2539@gmail.com",
-      "provider": "google"
+      "providerId": "google_108037106339950406469"
     },
     "test_user_1792925158395": {
       "id": "test_user_1792925158395",
       "provider": "google",
-      "email": "test@shopsone.mm",
+      "role": "merchant_admin",
       "name": "Test Merchant",
+      "email": "test@shopsone.mm",
       "merchantId": "merchant_001",
-      "createdAt": "2026-10-25T10:45:58.395Z",
-      "role": "merchant_admin"
+      "createdAt": "2026-10-25T10:45:58.395Z"
     },
     "user_owner_001": {
-      "id": "user_owner_001",
-      "name": "Ko Aung (Merchant Owner)",
-      "email": "aung@yangonstyle.mm",
-      "role": "merchant_admin",
       "merchantId": "merchant_001",
+      "id": "user_owner_001",
+      "email": "aung@yangonstyle.mm",
+      "createdAt": "2026-10-25T10:52:19.888Z",
+      "role": "merchant_admin",
+      "name": "Ko Aung (Merchant Owner)",
+      "provider": "local"
+    },
+    "google_108762646682109667430": {
+      "createdAt": "2026-10-25T11:18:52.374Z",
+      "provider": "google",
+      "email": "htetthiri965@gmail.com",
+      "merchantId": "merchant_1792927191739_ce04",
+      "name": "Htet Thiri",
+      "role": "merchant_admin",
+      "providerId": "google_108762646682109667430",
+      "id": "google_108762646682109667430",
+      "updatedAt": "2026-10-25T11:19:51.739Z"
+    },
+    "user_test_A": {
+      "id": "user_test_A",
+      "name": "Merchant A Owner",
+      "email": "merchantA@test.mm",
+      "role": "merchant_admin",
+      "merchantId": "test_merchant_A",
       "provider": "local",
-      "createdAt": "2026-10-25T10:52:19.888Z"
+      "createdAt": "2026-10-26T07:15:40.424Z"
+    },
+    "user_test_B": {
+      "id": "user_test_B",
+      "name": "Merchant B Owner",
+      "email": "merchantB@test.mm",
+      "role": "merchant_admin",
+      "merchantId": "test_merchant_B",
+      "provider": "local",
+      "createdAt": "2026-10-26T07:15:40.424Z"
     }
   },
   "merchants": {
     "merchant_001": {
-      "ownerName": "Ko Aung",
+      "id": "merchant_001",
       "store": {
-        "slug": "yangon-style",
-        "coverUrl": "",
-        "logoUrl": "",
+        "description": "Premium fashion apparel in Yangon with instant AI customer service.",
         "deliveryInfo": "Yangon city-wide delivery within 2-3 days. Delivery fee 2,500 MMK.",
         "paymentInstructions": "KBZPay: 09-912345678 (Ko Aung)\nWavePay: 09-912345678",
+        "coverUrl": "",
+        "slug": "yangon-style",
         "storeName": "Yangon Style Fashion & Apparel",
         "isPublished": true,
-        "description": "Premium fashion apparel in Yangon with instant AI customer service."
+        "logoUrl": ""
       },
+      "email": "aung@yangonstyle.mm",
+      "shopName": "Yangon Style Fashion & Apparel",
+      "ownerName": "Ko Aung",
       "aiConfig": {
-        "enabled": true,
-        "updatedAt": "2026-10-15T11:29:45.556Z",
+        "replyStyle": "friendly",
         "preferredLanguage": "myanmar",
+        "updatedAt": "2026-10-15T11:29:45.556Z",
+        "humanHandoff": {
+          "triggerOnUncertain": true,
+          "notificationChannel": "telegram_staff",
+          "triggerOnHumanRequest": true,
+          "enabled": true,
+          "triggerOnComplaint": true
+        },
+        "enabled": true,
         "schemaVersion": 1,
-        "customInstructions": "Customer များကို ယဉ်ကျေးပြီး ဖော်ရွေစွာ ပြန်ဖြေပါ။ မေးခွန်းကို တိုက်ရိုက်ဖြေပြီး လိုအပ်ပါက Product ရဲ့ အားသာချက်ကို အတိုချုံးရှင်းပြပါ။ စျေးနှုန်း၊ Variant နဲ့ Stock ကို သက်ဆိုင်ရာ Database မှာ စစ်ဆေးပြီးမှ ဖြေပါ။ Customer က ဝယ်ယူရန် စိတ်ဝင်စားပါက အော်ဒါတင်နိုင်ရန် ရှင်းလင်းစွာ လမ်းညွှန်ပါ။ မသေချာသောအချက်များကို မခန့်မှန်းပါနှင့်။ လိုအပ်ပါက လူထံ လွှဲပြောင်းပါ။",
         "salesBehavior": {
+          "uncertainPolicy": "escalate_to_human",
+          "productRecommendation": "answer_first",
+          "emojiPreference": "moderate",
+          "responseLength": "balanced",
           "greeting": "greet_new",
           "followUp": "needed_only",
-          "emojiPreference": "moderate",
           "salesApproach": "helpful_recommendations",
-          "productRecommendation": "answer_first",
-          "discountBehavior": "verified_only",
-          "uncertainPolicy": "escalate_to_human",
-          "responseLength": "balanced"
+          "discountBehavior": "verified_only"
         },
+        "customInstructions": "Customer များကို ယဉ်ကျေးပြီး ဖော်ရွေစွာ ပြန်ဖြေပါ။ မေးခွန်းကို တိုက်ရိုက်ဖြေပြီး လိုအပ်ပါက Product ရဲ့ အားသာချက်ကို အတိုချုံးရှင်းပြပါ။ စျေးနှုန်း၊ Variant နဲ့ Stock ကို သက်ဆိုင်ရာ Database မှာ စစ်ဆေးပြီးမှ ဖြေပါ။ Customer က ဝယ်ယူရန် စိတ်ဝင်စားပါက အော်ဒါတင်နိုင်ရန် ရှင်းလင်းစွာ လမ်းညွှန်ပါ။ မသေချာသောအချက်များကို မခန့်မှန်းပါနှင့်။ လိုအပ်ပါက လူထံ လွှဲပြောင်းပါ။"
+      }
+    },
+    "merchant_1792927191739_ce04": {
+      "aiConfig": {
+        "customInstructions": "Customer များကို ယဉ်ကျေးပြီး ဖော်ရွေစွာ ပြန်ဖြေပါ။",
+        "schemaVersion": 1,
+        "salesBehavior": {
+          "uncertainPolicy": "escalate_to_human",
+          "emojiPreference": "moderate",
+          "responseLength": "balanced",
+          "followUp": "needed_only",
+          "discountBehavior": "verified_only",
+          "greeting": "greet_new",
+          "productRecommendation": "answer_first",
+          "salesApproach": "helpful_recommendations"
+        },
+        "enabled": true,
         "replyStyle": "friendly",
         "humanHandoff": {
           "triggerOnUncertain": true,
           "triggerOnHumanRequest": true,
-          "triggerOnComplaint": true,
+          "enabled": true,
           "notificationChannel": "telegram_staff",
-          "enabled": true
-        }
+          "triggerOnComplaint": true
+        },
+        "preferredLanguage": "myanmar",
+        "updatedAt": "2026-10-25T11:19:51.739Z"
       },
-      "email": "aung@yangonstyle.mm",
-      "id": "merchant_001",
-      "shopName": "Yangon Style Fashion & Apparel"
+      "email": "htetthiri965@gmail.com",
+      "shopName": "Htet Htet",
+      "store": {
+        "coverUrl": "",
+        "isPublished": true,
+        "deliveryInfo": "ရန်ကုန်မြို့တွင်း ပို့ခ 2,500 ကျပ်၊ ၂-၃ ရက်အတွင်း ပို့ဆောင်ပေးပါသည်။",
+        "paymentInstructions": "KBZPay: 09-785538971\nWavePay: 09-XXXXXXXXX",
+        "slug": "htet-htet",
+        "brandName": "Htet Htet",
+        "description": "Good",
+        "logoUrl": "",
+        "storeName": "Htet Htet"
+      },
+      "phone": "09785538971",
+      "ownerName": "Htet Thiri",
+      "id": "merchant_1792927191739_ce04"
+    },
+    "test_merchant_A": {
+      "id": "test_merchant_A",
+      "shopName": "Merchant A Fashion Store",
+      "ownerName": "Merchant A Owner",
+      "email": "merchantA@test.mm",
+      "store": {
+        "slug": "merchant-a-shop",
+        "storeName": "Merchant A Fashion Store",
+        "isPublished": true
+      },
+      "aiConfig": {
+        "enabled": true
+      }
+    },
+    "test_merchant_B": {
+      "id": "test_merchant_B",
+      "shopName": "Merchant B Electronics",
+      "ownerName": "Merchant B Owner",
+      "email": "merchantB@test.mm",
+      "store": {
+        "slug": "merchant-b-shop",
+        "storeName": "Merchant B Electronics",
+        "isPublished": true
+      },
+      "aiConfig": {
+        "enabled": true
+      }
     }
   },
   "products": [
     {
-      "name": "Premium Cotton Oversized T-Shirt",
       "sku": "TS-COTTON-BLK-M",
-      "discount": "10% OFF during weekend promo",
+      "price": 18500,
       "merchantId": "merchant_001",
-      "id": "prod_1",
+      "currency": "MMK",
       "variants": [
         {
-          "color": "Black",
-          "id": "v1",
           "stock": 15,
           "size": "M",
-          "sku": "TS-COTTON-BLK-M"
+          "color": "Black",
+          "sku": "TS-COTTON-BLK-M",
+          "id": "v1"
         },
         {
-          "color": "Black",
-          "id": "v2",
+          "size": "L",
           "stock": 8,
           "sku": "TS-COTTON-BLK-L",
-          "size": "L"
+          "color": "Black",
+          "id": "v2"
         },
         {
-          "sku": "TS-COTTON-WHT-M",
           "stock": 12,
-          "color": "White",
+          "id": "v3",
           "size": "M",
-          "id": "v3"
+          "sku": "TS-COTTON-WHT-M",
+          "color": "White"
         },
         {
           "sku": "TS-COTTON-WHT-L",
-          "size": "L",
-          "id": "v4",
           "stock": 0,
-          "color": "White"
+          "size": "L",
+          "color": "White",
+          "id": "v4"
         }
       ],
-      "currency": "MMK",
-      "status": "active",
       "description": "100% Cotton premium breathable fabric. Oversized casual fit.",
-      "price": 18500
-    },
-    {
-      "currency": "MMK",
-      "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
-      "variants": [
-        {
-          "sku": "SKU-TEST-RED-1792262639000",
-          "id": "v_1792262639020_0_y8",
-          "color": "Red",
-          "stock": 15,
-          "size": "Standard"
-        }
-      ],
-      "merchantId": "merchant_001",
-      "status": "active",
-      "description": "Premium Burmese handmade silk scarf",
-      "name": "Automated Test Silk Scarf",
-      "discount": null,
-      "price": 25000,
-      "sku": "SKU-TEST-1792262639000",
-      "id": "prod_1792262639020_d396"
-    },
-    {
-      "id": "prod_1792262776578_j20d",
-      "imageUrl": null,
-      "variants": [
-        {
-          "sku": "SKU-TEST-RED-1792262776561",
-          "id": "v_1792262776578_0_3m",
-          "color": "Red",
-          "size": "Standard",
-          "stock": 15
-        }
-      ],
-      "sku": "SKU-TEST-1792262776561",
-      "currency": "MMK",
-      "name": "Automated Test Silk Scarf",
-      "description": "Premium Burmese handmade silk scarf",
-      "merchantId": "merchant_001",
-      "price": 25000,
-      "discount": null,
+      "name": "Premium Cotton Oversized T-Shirt",
+      "id": "prod_1",
+      "discount": "10% OFF during weekend promo",
       "status": "active"
     },
     {
-      "sku": "JKT-DENIM-BLU",
+      "discount": null,
+      "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
+      "status": "active",
+      "description": "Premium Burmese handmade silk scarf",
+      "name": "Automated Test Silk Scarf",
+      "merchantId": "merchant_001",
+      "sku": "SKU-TEST-1792262639000",
+      "currency": "MMK",
       "variants": [
         {
-          "size": "Free Size",
-          "sku": "JKT-DENIM-BLU-F",
+          "color": "Red",
+          "sku": "SKU-TEST-RED-1792262639000",
+          "size": "Standard",
+          "id": "v_1792262639020_0_y8",
+          "stock": 15
+        }
+      ],
+      "price": 25000,
+      "id": "prod_1792262639020_d396"
+    },
+    {
+      "description": "Premium Burmese handmade silk scarf",
+      "id": "prod_1792262776578_j20d",
+      "name": "Automated Test Silk Scarf",
+      "price": 25000,
+      "status": "active",
+      "currency": "MMK",
+      "variants": [
+        {
+          "stock": 15,
+          "sku": "SKU-TEST-RED-1792262776561",
+          "id": "v_1792262776578_0_3m",
+          "size": "Standard",
+          "color": "Red"
+        }
+      ],
+      "merchantId": "merchant_001",
+      "sku": "SKU-TEST-1792262776561",
+      "imageUrl": null,
+      "discount": null
+    },
+    {
+      "merchantId": "merchant_001",
+      "discount": null,
+      "id": "prod_2",
+      "sku": "JKT-DENIM-BLU",
+      "price": 35000,
+      "variants": [
+        {
           "id": "v5",
           "stock": 5,
-          "color": "Dark Blue"
+          "size": "Free Size",
+          "color": "Dark Blue",
+          "sku": "JKT-DENIM-BLU-F"
         }
       ],
       "currency": "MMK",
       "description": "High quality durable denim jacket for all seasons.",
-      "price": 35000,
-      "id": "prod_2",
-      "merchantId": "merchant_001",
-      "name": "Classic Denim Casual Jacket",
-      "discount": null,
+      "status": "active",
+      "name": "Classic Denim Casual Jacket"
+    },
+    {
+      "status": "active",
+      "description": "Handcrafted premium polo shirt",
+      "costPrice": 12000,
+      "sku": "POLO-COTTON-001",
+      "name": "Organic Cotton Polo",
+      "merchantId": "test_merchant_A",
+      "price": 25000,
+      "id": "prod_test_A_1",
+      "variants": [
+        {
+          "id": "v1",
+          "size": "L",
+          "sku": "POLO-NAVY-L",
+          "stock": 20,
+          "color": "Navy"
+        }
+      ],
+      "currency": "MMK"
+    },
+    {
+      "merchantId": "test_merchant_B",
+      "id": "prod_test_B_1",
+      "price": 65000,
+      "sku": "HEADPHONE-BT-001",
+      "variants": [
+        {
+          "color": "Black",
+          "size": "One Size",
+          "sku": "HEADPHONE-BLK",
+          "stock": 10,
+          "id": "v2"
+        }
+      ],
+      "currency": "MMK",
+      "name": "Wireless Bluetooth Headphones",
+      "description": "Active noise cancelling headphones",
+      "costPrice": 35000,
       "status": "active"
     },
     {
-      "merchantId": "merchant_001",
-      "name": "Silk Scarf Test",
-      "status": "active",
-      "price": 25000,
       "id": "test_prod_1792925158576",
-      "currency": "MMK"
+      "status": "active",
+      "merchantId": "merchant_001",
+      "currency": "MMK",
+      "name": "Silk Scarf Test",
+      "price": 25000
+    },
+    {
+      "id": "prod_test_A_1",
+      "merchantId": "test_merchant_A",
+      "name": "Organic Cotton Polo",
+      "sku": "POLO-COTTON-001",
+      "price": 25000,
+      "costPrice": 12000,
+      "currency": "MMK",
+      "description": "Handcrafted premium polo shirt",
+      "variants": [
+        {
+          "id": "v1",
+          "color": "Navy",
+          "size": "L",
+          "stock": 20,
+          "sku": "POLO-NAVY-L"
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "id": "prod_test_B_1",
+      "merchantId": "test_merchant_B",
+      "name": "Wireless Bluetooth Headphones",
+      "sku": "HEADPHONE-BT-001",
+      "price": 65000,
+      "costPrice": 35000,
+      "currency": "MMK",
+      "description": "Active noise cancelling headphones",
+      "variants": [
+        {
+          "id": "v2",
+          "color": "Black",
+          "size": "One Size",
+          "stock": 10,
+          "sku": "HEADPHONE-BLK"
+        }
+      ],
+      "status": "active"
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "totalAmount": 50000,
+      "status": "confirmed",
+      "customerPhone": "0912345678",
+      "id": "ord_test_A_paid_1",
+      "items": [
+        {
+          "name": "Organic Cotton Polo",
+          "productId": "prod_test_A_1",
+          "qty": 2,
+          "price": 25000
+        }
+      ],
+      "merchantId": "test_merchant_A",
+      "paymentStatus": "CONFIRMED",
+      "customerName": "Daw Mya",
+      "createdAt": "2026-10-26T07:15:26.618Z"
+    },
+    {
+      "createdAt": "2026-10-26T07:15:26.618Z",
+      "items": [
+        {
+          "price": 25000,
+          "qty": 1,
+          "name": "Organic Cotton Polo",
+          "productId": "prod_test_A_1"
+        }
+      ],
+      "id": "ord_test_A_pending_2",
+      "customerName": "U Ba",
+      "merchantId": "test_merchant_A",
+      "paymentStatus": "PENDING",
+      "status": "processing",
+      "totalAmount": 25000,
+      "customerPhone": "0987654321"
+    },
+    {
+      "id": "ord_test_A_paid_1",
+      "merchantId": "test_merchant_A",
+      "customerName": "Daw Mya",
+      "customerPhone": "0912345678",
+      "items": [
+        {
+          "productId": "prod_test_A_1",
+          "name": "Organic Cotton Polo",
+          "qty": 2,
+          "price": 25000
+        }
+      ],
+      "totalAmount": 50000,
+      "paymentStatus": "CONFIRMED",
+      "status": "confirmed",
+      "createdAt": "2026-10-26T07:15:41.282Z"
+    },
+    {
+      "id": "ord_test_A_pending_2",
+      "merchantId": "test_merchant_A",
+      "customerName": "U Ba",
+      "customerPhone": "0987654321",
+      "items": [
+        {
+          "productId": "prod_test_A_1",
+          "name": "Organic Cotton Polo",
+          "qty": 1,
+          "price": 25000
+        }
+      ],
+      "totalAmount": 25000,
+      "paymentStatus": "PENDING",
+      "status": "processing",
+      "createdAt": "2026-10-26T07:15:41.282Z"
+    }
+  ],
   "sampleReplies": [
     {
       "merchantId": "merchant_001",
+      "preferredReply": "မင်္ဂလာပါရှင့်။ အနက်ရောင် M Size လေးကို စစ်ဆေးပေးပါမယ်နော်။",
+      "createdAt": "2026-10-15T11:29:45.556Z",
+      "updatedAt": "2026-10-15T11:29:45.556Z",
       "customerMessage": "ဒီအင်္ကျီ အနက်ရောင် M Size ရှိလား။",
-      "id": "sample_1",
       "category": "Stock and variants",
-      "updatedAt": "2026-10-15T11:29:45.556Z",
-      "createdAt": "2026-10-15T11:29:45.556Z",
-      "preferredReply": "မင်္ဂလာပါရှင့်။ အနက်ရောင် M Size လေးကို စစ်ဆေးပေးပါမယ်နော်။"
+      "id": "sample_1"
     },
     {
-      "id": "sample_2",
-      "category": "Price",
+      "preferredReply": "မင်္ဂလာပါရှင်။ ကုန်ပစ္စည်းစျေးနှုန်းကတော့ Product description မှာ ကြည့်လို့ရပါတယ်ရှင်။ ရန်ကုန်မြို့တွင်း ပို့ခက 2,500 ကျပ် ဖြစ်ပါတယ်။",
+      "createdAt": "2026-10-15T11:29:45.556Z",
       "customerMessage": "စျေးနှုန်းဘယ်လောက်လဲ ပို့ခဘယ်လောက်ကျလဲ။",
-      "createdAt": "2026-10-15T11:29:45.556Z",
+      "category": "Price",
       "merchantId": "merchant_001",
       "updatedAt": "2026-10-15T11:29:45.556Z",
-      "preferredReply": "မင်္ဂလာပါရှင်။ ကုန်ပစ္စည်းစျေးနှုန်းကတော့ Product description မှာ ကြည့်လို့ရပါတယ်ရှင်။ ရန်ကုန်မြို့တွင်း ပို့ခက 2,500 ကျပ် ဖြစ်ပါတယ်။"
+      "id": "sample_2"
     },
     {
       "updatedAt": "2026-10-15T11:29:45.556Z",
-      "createdAt": "2026-10-15T11:29:45.556Z",
-      "preferredReply": "ဟုတ်ကဲ့ရှင်၊ KBZPay (09-912345678) နဲ့ KBZ Bank Account တို့ဖြင့် ငွေပေးချေနိုင်ပါတယ်။ ငွေလွှဲပြီးပါက မျက်နှာပြင်ဖမ်းယူမှု (Screenshot) ပို့ပေးပါရန် မေတ္တာရပ်ခံပါတယ်ရှင်။",
-      "category": "Payment instructions",
-      "id": "sample_3",
       "merchantId": "merchant_001",
-      "customerMessage": "ငွေဘယ်လိုလွှဲရမလဲ KBZPay နဲ့ရလား။"
+      "id": "sample_3",
+      "category": "Payment instructions",
+      "preferredReply": "ဟုတ်ကဲ့ရှင်၊ KBZPay (09-912345678) နဲ့ KBZ Bank Account တို့ဖြင့် ငွေပေးချေနိုင်ပါတယ်။ ငွေလွှဲပြီးပါက မျက်နှာပြင်ဖမ်းယူမှု (Screenshot) ပို့ပေးပါရန် မေတ္တာရပ်ခံပါတယ်ရှင်။",
+      "customerMessage": "ငွေဘယ်လိုလွှဲရမလဲ KBZPay နဲ့ရလား။",
+      "createdAt": "2026-10-15T11:29:45.556Z"
     }
   ],
   "auditLogs": [
@@ -233,5 +486,64 @@
       "timestamp": "2026-10-15T11:29:45.556Z"
     }
   ],
-  "conversations": []
+  "conversations": [],
+  "accountingEntries": [
+    {
+      "id": "acc_entry_B_confidential",
+      "amount": 1500000,
+      "type": "income",
+      "createdBy": "user_test_B",
+      "description": "Confidential Merchant B bulk sale",
+      "createdAt": "2026-10-26T07:15:25.332Z",
+      "source": "manual",
+      "date": "2026-10-26",
+      "category": "sales_revenue",
+      "updatedAt": "2026-10-26T07:15:25.332Z",
+      "merchantId": "test_merchant_B",
+      "paymentMethod": "Bank Transfer"
+    },
+    {
+      "merchantId": "test_merchant_A",
+      "updatedAt": "2026-10-26T07:15:26.618Z",
+      "source": "manual",
+      "paymentMethod": "Cash",
+      "description": "Deli fees to delivery guy",
+      "type": "expense",
+      "id": "acc_expense_deliv_1",
+      "category": "delivery",
+      "amount": 10000,
+      "createdBy": "user_test_A",
+      "date": "2026-10-26",
+      "createdAt": "2026-10-26T07:15:26.618Z"
+    },
+    {
+      "id": "acc_entry_B_confidential",
+      "merchantId": "test_merchant_B",
+      "date": "2026-10-26",
+      "type": "income",
+      "category": "sales_revenue",
+      "amount": 1500000,
+      "paymentMethod": "Bank Transfer",
+      "source": "manual",
+      "description": "Confidential Merchant B bulk sale",
+      "createdBy": "user_test_B",
+      "createdAt": "2026-10-26T07:15:40.424Z",
+      "updatedAt": "2026-10-26T07:15:40.424Z"
+    },
+    {
+      "id": "acc_expense_deliv_1",
+      "merchantId": "test_merchant_A",
+      "date": "2026-10-26",
+      "type": "expense",
+      "category": "delivery",
+      "amount": 10000,
+      "paymentMethod": "Cash",
+      "source": "manual",
+      "description": "Deli fees to delivery guy",
+      "createdBy": "user_test_A",
+      "createdAt": "2026-10-26T07:15:41.282Z",
+      "updatedAt": "2026-10-26T07:15:41.282Z"
+    }
+  ],
+  "aiStudioGenerations": []
 }

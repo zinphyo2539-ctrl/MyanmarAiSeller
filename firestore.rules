@@ -57,6 +57,20 @@ service cloud.firestore {
         && request.resource.data.id is string;
     }
 
+    match /accountingEntries/{entryId} {
+      allow get, list: if true;
+      allow write: if isValidId(entryId)
+        && request.resource.data.id is string
+        && request.resource.data.merchantId is string;
+    }
+
+    match /aiStudioGenerations/{genId} {
+      allow get, list: if true;
+      allow write: if isValidId(genId)
+        && request.resource.data.id is string
+        && request.resource.data.merchantId is string;
+    }
+
     match /authTokens/{tokenId} {
       allow get, list, write: if true;
     }
