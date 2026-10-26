@@ -363,7 +363,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
     <div data-theme="storefront" className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] font-sans pb-28">
       {/* Top Banner / Store Header */}
       <header className="sticky top-0 z-30 bg-[#0B0B09]/95 backdrop-blur-md border-b border-[#393426] px-4 py-3.5">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             {store?.logoUrl ? (
               <img
@@ -462,7 +462,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
 
       {/* Hero Announcement & Store Badges */}
       <section className="bg-gradient-to-b from-[#181810] to-[#0B0B09] border-b border-[#393426] px-4 py-5">
-        <div className="max-w-4xl mx-auto space-y-3">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             {/* Delivery Info */}
             <div className="bg-[#11110D]/80 border border-[#393426] rounded-xl p-3 flex items-start gap-2.5">
@@ -494,7 +494,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
       </section>
 
       {/* Main Catalog Section */}
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Search & Filter Bar */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
           <div className="relative flex-1">

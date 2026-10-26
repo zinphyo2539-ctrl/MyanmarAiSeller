@@ -207,7 +207,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
 
       {/* Hero & Search Banner */}
       <section className="bg-gradient-to-b from-white to-[#F8FAFC] border-b border-[#CBD5E1] px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-4 text-center">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[#1E40AF] text-xs font-medium">
             <ShoppingBag className="w-3.5 h-3.5 text-[#2563EB]" />
             <span>
