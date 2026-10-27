@@ -31,6 +31,25 @@ export interface OrderItem {
   qty: number;
 }
 
+export interface PaymentSettings {
+  kpayAccountName: string;
+  kpayPhone: string;
+  kpayQrUrl: string;
+  paymentRules: string;
+  customInstructions?: string;
+  updatedAt?: string;
+}
+
+export interface PaymentSlipHistoryItem {
+  slipUrl: string;
+  uploadedAt: string;
+  transactionRef?: string | null;
+  previousStatus: string;
+  rejectedBy?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+}
+
 export interface Order {
   id: string;
   merchantId?: string;
@@ -38,10 +57,20 @@ export interface Order {
   customerPhone: string;
   items: OrderItem[];
   totalAmount: number;
-  paymentStatus: 'CONFIRMED' | 'PENDING' | string;
+  paymentStatus: 'CONFIRMED' | 'PENDING' | 'SLIP_SUBMITTED' | 'REJECTED' | string;
   paymentMethod: string;
   shippingAddress: string;
-  status: 'confirmed' | 'pending' | 'cancelled' | string;
+  status: 'confirmed' | 'pending' | 'processing' | 'cancelled' | string;
+  paymentSlipUrl?: string | null;
+  paymentSlipUploadedAt?: string | null;
+  transactionRef?: string | null;
+  rejectionReason?: string | null;
+  rejectedBy?: string | null;
+  rejectedAt?: string | null;
+  paymentHistory?: PaymentSlipHistoryItem[];
+  supportCode?: string;
+  supportCodeHash?: string;
+  supportConversationId?: string;
   confirmedBy?: string;
   confirmedAt?: string;
   createdAt: string;
@@ -58,6 +87,7 @@ export interface StoreSettings {
   coverUrl: string;
   deliveryInfo: string;
   paymentInstructions: string;
+  paymentSettings?: PaymentSettings;
   isPublished: boolean;
 }
 
@@ -126,7 +156,7 @@ export interface ConversationMessage {
 export interface Conversation {
   id: string;
   merchantId: string;
-  platform: 'messenger' | 'tiktok';
+  platform: 'messenger' | 'tiktok' | 'support';
   customerName: string;
   customerPhone?: string;
   status: 'ai_handling' | 'needs_human_review' | 'human_handling' | 'resolved';

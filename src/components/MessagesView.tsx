@@ -40,7 +40,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
   onRefresh,
   initialFilter
 }) => {
-  const [selectedChannel, setSelectedChannel] = useState<'all' | 'messenger' | 'tiktok'>('all');
+  const [selectedChannel, setSelectedChannel] = useState<'all' | 'messenger' | 'tiktok' | 'support'>('all');
   const [showHumanReviewOnly, setShowHumanReviewOnly] = useState<boolean>(initialFilter === 'human_review');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');

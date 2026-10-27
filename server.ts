@@ -15,7 +15,17 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { initStorageAdapter, getStorageStatus } from './server/storage.ts';
 import { validateProductImageUrl } from './server/validator.ts';
 import multer from 'multer';
-import { uploadProductImageToSupabase, initSupabaseStorageAdapter } from './server/supabaseStorage.ts';
+import {
+  uploadProductImageToSupabase,
+  uploadQrImageToSupabase,
+  uploadPaymentSlipToSupabase,
+  downloadPaymentSlipFromSupabase,
+  ensurePaymentSlipsBucket,
+  migrateLegacyOrderSlips,
+  type PaymentSlipUploadResult,
+  validateImageBuffer,
+  initSupabaseStorageAdapter
+} from './server/supabaseStorage.ts';
 import { GoogleGenAI } from '@google/genai';
 import {
   initPersistence,
@@ -33,6 +43,7 @@ import {
   query,
   orderBy,
   getDocs,
+  where,
   addDoc
 } from './server/db.ts';
 
@@ -51,7 +62,11 @@ const uploadStorageStatus = initSupabaseStorageAdapter();
 if (!uploadStorageStatus.available) {
   console.log(`[SupabaseStorage] Supabase Storage status: ${uploadStorageStatus.status} (${uploadStorageStatus.reason || 'unconfigured'})`);
 } else {
-  console.log(`[SupabaseStorage] Supabase Storage operational on bucket: ${uploadStorageStatus.bucketName}`);
+  console.log(`[SupabaseStorage] Supabase Storage operational on buckets: ${uploadStorageStatus.bucketName}, payment-slips`);
+  // Ensure private payment-slips bucket exists in Supabase
+  ensurePaymentSlipsBucket().catch((err) => {
+    console.warn('[SupabaseStorage] Notice on ensuring payment-slips bucket:', err?.message);
+  });
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -68,6 +83,17 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
+// Legacy Local Slips Directory (Only used for backward-compatibility with pre-migration local files)
+export function getLegacySlipsDir(): string {
+  const dir = path.join(DATA_DIR, 'slips');
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}
+export const getSlipsDir = getLegacySlipsDir;
+
+
 // Token store for resilient cross-origin iframe authentication
 export function createAuthToken(user: any): string {
   const token = 'mm_token_' + crypto.randomBytes(32).toString('hex');
@@ -82,6 +108,45 @@ export function getUserByToken(token: string | null | undefined): any | null {
 const app = express();
 app.set('trust proxy', 1);
 app.use(express.json());
+
+// Multer memory storage for secure image upload (max 5 MiB)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowed.includes((file.mimetype || '').toLowerCase())) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are permitted.'));
+    }
+  }
+});
+
+// Safe Multer Middleware wrapper: catches any Multer errors (e.g. file size limit exceeded, wrong field, invalid type)
+// and guarantees a clean JSON HTTP 400 response rather than propagating to Express unhandled HTML handlers
+function uploadSingleSafe(fieldName: string) {
+  return (req: any, res: any, next: any) => {
+    upload.single(fieldName)(req, res, (err: any) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            error: 'ဖိုင်အရွယ်အစား 5MB ထက် မကျော်ရပါ (File size must not exceed 5 MiB).'
+          });
+        }
+        if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+          return res.status(400).json({
+            error: `မမှန်ကန်သော ဖိုင်အမျိုးအစားဖြစ်ပါသည် (Unexpected file field '${err.field || fieldName}').`
+          });
+        }
+        return res.status(400).json({
+          error: err.message || 'File upload failed'
+        });
+      }
+      next();
+    });
+  };
+}
 
 // Session management (configured for cross-origin iframe preview environment)
 app.use(session({
@@ -664,15 +729,30 @@ app.post('/api/auth/configure-provider', (req: any, res: any) => {
 app.post('/api/auth/dev-login', (req: any, res: any) => {
   const db = readDb();
   if (!db.users) db.users = {};
-  const devId = 'user_owner_001';
+  const requestedMerchantId = req.body?.merchantId || 'merchant_001';
+  const devId = requestedMerchantId === 'merchant_001' ? 'user_owner_001' : `user_${requestedMerchantId}`;
   let devUser = db.users[devId];
   if (!devUser) {
+    if (!db.merchants[requestedMerchantId]) {
+      db.merchants[requestedMerchantId] = {
+        id: requestedMerchantId,
+        shopName: `Shop ${requestedMerchantId}`,
+        ownerName: `Owner ${requestedMerchantId}`,
+        email: `${requestedMerchantId}@shop.mm`,
+        store: {
+          slug: `store-${requestedMerchantId}`,
+          storeName: `Store ${requestedMerchantId}`,
+          isPublished: true
+        },
+        aiConfig: { enabled: true }
+      };
+    }
     devUser = {
       id: devId,
-      name: 'Ko Aung (Merchant Owner)',
-      email: 'aung@yangonstyle.mm',
+      name: requestedMerchantId === 'merchant_001' ? 'Ko Aung (Merchant Owner)' : `Owner (${requestedMerchantId})`,
+      email: requestedMerchantId === 'merchant_001' ? 'aung@yangonstyle.mm' : `${requestedMerchantId}@shop.mm`,
       role: 'merchant_admin',
-      merchantId: 'merchant_001',
+      merchantId: requestedMerchantId,
       provider: 'local',
       createdAt: new Date().toISOString()
     };
@@ -823,6 +903,128 @@ app.put('/api/merchant/store', authMiddleware, async (req: any, res: any) => {
     res.json({ success: true, store });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Merchant KPay Payment Settings (Authoritative Multi-Merchant Isolation)
+function isValidMyanmarPhone(phone: string): boolean {
+  if (!phone || typeof phone !== 'string') return false;
+  const cleaned = phone.trim().replace(/[\s\-\(\)\.]/g, '');
+  return /^(09|\+?959)\d{7,10}$/.test(cleaned);
+}
+
+app.get('/api/merchant/payment-settings', authMiddleware, (req: any, res: any) => {
+  const merchant = req.merchant;
+  const ps = merchant.paymentSettings || merchant.store?.paymentSettings || null;
+  res.json({
+    kpayAccountName: ps?.kpayAccountName || '',
+    kpayPhone: ps?.kpayPhone || '',
+    kpayQrUrl: ps?.kpayQrUrl || '',
+    paymentRules: ps?.paymentRules || '',
+    customInstructions: ps?.customInstructions || '',
+    updatedAt: ps?.updatedAt || null,
+    isConfigured: Boolean(ps?.kpayAccountName && ps?.kpayPhone && ps?.paymentRules)
+  });
+});
+
+app.put('/api/merchant/payment-settings', authMiddleware, async (req: any, res: any) => {
+  try {
+    const merchantId = req.merchant.id;
+    const { kpayAccountName, kpayPhone, kpayQrUrl, paymentRules, customInstructions } = req.body;
+
+    if (!kpayAccountName || typeof kpayAccountName !== 'string' || kpayAccountName.trim().length < 2) {
+      return res.status(400).json({ error: 'KPay Account Name is required (minimum 2 characters).' });
+    }
+    if (kpayAccountName.trim().length > 100) {
+      return res.status(400).json({ error: 'KPay Account Name cannot exceed 100 characters.' });
+    }
+
+    if (!kpayPhone || typeof kpayPhone !== 'string' || !isValidMyanmarPhone(kpayPhone)) {
+      return res.status(400).json({ error: 'Valid Myanmar KPay phone number is required (e.g., 09-912345678).' });
+    }
+
+    if (kpayQrUrl && typeof kpayQrUrl === 'string') {
+      const trimmedQr = kpayQrUrl.trim();
+      if (!trimmedQr.startsWith('http://') && !trimmedQr.startsWith('https://')) {
+        return res.status(400).json({ error: 'Invalid QR image URL. Must be an HTTP/HTTPS address.' });
+      }
+      if (trimmedQr.length > 1000) {
+        return res.status(400).json({ error: 'QR image URL is too long.' });
+      }
+    }
+
+    if (!paymentRules || typeof paymentRules !== 'string' || paymentRules.trim().length < 10) {
+      return res.status(400).json({ error: 'Payment transfer rules are required (minimum 10 characters).' });
+    }
+    if (paymentRules.trim().length > 3000) {
+      return res.status(400).json({ error: 'Payment transfer rules cannot exceed 3,000 characters.' });
+    }
+
+    if (customInstructions && typeof customInstructions === 'string' && customInstructions.trim().length > 1000) {
+      return res.status(400).json({ error: 'Custom payment instructions cannot exceed 1,000 characters.' });
+    }
+
+    const updatedSettings = {
+      kpayAccountName: kpayAccountName.trim(),
+      kpayPhone: kpayPhone.trim(),
+      kpayQrUrl: kpayQrUrl ? kpayQrUrl.trim() : '',
+      paymentRules: paymentRules.trim(),
+      customInstructions: customInstructions ? customInstructions.trim() : '',
+      updatedAt: new Date().toISOString()
+    };
+
+    const savedSettings = await withDbTransaction((db) => {
+      if (!db.merchants[merchantId]) {
+        throw new Error('Merchant profile not found');
+      }
+
+      // Store in merchant.paymentSettings and sync to merchant.store.paymentSettings
+      db.merchants[merchantId].paymentSettings = updatedSettings;
+      if (db.merchants[merchantId].store) {
+        db.merchants[merchantId].store.paymentSettings = updatedSettings;
+        db.merchants[merchantId].store.updatedAt = new Date().toISOString();
+      }
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'UPDATE_PAYMENT_SETTINGS',
+        actor: req.user.id,
+        details: `Updated KPay payment settings: account "${updatedSettings.kpayAccountName}", phone "${updatedSettings.kpayPhone}".`,
+        timestamp: new Date().toISOString()
+      });
+
+      return updatedSettings;
+    });
+
+    res.json({ success: true, paymentSettings: savedSettings });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to save payment settings' });
+  }
+});
+
+// Merchant KPay QR Image Upload
+app.post('/api/merchant/payment-settings/upload-qr', authMiddleware, uploadSingleSafe('qrImage'), async (req: any, res: any) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No QR code image uploaded or file exceeds 5 MiB limit.' });
+    }
+
+    const merchantId = req.merchant.id;
+    const publicUrl = await uploadQrImageToSupabase(
+      merchantId,
+      req.file.buffer,
+      req.file.mimetype,
+      req.file.originalname
+    );
+
+    res.status(201).json({
+      success: true,
+      qrUrl: publicUrl
+    });
+  } catch (err: any) {
+    console.error('[UploadQR] Error:', err);
+    res.status(400).json({ error: err.message || 'QR image upload failed' });
   }
 });
 
@@ -1221,6 +1423,13 @@ app.post('/api/public/store/:slug/orders', async (req: any, res: any) => {
         paymentMethod: paymentMethod || 'KBZPay',
         shippingAddress: shippingAddress.trim(),
         status: 'processing',
+        paymentSlipUrl: null,
+        paymentSlipUploadedAt: null,
+        transactionRef: null,
+        rejectionReason: null,
+        rejectedBy: null,
+        rejectedAt: null,
+        paymentHistory: [],
         confirmedBy: null,
         confirmedAt: null,
         createdAt: new Date().toISOString()
@@ -1237,10 +1446,334 @@ app.post('/api/public/store/:slug/orders', async (req: any, res: any) => {
       return { ...orderWithSupport, supportCode };
     });
 
+    // Establish immediate authorized session for guest order support and slip upload
+    req.session.recentOrderId = newOrder.id;
+    req.session.supportOrder = { orderId: newOrder.id, merchantId: newOrder.merchantId };
+    req.session.save();
+
     res.status(201).json({ success: true, order: newOrder });
   } catch (err: any) {
     const status = err.message.includes('Store not found') ? 404 : 400;
     res.status(status).json({ error: err.message || 'Checkout failed' });
+  }
+});
+
+// Customer Payment Slip Upload (Strict Guest Authorization via Support Code or Verified Session)
+app.post('/api/public/orders/:orderId/payment-slip', uploadSingleSafe('slipImage'), async (req: any, res: any) => {
+  try {
+    const orderId = req.params.orderId;
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const db = readDb();
+    const order = db.orders.find((o: any) => o.id === orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Server-Side Authorization: Support Code or Session Verification
+    const clientCode = req.body.supportCode || req.headers['x-support-code'];
+    let isAuthorized = false;
+
+    if (clientCode && typeof clientCode === 'string' && clientCode.trim()) {
+      const hashed = crypto.createHash('sha256').update(clientCode.trim()).digest('hex');
+      if (hashed === order.supportCodeHash) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized && req.session) {
+      if (req.session.recentOrderId === order.id || req.session.supportOrder?.orderId === order.id) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(401).json({
+        error: 'Unauthorized: Valid order support code or active checkout session required to submit payment slip.'
+      });
+    }
+
+    // Integrity Guard: Prevent replacement of already approved payments
+    if (order.paymentStatus === 'CONFIRMED') {
+      return res.status(400).json({
+        error: 'Payment for this order has already been approved and confirmed. New payment slips cannot be submitted.'
+      });
+    }
+
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ error: 'Please choose a payment slip image file (JPEG, PNG, or WebP up to 5 MiB).' });
+    }
+
+    const validation = validateImageBuffer(req.file.buffer, req.file.mimetype);
+    if (!validation.isValid) {
+      return res.status(400).json({ error: validation.error || 'Invalid payment slip image file.' });
+    }
+
+    const transactionRef = req.body.transactionRef && typeof req.body.transactionRef === 'string'
+      ? req.body.transactionRef.trim().substring(0, 100)
+      : null;
+
+    // DIRECT, AUTHORITATIVE UPLOAD TO DURABLE PRIVATE SUPABASE STORAGE
+    // No local disk dependency; fails safely with localized JSON error if Supabase fails
+    let uploadResult: PaymentSlipUploadResult;
+    try {
+      uploadResult = await uploadPaymentSlipToSupabase(
+        order.merchantId,
+        order.id,
+        req.file.buffer,
+        req.file.mimetype,
+        req.file.originalname
+      );
+    } catch (supaErr: any) {
+      console.error('[PaymentSlipUpload] Durable Supabase upload failed:', supaErr);
+      return res.status(503).json({
+        error: 'ငွေလွှဲပြေစာ သိမ်းဆည်းခြင်း မအောင်မြင်ပါ။ အင်တာနက်လိုင်း စစ်ဆေးပြီး ခေတ္တစောင့်ကာ ထပ်မံကြိုးစားပေးပါ။ (Durable storage upload failed: ' + (supaErr?.message || 'Storage unavailable') + ')',
+        code: 'STORAGE_UPLOAD_FAILED',
+        retryable: true
+      });
+    }
+
+    // Canonical slip URL points through our authenticated backend proxy (never bakes in customer support secrets)
+    const canonicalSlipUrl = `/api/public/orders/${order.id}/slip-image`;
+
+    // Update order authoritatively inside database transaction
+    const updatedOrder = await withDbTransaction((database) => {
+      const idx = database.orders.findIndex((o: any) => o.id === orderId);
+      if (idx === -1) {
+        throw new Error('Order not found during transaction');
+      }
+
+      const ord = database.orders[idx];
+      if (ord.paymentStatus === 'CONFIRMED') {
+        throw new Error('Payment already confirmed');
+      }
+
+      if (ord.paymentSlipUrl || ord.slipObjectPath) {
+        ord.paymentHistory = ord.paymentHistory || [];
+        ord.paymentHistory.push({
+          slipUrl: ord.paymentSlipUrl,
+          slipObjectPath: ord.slipObjectPath || null,
+          slipStorageBucket: ord.slipStorageBucket || null,
+          uploadedAt: ord.paymentSlipUploadedAt || new Date().toISOString(),
+          transactionRef: ord.transactionRef || null,
+          previousStatus: ord.paymentStatus,
+          rejectedBy: ord.rejectedBy || null,
+          rejectedAt: ord.rejectedAt || null,
+          rejectionReason: ord.rejectionReason || null
+        });
+      }
+
+      ord.slipStorageBucket = uploadResult.bucket;
+      ord.slipObjectPath = uploadResult.objectPath;
+      ord.supabaseSyncStatus = 'SYNCED_DURABLE';
+      delete ord.supabaseSyncError;
+      delete ord.localSlipFilename;
+      ord.paymentSlipUrl = canonicalSlipUrl;
+      ord.paymentSlipUploadedAt = new Date().toISOString();
+      ord.transactionRef = transactionRef;
+      ord.paymentStatus = 'SLIP_SUBMITTED';
+      ord.rejectionReason = null;
+      ord.rejectedBy = null;
+      ord.rejectedAt = null;
+
+      database.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId: ord.merchantId,
+        action: 'SUBMIT_PAYMENT_SLIP',
+        actor: 'customer_guest',
+        details: `Customer submitted payment slip for order ${ord.id} (amount: ${ord.totalAmount} MMK, ref: ${transactionRef || 'none'}, storage: ${uploadResult.bucket}/${uploadResult.objectPath}).`,
+        timestamp: new Date().toISOString()
+      });
+
+      return ord;
+    });
+
+    // Client-specific response URL: include customer code parameter for the immediate uploader only
+    const clientResponseSlipUrl = clientCode
+      ? `${canonicalSlipUrl}?code=${encodeURIComponent(clientCode)}`
+      : canonicalSlipUrl;
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment slip submitted successfully. Awaiting merchant verification.',
+      paymentStatus: updatedOrder.paymentStatus,
+      paymentSlipUrl: clientResponseSlipUrl,
+      paymentSlipUploadedAt: updatedOrder.paymentSlipUploadedAt,
+      transactionRef: updatedOrder.transactionRef,
+      cloudSyncStatus: updatedOrder.supabaseSyncStatus,
+      storage: 'supabase_durable'
+    });
+  } catch (err: any) {
+    console.error('[PaymentSlipUpload] Error:', err);
+    res.status(400).json({ error: err.message || 'Failed to upload payment slip' });
+  }
+});
+
+// Secure & Resilient Payment Slip Image Proxy
+// Allows customers and merchants in Myanmar to view payment slips without requiring direct access to *.supabase.co
+app.get('/api/public/orders/:orderId/slip-image', async (req: any, res: any) => {
+  try {
+    const orderId = req.params.orderId;
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const db = readDb();
+    const order = db.orders.find((o: any) => o.id === orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // 1. Authorize Customer via support code or session
+    const clientCode = req.query.code || req.query.supportCode || req.headers['x-support-code'];
+    let isAuthorized = false;
+
+    if (clientCode && typeof clientCode === 'string' && clientCode.trim()) {
+      const hashed = crypto.createHash('sha256').update(clientCode.trim()).digest('hex');
+      if (hashed === order.supportCodeHash) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized && req.session) {
+      if (req.session.recentOrderId === order.id || req.session.supportOrder?.orderId === order.id) {
+        isAuthorized = true;
+      }
+    }
+
+    // 2. Authorize Merchant via query token, header token, or session
+    if (!isAuthorized) {
+      const authHeader = req.headers.authorization;
+      let token = (authHeader && authHeader.startsWith('Bearer '))
+        ? authHeader.substring(7).trim()
+        : (req.query.token ? String(req.query.token).trim() : null);
+
+      if (token) {
+        const user = getUserByToken(token);
+        if (user && user.merchantId === order.merchantId) {
+          isAuthorized = true;
+        }
+      } else if (req.isAuthenticated && req.isAuthenticated() && req.user && req.user.merchantId === order.merchantId) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(401).json({
+        error: 'Unauthorized: Valid support code or merchant authorization required to view payment slip.'
+      });
+    }
+
+    // 3. Primary & Authoritative: Stream directly from private Supabase Storage
+    if (order.slipObjectPath) {
+      const bucket = order.slipStorageBucket || 'payment-slips';
+      try {
+        const { buffer, contentType } = await downloadPaymentSlipFromSupabase(bucket, order.slipObjectPath);
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Cache-Control', 'private, max-age=86400');
+        return res.send(buffer);
+      } catch (dlErr: any) {
+        console.error('[SlipProxy] Durable Supabase download failed for path:', order.slipObjectPath, dlErr?.message);
+      }
+    }
+
+    // 4. Legacy Supabase Storage fallback (orders stored in product-images or remote URL)
+    const remoteUrl = order.supabaseSlipUrl || (order.paymentSlipUrl && order.paymentSlipUrl.startsWith('http') ? order.paymentSlipUrl : null);
+    if (remoteUrl) {
+      try {
+        const match = remoteUrl.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/);
+        if (match) {
+          const bucket = match[1];
+          const objPath = decodeURIComponent(match[2]);
+          const { buffer, contentType } = await downloadPaymentSlipFromSupabase(bucket, objPath);
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Cache-Control', 'private, max-age=86400');
+          return res.send(buffer);
+        }
+
+        const response = await fetch(remoteUrl);
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || 'image/jpeg';
+          const arrayBuffer = await response.arrayBuffer();
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Cache-Control', 'private, max-age=86400');
+          return res.send(Buffer.from(arrayBuffer));
+        }
+      } catch (fetchErr: any) {
+        console.error('[SlipProxy] Legacy remote fetch failed:', fetchErr?.message);
+      }
+    }
+
+    // 5. Legacy local file fallback (if file still exists on disk from earlier versions)
+    if (order.localSlipFilename) {
+      const slipsDir = getLegacySlipsDir();
+      const localFilePath = path.join(slipsDir, path.basename(order.localSlipFilename));
+      if (fs.existsSync(localFilePath)) {
+        const ext = path.extname(localFilePath).toLowerCase();
+        const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+        res.setHeader('Content-Type', mime);
+        res.setHeader('Cache-Control', 'private, max-age=86400');
+        return res.sendFile(localFilePath);
+      }
+    }
+
+    return res.status(404).json({ error: 'Payment slip image file not found' });
+  } catch (err: any) {
+    console.error('[SlipProxy] Error:', err);
+    res.status(500).json({ error: 'Internal server error while retrieving payment slip' });
+  }
+});
+
+// Customer Payment Status Query
+app.get('/api/public/orders/:orderId/payment-status', async (req: any, res: any) => {
+  try {
+    const orderId = req.params.orderId;
+    const db = readDb();
+    const order = db.orders.find((o: any) => o.id === orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const clientCode = req.query.code || req.query.supportCode || req.headers['x-support-code'];
+    let isAuthorized = false;
+
+    if (clientCode && typeof clientCode === 'string' && clientCode.trim()) {
+      const hashed = crypto.createHash('sha256').update(clientCode.trim()).digest('hex');
+      if (hashed === order.supportCodeHash) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized && req.session) {
+      if (req.session.recentOrderId === order.id || req.session.supportOrder?.orderId === order.id) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(401).json({ error: 'Unauthorized: Support code required.' });
+    }
+
+    const slipViewUrl = (order.paymentSlipUrl && clientCode)
+      ? `${order.paymentSlipUrl}?code=${encodeURIComponent(clientCode)}`
+      : (order.paymentSlipUrl || null);
+
+    res.json({
+      id: order.id,
+      totalAmount: order.totalAmount,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      paymentSlipUrl: slipViewUrl,
+      paymentSlipUploadedAt: order.paymentSlipUploadedAt || null,
+      transactionRef: order.transactionRef || null,
+      rejectionReason: order.rejectionReason || null,
+      cloudSyncStatus: order.supabaseSyncStatus || 'NOT_CONFIGURED',
+      createdAt: order.createdAt
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1361,20 +1894,6 @@ app.delete('/api/merchant/samples/:id', authMiddleware, async (req: any, res: an
   } catch (err: any) {
     const status = err.message.includes('not found') ? 404 : 500;
     res.status(status).json({ error: err.message || 'Internal server error' });
-  }
-});
-
-// Multer memory storage for secure image upload (max 5 MiB)
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (allowed.includes((file.mimetype || '').toLowerCase())) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are permitted.'));
-    }
   }
 });
 
@@ -1748,6 +2267,77 @@ app.post('/api/orders/:id/confirm-payment', authMiddleware, async (req: any, res
         action: 'CONFIRM_PAYMENT_HUMAN',
         actor: userId,
         details: `Authorized human confirmed payment for order ${orderId} amount ${ord.totalAmount} MMK.`,
+        timestamp: new Date().toISOString()
+      });
+
+      return ord;
+    });
+
+    res.json({ success: true, order });
+  } catch (err: any) {
+    const status = err.message.includes('not found') ? 404 : err.message.includes('already confirmed') ? 400 : 500;
+    res.status(status).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// HUMAN-ONLY PAYMENT REJECTION ROUTE (WITH MANDATORY REJECTION REASON)
+app.post('/api/orders/:id/reject-payment', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { role, provider, id: userId } = req.user;
+    const userRole = role || (provider ? 'merchant_admin' : 'customer');
+
+    const allowedRoles = ['merchant_admin', 'store_manager', 'finance_staff'];
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        error: 'Access Denied: Payment rejection requires authorized human staff permission.'
+      });
+    }
+
+    const { reason } = req.body;
+    if (!reason || typeof reason !== 'string' || reason.trim().length < 2) {
+      return res.status(400).json({ error: 'Rejection reason is required (minimum 2 characters).' });
+    }
+    if (reason.trim().length > 500) {
+      return res.status(400).json({ error: 'Rejection reason cannot exceed 500 characters.' });
+    }
+
+    const orderId = req.params.id;
+
+    const order = await withDbTransaction((db) => {
+      const orderIndex = db.orders.findIndex((o: any) => o.id === orderId && o.merchantId === req.merchant.id);
+      if (orderIndex === -1) {
+        throw new Error('Order not found');
+      }
+
+      const ord = db.orders[orderIndex];
+      if (ord.paymentStatus === 'CONFIRMED') {
+        throw new Error('Cannot reject an already confirmed payment');
+      }
+
+      ord.paymentHistory = ord.paymentHistory || [];
+      if (ord.paymentSlipUrl) {
+        ord.paymentHistory.push({
+          slipUrl: ord.paymentSlipUrl,
+          uploadedAt: ord.paymentSlipUploadedAt || new Date().toISOString(),
+          transactionRef: ord.transactionRef || null,
+          previousStatus: ord.paymentStatus,
+          rejectedBy: userId,
+          rejectedAt: new Date().toISOString(),
+          rejectionReason: reason.trim()
+        });
+      }
+
+      ord.paymentStatus = 'REJECTED';
+      ord.rejectionReason = reason.trim();
+      ord.rejectedBy = userId;
+      ord.rejectedAt = new Date().toISOString();
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId: req.merchant.id,
+        action: 'REJECT_PAYMENT_HUMAN',
+        actor: userId,
+        details: `Authorized human rejected payment for order ${orderId} amount ${ord.totalAmount} MMK. Reason: "${reason.trim()}".`,
         timestamp: new Date().toISOString()
       });
 

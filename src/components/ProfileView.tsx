@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Store,
   ShieldCheck,
@@ -26,9 +26,17 @@ import {
   Activity,
   MessageSquare,
   FlaskConical,
-  X
+  X,
+  Upload,
+  QrCode,
+  FileText,
+  Image as ImageIcon,
+  Filter,
+  RefreshCw,
+  Eye,
+  Check
 } from 'lucide-react';
-import { StoreSettings, Order, ProviderStatus, AiConfig, SampleReply, AiHealth, Product } from '../types';
+import { StoreSettings, Order, ProviderStatus, AiConfig, SampleReply, AiHealth, Product, PaymentSettings } from '../types';
 
 interface ProfileViewProps {
   store: StoreSettings | null;
@@ -38,6 +46,7 @@ interface ProfileViewProps {
   lang: 'my' | 'en';
   onUpdateStore: (storeData: Partial<StoreSettings>) => Promise<void>;
   onConfirmPayment: (orderId: string) => Promise<void>;
+  onRejectPayment?: (orderId: string, reason: string) => Promise<void>;
   onOpenConfig: (provider: 'google' | 'facebook' | 'tiktok') => void;
   onLogout: () => void;
   onOpenPublicStore: () => void;
@@ -63,6 +72,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   lang,
   onUpdateStore,
   onConfirmPayment,
+  onRejectPayment,
   onOpenConfig,
   onLogout,
   onOpenPublicStore,
@@ -78,8 +88,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onTestPreview,
   onOpenLab
 }) => {
-  const [activeSection, setActiveSection] = useState<'store' | 'ai' | 'payments' | 'channels' | 'account'>(
-    initialTab === 'ai' ? 'ai' : initialTab === 'payments' ? 'payments' : 'store'
+  const [activeSection, setActiveSection] = useState<'store' | 'payment_settings' | 'payments' | 'ai' | 'channels' | 'account'>(
+    initialTab === 'ai'
+      ? 'ai'
+      : initialTab === 'payments'
+      ? 'payments'
+      : initialTab === 'payment_settings'
+      ? 'payment_settings'
+      : 'store'
   );
 
   // Store profile form state
@@ -91,6 +107,162 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [savingStore, setSavingStore] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
+
+  // Merchant KPay Payment Settings form state
+  const [kpayAccountName, setKpayAccountName] = useState(store?.paymentSettings?.kpayAccountName || '');
+  const [kpayPhone, setKpayPhone] = useState(store?.paymentSettings?.kpayPhone || '');
+  const [kpayQrUrl, setKpayQrUrl] = useState(store?.paymentSettings?.kpayQrUrl || '');
+  const [paymentRules, setPaymentRules] = useState(store?.paymentSettings?.paymentRules || '');
+  const [customPaymentInstructions, setCustomPaymentInstructions] = useState(store?.paymentSettings?.customInstructions || '');
+  const [savingPaymentSettings, setSavingPaymentSettings] = useState(false);
+  const [paymentSettingsSuccess, setPaymentSettingsSuccess] = useState(false);
+  const [paymentSettingsError, setPaymentSettingsError] = useState<string | null>(null);
+  const [uploadingQr, setUploadingQr] = useState(false);
+  const [uploadQrError, setUploadQrError] = useState<string | null>(null);
+
+  // Orders Payment Verification Filter & Modals
+  const [orderPaymentFilter, setOrderPaymentFilter] = useState<'all' | 'SLIP_SUBMITTED' | 'PENDING' | 'CONFIRMED' | 'REJECTED'>('all');
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [rejectModalOrder, setRejectModalOrder] = useState<Order | null>(null);
+  const [rejectionReasonText, setRejectionReasonText] = useState('');
+  const [submittingRejection, setSubmittingRejection] = useState(false);
+  const [rejectionError, setRejectionError] = useState<string | null>(null);
+  const [previewSlipUrl, setPreviewSlipUrl] = useState<string | null>(null);
+
+  // Fetch Authoritative Payment Settings from Server on Mount
+  useEffect(() => {
+    const loadPaymentSettings = async () => {
+      try {
+        const token = localStorage.getItem('myanmar_seller_token');
+        const res = await fetch('/api/merchant/payment-settings', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.kpayAccountName) setKpayAccountName(data.kpayAccountName);
+          if (data.kpayPhone) setKpayPhone(data.kpayPhone);
+          if (data.kpayQrUrl) setKpayQrUrl(data.kpayQrUrl);
+          if (data.paymentRules) setPaymentRules(data.paymentRules);
+          if (data.customInstructions) setCustomPaymentInstructions(data.customInstructions);
+        }
+      } catch {
+        // Safe graceful failover
+      }
+    };
+    loadPaymentSettings();
+  }, []);
+
+  const handleUploadQrFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingQr(true);
+    setUploadQrError(null);
+    try {
+      const formData = new FormData();
+      formData.append('qrImage', file);
+      const token = localStorage.getItem('myanmar_seller_token');
+      let res: Response;
+      try {
+        res = await fetch('/api/merchant/payment-settings/upload-qr', {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          body: formData
+        });
+      } catch {
+        throw new Error(lang === 'my' ? 'ကွန်ရက်ချိတ်ဆက်မှု မအောင်မြင်ပါ (Network connection failed)' : 'Network connection failed. Please check your connection.');
+      }
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = null;
+      if (contentType.includes('application/json')) {
+        data = await res.json().catch(() => null);
+      }
+      if (!res.ok) {
+        throw new Error((data && data.error) || (res.status === 502 || res.status === 504 ? 'Server is temporarily restarting. Please try again.' : `Failed to upload QR image (HTTP ${res.status})`));
+      }
+      if (!data?.qrUrl) {
+        throw new Error('Invalid server response');
+      }
+      setKpayQrUrl(data.qrUrl);
+    } catch (err: any) {
+      setUploadQrError(err.message || 'QR upload failed');
+    } finally {
+      setUploadingQr(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleSavePaymentSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingPaymentSettings(true);
+    setPaymentSettingsSuccess(false);
+    setPaymentSettingsError(null);
+    try {
+      const token = localStorage.getItem('myanmar_seller_token');
+      const res = await fetch('/api/merchant/payment-settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          kpayAccountName,
+          kpayPhone,
+          kpayQrUrl,
+          paymentRules,
+          customInstructions: customPaymentInstructions
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save payment settings');
+      }
+      setPaymentSettingsSuccess(true);
+      setTimeout(() => setPaymentSettingsSuccess(false), 3000);
+    } catch (err: any) {
+      setPaymentSettingsError(err.message || 'Failed to save payment settings');
+    } finally {
+      setSavingPaymentSettings(false);
+    }
+  };
+
+  const handleApplyDefaultRules = () => {
+    const defaultRules = `၁။ KBZPay အကောင့်အမည်နှင့် ဖုန်းနံပါတ်ကို သေချာစွာ စစ်ဆေးပြီးမှ ငွေလွှဲပေးပါရန်။
+၂။ အော်ဒါတွင် ကျသင့်သော စုစုပေါင်းငွေပမာဏ အတိအကျကိုသာ လွှဲပေးပါရန်။
+၃။ ငွေလွှဲပြီးပါက အောင်မြင်သော ပြေစာ (Screenshot/Slip) အပြည့်အစုံကို တင်ပေးပါရန်။
+၄။ ငွေလွှဲမှတ်တမ်း (Transaction ID / Ref No.) ကို ထည့်သွင်းပေးပါရန်။
+၅။ ဆိုင်ရှင်မှ ငွေဝင်ရောက်မှု စစ်ဆေးအတည်ပြုပြီးမှသာ အော်ဒါ အတည်ဖြစ်ပါမည်။
+၆။ ပြေစာအတု သို့မဟုတ် တခြားအော်ဒါ၏ ပြေစာဟောင်းများ အသုံးပြုခြင်းကို တင်းကျပ်စွာ တားမြစ်ပါသည်။`;
+    setPaymentRules(defaultRules);
+  };
+
+  const handleConfirmRejectOrder = async () => {
+    if (!rejectModalOrder || !rejectionReasonText.trim() || submittingRejection) return;
+    setSubmittingRejection(true);
+    setRejectionError(null);
+    try {
+      if (onRejectPayment) {
+        await onRejectPayment(rejectModalOrder.id, rejectionReasonText.trim());
+      } else {
+        const token = localStorage.getItem('myanmar_seller_token');
+        const res = await fetch(`/api/orders/${rejectModalOrder.id}/reject-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ reason: rejectionReasonText.trim() })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to reject payment');
+      }
+      setRejectModalOrder(null);
+      setRejectionReasonText('');
+    } catch (err: any) {
+      setRejectionError(err.message || 'Failed to reject payment');
+    } finally {
+      setSubmittingRejection(false);
+    }
+  };
 
   // AI Configuration form local state
   const [preferredLang, setPreferredLang] = useState(config?.preferredLanguage || 'myanmar');
@@ -127,9 +299,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 2500);
   };
-
-  // Payment confirmation loading tracker
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const handleSaveStore = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -275,7 +444,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveSection('store')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
             activeSection === 'store'
               ? 'bg-[#C9A227] text-[#0B0B09]'
               : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
@@ -285,8 +454,41 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </button>
         <button
           type="button"
+          onClick={() => setActiveSection('payment_settings')}
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSection === 'payment_settings'
+              ? 'bg-[#C9A227] text-[#0B0B09]'
+              : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
+          }`}
+        >
+          <CreditCard className="w-3.5 h-3.5" />
+          <span>{lang === 'my' ? 'ငွေပေးချေမှု ဆက်တင် (KPay)' : 'Payment Settings'}</span>
+          {(!kpayAccountName || !kpayPhone) && (
+            <span className="w-2 h-2 rounded-full bg-amber-400" title={lang === 'my' ? 'ဆက်တင် မပြည့်စုံသေးပါ' : 'Setup incomplete'} />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSection('payments')}
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSection === 'payments'
+              ? 'bg-[#C9A227] text-[#0B0B09]'
+              : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
+          }`}
+        >
+          <span>{lang === 'my' ? 'အော်ဒါနှင့် ငွေလွှဲစစ်ဆေးမှု' : 'Orders & Verification'}</span>
+          {orders.filter(o => o.paymentStatus === 'SLIP_SUBMITTED').length > 0 ? (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-400 text-neutral-950 font-bold font-mono">
+              {orders.filter(o => o.paymentStatus === 'SLIP_SUBMITTED').length}
+            </span>
+          ) : orders.filter(o => o.paymentStatus !== 'CONFIRMED').length > 0 ? (
+            <span className="w-2 h-2 rounded-full bg-[#E0BD55]" />
+          ) : null}
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveSection('ai')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
             activeSection === 'ai'
               ? 'bg-[#C9A227] text-[#0B0B09]'
               : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
@@ -298,22 +500,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </button>
         <button
           type="button"
-          onClick={() => setActiveSection('payments')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
-            activeSection === 'payments'
-              ? 'bg-[#C9A227] text-[#0B0B09]'
-              : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-          }`}
-        >
-          <span>{lang === 'my' ? 'ငွေပေးချေမှုနှင့် အော်ဒါများ' : 'Orders & Payments'}</span>
-          {orders.filter(o => o.paymentStatus !== 'CONFIRMED').length > 0 && (
-            <span className="w-2 h-2 rounded-full bg-[#E0BD55]" />
-          )}
-        </button>
-        <button
-          type="button"
           onClick={() => setActiveSection('channels')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
             activeSection === 'channels'
               ? 'bg-[#C9A227] text-[#0B0B09]'
               : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
@@ -324,7 +512,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveSection('account')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
             activeSection === 'account'
               ? 'bg-[#C9A227] text-[#0B0B09]'
               : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
@@ -500,6 +688,276 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </div>
             </div>
           </form>
+        </section>
+      )}
+
+      {/* Section: Merchant KPay Payment Settings */}
+      {activeSection === 'payment_settings' && (
+        <section aria-label="Merchant Payment Settings" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#CBD5E1] pb-3 gap-2">
+            <div>
+              <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-[#2563EB]" />
+                <span>{lang === 'my' ? 'KBZPay ငွေပေးချေမှု ဆက်တင်များ' : 'KBZPay Merchant Payment Setup'}</span>
+              </h3>
+              <p className="text-xs text-[#64748B]">
+                {lang === 'my'
+                  ? 'ဖောက်သည်များ ငွေလွှဲရန် အသုံးပြုမည့် ကုန်သည်၏ စစ်မှန်သော KPay အကောင့်၊ ဖုန်းနံပါတ်၊ QR ကုဒ်နှင့် လွှဲပြောင်းမှု စည်းမျဉ်းများ'
+                  : 'Configure verified KBZPay account details, QR code, and strict payment rules shown to customers at checkout.'}
+              </p>
+            </div>
+            {(!kpayAccountName || !kpayPhone) && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                <span>{lang === 'my' ? 'ဆက်တင် မပြည့်စုံသေးပါ' : 'Setup Required'}</span>
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left 7 cols: Configuration Form */}
+            <form onSubmit={handleSavePaymentSettings} className="lg:col-span-7 space-y-5 text-xs">
+              {paymentSettingsSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{lang === 'my' ? 'KBZPay ဆက်တင်များကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။' : 'Payment settings updated successfully!'}</span>
+                </div>
+              )}
+
+              {paymentSettingsError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center gap-2 font-medium">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{paymentSettingsError}</span>
+                </div>
+              )}
+
+              {/* Account Name & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[#475569] font-semibold mb-1">
+                    {lang === 'my' ? 'KBZPay အကောင့်ပိုင်ရှင် အမည် *' : 'KBZPay Account Holder Name *'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Daw Thida Win / Ko Aung Thu"
+                    value={kpayAccountName}
+                    onChange={(e) => setKpayAccountName(e.target.value)}
+                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                  />
+                  <span className="text-[11px] text-[#64748B] mt-0.5 block">
+                    {lang === 'my' ? 'KBZPay အက်ပ်ထဲတွင် ဖော်ပြထားသည့် အမည် အတိအကျ' : 'Official legal or registered KBZPay account name'}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-[#475569] font-semibold mb-1">
+                    {lang === 'my' ? 'KBZPay ဖုန်းနံပါတ် *' : 'KBZPay Phone Number *'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="09..."
+                    value={kpayPhone}
+                    onChange={(e) => setKpayPhone(e.target.value)}
+                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 font-mono text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                  />
+                  <span className="text-[11px] text-[#64748B] mt-0.5 block">
+                    {lang === 'my' ? 'မြန်မာဖုန်းနံပါတ် (09xxxxxxxxx သို့မဟုတ် +959xxxxxxxxx)' : 'Myanmar phone format: 09... or +959...'}
+                  </span>
+                </div>
+              </div>
+
+              {/* QR Code Upload */}
+              <div className="bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-[#0F172A] block">
+                      {lang === 'my' ? 'KBZPay QR ကုဒ် ပုံတင်ရန်' : 'KBZPay QR Code Image'}
+                    </span>
+                    <span className="text-[11px] text-[#64748B]">
+                      {lang === 'my' ? 'ဖောက်သည်များ တိုက်ရိုက် Scan ဖတ်နိုင်မည့် QR ပုံ (PNG, JPG, WebP - အများဆုံး 5MB)' : 'Upload your official KBZPay receive-money QR code (PNG, JPG, WebP, max 5MB)'}
+                    </span>
+                  </div>
+                  {kpayQrUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setKpayQrUrl('')}
+                      className="text-xs text-rose-600 hover:text-rose-700 underline cursor-pointer"
+                    >
+                      {lang === 'my' ? 'ပုံဖျက်မည်' : 'Remove QR'}
+                    </button>
+                  )}
+                </div>
+
+                {uploadQrError && (
+                  <p className="text-xs text-rose-600 font-medium">{uploadQrError}</p>
+                )}
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  {kpayQrUrl ? (
+                    <div className="relative group w-32 h-32 bg-white rounded-xl border border-slate-200 p-2 flex items-center justify-center shrink-0 shadow-xs">
+                      <img
+                        src={kpayQrUrl}
+                        alt="KPay QR"
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPreviewSlipUrl(kpayQrUrl)}
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center text-white cursor-pointer"
+                        title="Enlarge QR"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-32 bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 shrink-0">
+                      <QrCode className="w-8 h-8 mb-1" />
+                      <span className="text-[10px]">{lang === 'my' ? 'QR မတင်ရသေးပါ' : 'No QR uploaded'}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-2 flex-1">
+                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-700 cursor-pointer shadow-xs transition-colors">
+                      <Upload className="w-4 h-4 text-blue-600" />
+                      <span>{uploadingQr ? (lang === 'my' ? 'တင်နေသည်...' : 'Uploading...') : (kpayQrUrl ? (lang === 'my' ? 'QR ပုံ အသစ်လဲမည်' : 'Change QR Image') : (lang === 'my' ? 'QR ပုံ ရွေးချယ်တင်မည်' : 'Upload QR Image'))}</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        disabled={uploadingQr}
+                        onChange={handleUploadQrFile}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-[11px] text-slate-500">
+                      {lang === 'my' ? 'KBZPay App > Receive Money > QR Code ကို Screenshot ရိုက်၍ တင်ပေးပါ။' : 'Take a screenshot of Receive Money QR from your KBZPay app and upload here.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Rules & Regulations */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[#475569] font-semibold">
+                    {lang === 'my' ? 'ငွေလွှဲစည်းမျဉ်းနှင့် သတိပြုရန်များ (Transfer Rules) *' : 'Payment Rules & Verification Policy *'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleApplyDefaultRules}
+                    className="text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer underline"
+                  >
+                    {lang === 'my' ? 'နမူနာ စည်းမျဉ်းများ ထည့်သွင်းမည်' : 'Use Default Template'}
+                  </button>
+                </div>
+                <textarea
+                  rows={6}
+                  required
+                  placeholder={lang === 'my' ? 'ဖောက်သည်များ ငွေမလွှဲမီ သတိပြုရမည့် စည်းမျဉ်းများကို ရေးသားပါ...' : 'Rules that customers must follow before transferring money...'}
+                  value={paymentRules}
+                  onChange={(e) => setPaymentRules(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-[#0F172A] focus:border-[#2563EB] focus:outline-none leading-relaxed font-sans"
+                />
+                <span className="text-[11px] text-[#64748B] block">
+                  {lang === 'my' ? 'ငွေလွှဲသည့်အခါ ပြေစာအပြည့်အစုံတင်ရန်၊ မှားယွင်းငွေလွှဲခြင်းနှင့် ပတ်သက်သည့် စည်းမျဉ်းများကို ထည့်သွင်းပါ။' : 'Explicit transfer rules help prevent customer errors and fraudulent transaction slips.'}
+                </span>
+              </div>
+
+              {/* Custom Optional Instructions */}
+              <div className="space-y-1.5">
+                <label className="text-[#475569] font-semibold block">
+                  {lang === 'my' ? 'ဖောက်သည်များထံသို့ ထပ်ဆောင်း အမှာစကား (ရွေးချယ်နိုင်သည်)' : 'Additional Customer Instructions (Optional)'}
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder={lang === 'my' ? 'ဥပမာ - မနက် ၉ နာရီမှ ညနေ ၆ နာရီအတွင်းသာ ငွေလွှဲအတည်ပြုပေးပါသည်။' : 'e.g. Slips verified within 15 minutes during operating hours.'}
+                  value={customPaymentInstructions}
+                  onChange={(e) => setCustomPaymentInstructions(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={savingPaymentSettings || uploadingQr}
+                  className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50 shadow-sm"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{savingPaymentSettings ? (lang === 'my' ? 'သိမ်းဆည်းနေသည်...' : 'Saving...') : (lang === 'my' ? 'KPay ဆက်တင်များ သိမ်းမည်' : 'Save Payment Setup')}</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Right 5 cols: Live Checkout Customer Preview */}
+            <div className="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3.5">
+              <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
+                <Eye className="w-4 h-4 text-slate-500" />
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  {lang === 'my' ? 'ဖောက်သည်မြင်ကွင်း နမူနာ (Live Checkout Preview)' : 'Customer Checkout Preview'}
+                </h4>
+              </div>
+
+              {(!kpayAccountName && !kpayPhone) ? (
+                <div className="py-12 text-center text-slate-400 space-y-2">
+                  <CreditCard className="w-8 h-8 mx-auto text-slate-300" />
+                  <p className="text-xs">{lang === 'my' ? 'အချက်အလက်များ ဖြည့်စွက်ပါက နမူနာမြင်ကွင်း ပေါ်လာပါမည်။' : 'Fill in payment details on the left to see customer preview.'}</p>
+                </div>
+              ) : (
+                <div className="bg-white border border-blue-200 rounded-xl p-4 space-y-3 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                      KBZPay Official
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">Store Checkout</span>
+                  </div>
+
+                  {kpayQrUrl ? (
+                    <div className="flex justify-center py-2">
+                      <div className="w-40 h-40 bg-white p-2 border border-slate-200 rounded-xl shadow-xs">
+                        <img src={kpayQrUrl} alt="Preview QR" className="w-full h-full object-contain rounded-lg" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full py-4 bg-slate-100 rounded-xl border border-dashed border-slate-200 text-center text-slate-400 text-xs">
+                      {lang === 'my' ? 'QR Code ပုံ မထည့်ရသေးပါ' : 'No QR uploaded yet'}
+                    </div>
+                  )}
+
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">{lang === 'my' ? 'အကောင့်ပိုင်ရှင်' : 'Holder Name'}:</span>
+                      <span className="font-bold text-slate-900">{kpayAccountName || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">{lang === 'my' ? 'KPay ဖုန်း' : 'Phone'}:</span>
+                      <span className="font-mono font-bold text-blue-700">{kpayPhone || '—'}</span>
+                    </div>
+                  </div>
+
+                  {paymentRules && (
+                    <div className="text-[11px] bg-amber-50/70 border border-amber-200 rounded-xl p-3 text-amber-900 space-y-1">
+                      <div className="font-bold flex items-center gap-1 text-amber-900">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        <span>{lang === 'my' ? 'ငွေလွှဲစည်းမျဉ်းများ' : 'Transfer Rules'}</span>
+                      </div>
+                      <div className="whitespace-pre-line text-[11px] leading-relaxed text-amber-800">
+                        {paymentRules}
+                      </div>
+                    </div>
+                  )}
+
+                  {customPaymentInstructions && (
+                    <div className="text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-600 italic">
+                      "{customPaymentInstructions}"
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </section>
       )}
 
@@ -913,82 +1371,352 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Section 3: Orders & Payments */}
       {activeSection === 'payments' && (
-        <section aria-label="Orders and Payments" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-4">
-          <div className="border-b border-[#CBD5E1] pb-3">
-            <h3 className="text-base font-bold text-[#0F172A]">
-              {lang === 'my' ? 'ဖောက်သည် အော်ဒါများနှင့် ငွေလွှဲအတည်ပြုချက်များ' : 'Customer Orders & Payment Verification'}
-            </h3>
-            <p className="text-xs text-[#64748B]">
-              {lang === 'my' ? 'ဖောက်သည်များ တင်ထားသော အော်ဒါများနှင့် KBZPay / WavePay ငွေလွှဲစလစ်များ' : 'Verify customer payments and manage active sales orders.'}
-            </p>
-          </div>
-
-          {orders.length === 0 ? (
-            <div className="text-center py-12 space-y-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-2xl">
-              <ShoppingBag className="w-8 h-8 text-[#64748B] mx-auto" />
+        <section aria-label="Orders and Payments" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#CBD5E1] pb-3 gap-2">
+            <div>
+              <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-[#2563EB]" />
+                <span>{lang === 'my' ? 'ဖောက်သည် အော်ဒါများနှင့် ငွေလွှဲစလစ် စစ်ဆေးခြင်း' : 'Customer Orders & Payment Slip Verification'}</span>
+              </h3>
               <p className="text-xs text-[#64748B]">
-                {lang === 'my' ? 'အော်ဒါ မရှိသေးပါ။' : 'No customer orders recorded yet.'}
+                {lang === 'my'
+                  ? 'KBZPay ပြေစာများကို စစ်ဆေးအတည်ပြုပါ သို့မဟုတ် မကိုက်ညီပါက အကြောင်းပြချက်ဖြင့် ငြင်းပယ်ပါ'
+                  : 'Verify submitted KBZPay slips manually, inspect transaction references, and reject invalid slips with clear reasons.'}
               </p>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {orders.map((order) => {
-                const isConfirmed = order.paymentStatus === 'CONFIRMED';
-                return (
-                  <div key={order.id} className="bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-bold text-[#0F172A]">#{order.id.slice(0, 8)}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          isConfirmed
-                            ? 'bg-[#16A34A]/15 text-[#16A34A] border border-[#16A34A]/30'
-                            : 'bg-amber-100 text-amber-800 border border-amber-200'
-                        }`}>
-                          {isConfirmed ? (lang === 'my' ? 'ငွေပေးချေပြီး' : 'PAID') : (lang === 'my' ? 'စစ်ဆေးဆဲ' : 'PENDING PAYMENT')}
-                        </span>
-                        <span className="text-slate-500 font-mono text-[11px]">
-                          {new Date(order.createdAt).toLocaleString()}
-                        </span>
-                      </div>
 
-                      <div className="text-[#0F172A] font-medium">
-                        <span className="font-bold">{order.customerName}</span> ({order.customerPhone}) · {order.shippingAddress}
-                      </div>
-
-                      <div className="text-slate-600 space-y-0.5">
-                        {order.items?.map((item, i) => (
-                          <div key={i} className="flex justify-between max-w-md">
-                            <span>{item.name} ({item.variant}) × {item.qty}</span>
-                            <span className="font-mono">{(item.price * item.qty).toLocaleString()} MMK</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <div className="text-right">
-                        <span className="text-[10px] text-slate-500 uppercase block">Total</span>
-                        <span className="text-base font-bold font-mono text-[#2563EB]">{order.totalAmount.toLocaleString()} MMK</span>
-                      </div>
-
-                      {!isConfirmed && (
-                        <button
-                          type="button"
-                          disabled={confirmingId === order.id}
-                          onClick={() => handleConfirmOrderPayment(order.id)}
-                          className="px-3 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-lg transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
-                        >
-                          {confirmingId === order.id
-                            ? (lang === 'my' ? 'အတည်ပြုနေသည်...' : 'Confirming...')
-                            : (lang === 'my' ? 'ငွေလက်ခံ အတည်ပြုမည်' : 'Confirm Payment')}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Quick Metrics */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 font-semibold flex items-center gap-1.5">
+                <span>{lang === 'my' ? 'စလစ်စစ်ဆေးရန်' : 'Needs Review'}:</span>
+                <span className="font-mono font-bold">{orders.filter(o => o.paymentStatus === 'SLIP_SUBMITTED').length}</span>
+              </span>
             </div>
-          )}
+          </div>
+
+          {/* Filter Bar */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setOrderPaymentFilter('all')}
+              className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+                orderPaymentFilter === 'all'
+                  ? 'bg-[#0F172A] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {lang === 'my' ? 'အားလုံး' : 'All Orders'} ({orders.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setOrderPaymentFilter('SLIP_SUBMITTED')}
+              className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+                orderPaymentFilter === 'SLIP_SUBMITTED'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>{lang === 'my' ? 'စလစ်စစ်ဆေးရန်' : 'Slip Submitted'}</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
+                orderPaymentFilter === 'SLIP_SUBMITTED' ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'
+              }`}>
+                {orders.filter(o => o.paymentStatus === 'SLIP_SUBMITTED').length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setOrderPaymentFilter('PENDING')}
+              className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+                orderPaymentFilter === 'PENDING'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+              }`}
+            >
+              {lang === 'my' ? 'ငွေလွှဲစောင့်ဆိုင်းဆဲ' : 'Pending Payment'} ({orders.filter(o => o.paymentStatus === 'PENDING' || !o.paymentStatus).length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setOrderPaymentFilter('CONFIRMED')}
+              className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+                orderPaymentFilter === 'CONFIRMED'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+              }`}
+            >
+              {lang === 'my' ? 'အတည်ပြုပြီး' : 'Confirmed'} ({orders.filter(o => o.paymentStatus === 'CONFIRMED').length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setOrderPaymentFilter('REJECTED')}
+              className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+                orderPaymentFilter === 'REJECTED'
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200'
+              }`}
+            >
+              {lang === 'my' ? 'ငြင်းပယ်ထားသော' : 'Rejected'} ({orders.filter(o => o.paymentStatus === 'REJECTED').length})
+            </button>
+          </div>
+
+          {/* Orders List */}
+          {(() => {
+            const filteredOrders = orders.filter((order) => {
+              if (orderPaymentFilter === 'SLIP_SUBMITTED') return order.paymentStatus === 'SLIP_SUBMITTED';
+              if (orderPaymentFilter === 'PENDING') return order.paymentStatus === 'PENDING' || !order.paymentStatus;
+              if (orderPaymentFilter === 'CONFIRMED') return order.paymentStatus === 'CONFIRMED';
+              if (orderPaymentFilter === 'REJECTED') return order.paymentStatus === 'REJECTED';
+              return true;
+            });
+
+            if (filteredOrders.length === 0) {
+              return (
+                <div className="text-center py-12 space-y-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-2xl">
+                  <ShoppingBag className="w-8 h-8 text-[#64748B] mx-auto" />
+                  <p className="text-xs text-[#64748B]">
+                    {lang === 'my' ? 'ရွေးချယ်ထားသော အခြေအနေနှင့် ကိုက်ညီသည့် အော်ဒါ မရှိပါ။' : 'No orders found matching the selected filter.'}
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-4">
+                {filteredOrders.map((order) => {
+                  const status = order.paymentStatus || 'PENDING';
+                  const isConfirmed = status === 'CONFIRMED';
+                  const isSubmitted = status === 'SLIP_SUBMITTED';
+                  const isRejected = status === 'REJECTED';
+                  const isPending = status === 'PENDING';
+
+                  return (
+                    <div
+                      key={order.id}
+                      className={`bg-[#F8FAFC] border rounded-2xl p-4 md:p-5 transition-all text-xs space-y-4 ${
+                        isSubmitted
+                          ? 'border-blue-400 bg-blue-50/20 shadow-xs'
+                          : isConfirmed
+                          ? 'border-emerald-200 bg-white'
+                          : isRejected
+                          ? 'border-rose-200 bg-rose-50/10'
+                          : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      {/* Order Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="font-mono font-bold text-sm text-[#0F172A]">
+                            #{order.id.slice(0, 8)}
+                          </span>
+
+                          {/* Status Badge */}
+                          {isConfirmed && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              <span>{lang === 'my' ? 'ငွေပေးချေမှု အတည်ပြုပြီး' : 'PAID & CONFIRMED'}</span>
+                            </span>
+                          )}
+                          {isSubmitted && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
+                              <FileText className="w-3 h-3 text-blue-600" />
+                              <span>{lang === 'my' ? 'စလစ်စစ်ဆေးရန်' : 'SLIP SUBMITTED'}</span>
+                            </span>
+                          )}
+                          {isPending && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                              <Clock className="w-3 h-3 text-amber-600" />
+                              <span>{lang === 'my' ? 'ငွေလွှဲစောင့်ဆိုင်းဆဲ' : 'PENDING TRANSFER'}</span>
+                            </span>
+                          )}
+                          {isRejected && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                              <AlertCircle className="w-3 h-3 text-rose-600" />
+                              <span>{lang === 'my' ? 'ငြင်းပယ်ထားသည်' : 'PAYMENT REJECTED'}</span>
+                            </span>
+                          )}
+
+                          <span className="text-slate-500 font-mono text-[11px]">
+                            {new Date(order.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+
+                        {order.supportCode && (
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 self-start sm:self-auto">
+                            <span>Code:</span>
+                            <span className="font-bold text-slate-800">{order.supportCode}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Main Details Grid */}
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                        {/* Customer & Items (7 cols) */}
+                        <div className="lg:col-span-7 space-y-3">
+                          <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-1.5 shadow-xs">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900 text-sm">{order.customerName}</span>
+                              <a
+                                href={`tel:${order.customerPhone}`}
+                                className="font-mono text-blue-600 hover:underline font-semibold"
+                              >
+                                {order.customerPhone}
+                              </a>
+                            </div>
+                            <p className="text-slate-600 text-[11px]">
+                              <span className="text-slate-400">{lang === 'my' ? 'လိပ်စာ' : 'Address'}: </span>
+                              {order.shippingAddress}
+                            </p>
+                          </div>
+
+                          {/* Ordered Items */}
+                          <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-xs">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                              {lang === 'my' ? 'မှာယူထားသော ပစ္စည်းများ' : 'Order Items'}
+                            </span>
+                            <div className="divide-y divide-slate-100 space-y-1.5">
+                              {order.items?.map((item, i) => (
+                                <div key={i} className="flex justify-between items-center pt-1.5">
+                                  <div>
+                                    <span className="font-medium text-slate-800">{item.name}</span>
+                                    {item.variant && (
+                                      <span className="text-slate-500 text-[11px]"> ({item.variant})</span>
+                                    )}
+                                    <span className="text-slate-400 font-mono ml-2">×{item.qty}</span>
+                                  </div>
+                                  <span className="font-mono font-semibold text-slate-800">
+                                    {(item.price * item.qty).toLocaleString()} MMK
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="border-t border-slate-200 pt-2 flex justify-between items-center text-xs">
+                              <span className="font-bold text-slate-700">{lang === 'my' ? 'ကျသင့်ငွေ စုစုပေါင်း' : 'Total Amount'}:</span>
+                              <span className="font-mono font-bold text-sm text-blue-700">
+                                {order.totalAmount.toLocaleString()} MMK
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Payment Verification / Slip Box (5 cols) */}
+                        <div className="lg:col-span-5 flex flex-col justify-between space-y-3 bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5 text-blue-600" />
+                                <span>{lang === 'my' ? 'ငွေလွှဲပြေစာ အချက်အလက်' : 'Payment Slip Details'}</span>
+                              </span>
+                              {order.paymentSlipUploadedAt && (
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {new Date(order.paymentSlipUploadedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Slip Image Thumbnail */}
+                            {order.paymentSlipUrl ? (
+                              <div className="space-y-2">
+                                <div className="relative group w-full h-44 bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center">
+                                  <img
+                                    src={order.paymentSlipUrl.startsWith('/api/public/orders/') ? (order.paymentSlipUrl.includes('token=') ? order.paymentSlipUrl : `${order.paymentSlipUrl}${order.paymentSlipUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(localStorage.getItem('myanmar_seller_token') || '')}`) : order.paymentSlipUrl}
+                                    alt="Payment Slip"
+                                    className="w-full h-full object-contain cursor-pointer"
+                                    onClick={() => {
+                                      const fullUrl = order.paymentSlipUrl!.startsWith('/api/public/orders/')
+                                        ? (order.paymentSlipUrl!.includes('token=') ? order.paymentSlipUrl! : `${order.paymentSlipUrl!}${order.paymentSlipUrl!.includes('?') ? '&' : '?'}token=${encodeURIComponent(localStorage.getItem('myanmar_seller_token') || '')}`)
+                                        : order.paymentSlipUrl!;
+                                      setPreviewSlipUrl(fullUrl);
+                                    }}
+                                  />
+                                  <div
+                                    onClick={() => {
+                                      const fullUrl = order.paymentSlipUrl!.startsWith('/api/public/orders/')
+                                        ? (order.paymentSlipUrl!.includes('token=') ? order.paymentSlipUrl! : `${order.paymentSlipUrl!}${order.paymentSlipUrl!.includes('?') ? '&' : '?'}token=${encodeURIComponent(localStorage.getItem('myanmar_seller_token') || '')}`)
+                                        : order.paymentSlipUrl!;
+                                      setPreviewSlipUrl(fullUrl);
+                                    }}
+                                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-1.5 cursor-pointer font-semibold text-xs"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                    <span>{lang === 'my' ? 'စလစ် အကြီးကြည့်မည်' : 'Enlarge Slip'}</span>
+                                  </div>
+                                </div>
+
+                                {order.transactionRef && (
+                                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 flex items-center justify-between text-[11px]">
+                                    <span className="text-slate-500">KBZPay Ref / Trx ID:</span>
+                                    <span className="font-mono font-bold text-slate-800">{order.transactionRef}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="h-32 bg-slate-50 border border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                                <ImageIcon className="w-6 h-6 mb-1 text-slate-300" />
+                                <span className="text-[11px]">
+                                  {lang === 'my' ? 'ဖောက်သည်ထံမှ စလစ်မတင်ရသေးပါ' : 'Customer has not submitted a payment slip yet.'}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Rejection Alert Box */}
+                            {isRejected && order.rejectionReason && (
+                              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 space-y-1 text-rose-900">
+                                <div className="flex items-center gap-1 font-bold text-[11px] text-rose-800">
+                                  <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                                  <span>{lang === 'my' ? 'ငြင်းပယ်ရသည့် အကြောင်းပြချက်' : 'Rejection Reason'}:</span>
+                                </div>
+                                <p className="text-[11px] font-medium leading-relaxed">"{order.rejectionReason}"</p>
+                                {order.rejectedAt && (
+                                  <span className="text-[10px] text-rose-600 font-mono block">
+                                    {new Date(order.rejectedAt).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Verification Actions */}
+                          <div className="pt-3 border-t border-slate-100 flex items-center gap-2 justify-end">
+                            {!isConfirmed ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setRejectModalOrder(order);
+                                    setRejectionReasonText('');
+                                    setRejectionError(null);
+                                  }}
+                                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                  <span>{lang === 'my' ? 'စလစ် ငြင်းပယ်မည်' : 'Reject Slip'}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  disabled={confirmingId === order.id}
+                                  onClick={() => handleConfirmOrderPayment(order.id)}
+                                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50 shadow-xs flex items-center gap-1.5"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>{confirmingId === order.id ? (lang === 'my' ? 'အတည်ပြုနေသည်...' : 'Confirming...') : (lang === 'my' ? 'ငွေလက်ခံ အတည်ပြုမည်' : 'Approve Payment')}</span>
+                                </button>
+                              </>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                <span>{lang === 'my' ? 'စစ်ဆေးအတည်ပြုပြီး' : 'Verified & Approved'}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </section>
       )}
 
@@ -1217,6 +1945,131 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection Modal with Mandatory Reason & Template Chips */}
+      {rejectModalOrder && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 space-y-4 text-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
+                <AlertCircle className="w-5 h-5" />
+                <span>{lang === 'my' ? 'ငွေလွှဲစလစ် ငြင်းပယ်ရန်' : 'Reject Payment Slip'}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRejectModalOrder(null)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
+              <div className="flex justify-between text-slate-600">
+                <span>{lang === 'my' ? 'အော်ဒါ အမှတ်' : 'Order'}:</span>
+                <span className="font-mono font-bold text-slate-800">#{rejectModalOrder.id.slice(0, 8)}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>{lang === 'my' ? 'ဖောက်သည်' : 'Customer'}:</span>
+                <span className="font-semibold text-slate-800">{rejectModalOrder.customerName} ({rejectModalOrder.customerPhone})</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>{lang === 'my' ? 'ကျသင့်ငွေ' : 'Amount'}:</span>
+                <span className="font-mono font-bold text-blue-700">{rejectModalOrder.totalAmount.toLocaleString()} MMK</span>
+              </div>
+            </div>
+
+            {rejectionError && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-xs font-medium">
+                {rejectionError}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="block text-slate-700 font-bold">
+                {lang === 'my' ? 'ငြင်းပယ်ရသည့် အကြောင်းပြချက် (မဖြစ်မနေ ဖြည့်ပါ) *' : 'Rejection Reason (Required) *'}
+              </label>
+
+              {/* Quick Template Chips */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {[
+                  lang === 'my' ? 'ငွေလက်ခံ မရရှိသေးပါ' : 'Payment not received in account',
+                  lang === 'my' ? 'ပြေစာ ပုံရိပ် မရှင်းလင်းပါ/မပြည့်စုံပါ' : 'Slip image is blurry or cropped',
+                  lang === 'my' ? 'လွှဲငွေ ပမာဏ မကိုက်ညီပါ' : 'Amount does not match total',
+                  lang === 'my' ? 'အခြားအော်ဒါ၏ စလစ်ဟောင်းဖြစ်နေပါ' : 'Duplicate or old slip detected'
+                ].map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => setRejectionReasonText(chip)}
+                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-medium transition-colors cursor-pointer border border-slate-200"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                rows={3}
+                required
+                placeholder={lang === 'my' ? 'ဖောက်သည် သိရှိစေရန် အကြောင်းပြချက်ကို ရှင်းလင်းစွာ ရေးသားပါ...' : 'Explain clearly why the slip was rejected...'}
+                value={rejectionReasonText}
+                onChange={(e) => setRejectionReasonText(e.target.value)}
+                className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-slate-900 focus:border-rose-500 focus:outline-none"
+              />
+              <span className="text-[11px] text-slate-500 block">
+                {lang === 'my' ? 'ဤအကြောင်းပြချက်ကို ဖောက်သည်၏ စစ်ဆေးမှု စာမျက်နှာတွင် ဖော်ပြပေးမည်ဖြစ်ပြီး စလစ်အသစ် ပြန်တင်ခွင့်ရပါမည်။' : 'Customer will see this reason on their order tracking page and can resubmit a valid slip.'}
+              </span>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setRejectModalOrder(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl cursor-pointer"
+              >
+                {lang === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                disabled={!rejectionReasonText.trim() || submittingRejection}
+                onClick={handleConfirmRejectOrder}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl cursor-pointer disabled:opacity-50 shadow-xs flex items-center gap-1.5"
+              >
+                <X className="w-4 h-4" />
+                <span>{submittingRejection ? (lang === 'my' ? 'ငြင်းပယ်နေသည်...' : 'Rejecting...') : (lang === 'my' ? 'အတည်ပြု ငြင်းပယ်မည်' : 'Confirm Rejection')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slip / Image Zoom Preview Modal */}
+      {previewSlipUrl && (
+        <div
+          onClick={() => setPreviewSlipUrl(null)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 cursor-zoom-out"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-2xl max-h-[90vh] bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl flex flex-col items-center p-2"
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewSlipUrl(null)}
+              className="absolute top-3 right-3 p-2 bg-black/60 hover:bg-black/90 text-white rounded-full cursor-pointer z-10 transition-colors"
+              title="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={previewSlipUrl}
+              alt="Enlarged Preview"
+              className="max-w-full max-h-[82vh] object-contain rounded-xl"
+            />
           </div>
         </div>
       )}

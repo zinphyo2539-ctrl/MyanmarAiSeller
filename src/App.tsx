@@ -571,6 +571,19 @@ export default function App() {
     await fetchAllData();
   };
 
+  const handleRejectPayment = async (orderId: string, reason: string) => {
+    const res = await fetch(`/api/orders/${orderId}/reject-payment`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ reason })
+    });
+    if (!res.ok) {
+      const d = await res.json();
+      throw new Error(d.error || 'Failed to reject payment');
+    }
+    await fetchAllData();
+  };
+
   const handleSendConversationReply = async (convId: string, text: string) => {
     const conv = conversations.find(c => c.id === convId);
     if (!conv) return;
@@ -1064,6 +1077,7 @@ export default function App() {
             lang={lang}
             onUpdateStore={handleUpdateStore}
             onConfirmPayment={handleConfirmPayment}
+            onRejectPayment={handleRejectPayment}
             onOpenConfig={(provider) => {
               setConfigTargetProvider(provider);
               setIsConfigModalOpen(true);

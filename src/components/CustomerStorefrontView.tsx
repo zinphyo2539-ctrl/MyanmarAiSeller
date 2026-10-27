@@ -21,7 +21,14 @@ import {
   Tag,
   Search,
   ExternalLink,
-  Lock
+  Lock,
+  Upload,
+  QrCode,
+  Eye,
+  Check,
+  Image as ImageIcon,
+  FileText,
+  Clock
 } from 'lucide-react';
 import { OrderSupportModal } from './OrderSupportModal';
 import { Product, ProductVariant, StoreSettings } from '../types';
@@ -81,6 +88,20 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   const [createdOrder, setCreatedOrder] = useState<any>(null);
   const [copiedOrderId, setCopiedOrderId] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+
+  // Payment Slip Upload & Status State
+  const [slipFile, setSlipFile] = useState<File | null>(null);
+  const [slipPreviewUrl, setSlipPreviewUrl] = useState<string | null>(null);
+  const [transactionRefInput, setTransactionRefInput] = useState('');
+  const [uploadingSlip, setUploadingSlip] = useState(false);
+  const [slipUploadError, setSlipUploadError] = useState<string | null>(null);
+  const [slipUploadSuccess, setSlipUploadSuccess] = useState(false);
+  const [currentPaymentStatus, setCurrentPaymentStatus] = useState<string>('PENDING');
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [copiedAccountName, setCopiedAccountName] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
+  const [previewQrModalUrl, setPreviewQrModalUrl] = useState<string | null>(null);
 
   // Load public store data from authoritative API
   const fetchStoreData = useCallback(async () => {
@@ -251,6 +272,13 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
       }
 
       setCreatedOrder(data.order);
+      setCurrentPaymentStatus(data.order?.paymentStatus || 'PENDING');
+      setRejectionReason(data.order?.rejectionReason || null);
+      setSlipFile(null);
+      setSlipPreviewUrl(null);
+      setTransactionRefInput('');
+      setSlipUploadSuccess(false);
+      setSlipUploadError(null);
       setCheckoutStep('success');
       setCart([]);
       // Refresh catalog to reflect updated stock authoritatively
@@ -266,6 +294,159 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
     navigator.clipboard.writeText(id);
     setCopiedOrderId(true);
     setTimeout(() => setCopiedOrderId(false), 2000);
+  };
+
+  const handleCopyText = (text: string, type: 'name' | 'phone') => {
+    navigator.clipboard.writeText(text);
+    if (type === 'name') {
+      setCopiedAccountName(true);
+      setTimeout(() => setCopiedAccountName(false), 2000);
+    } else {
+      setCopiedPhone(true);
+      setTimeout(() => setCopiedPhone(false), 2000);
+    }
+  };
+
+  const handleSelectSlipFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setSlipUploadError(lang === 'my' ? 'JPG, PNG သို့မဟုတ် WebP ပုံရိပ်များသာ လက်ခံပါသည်' : 'Only JPEG, PNG, or WebP images are allowed.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setSlipUploadError(lang === 'my' ? 'ဖိုင်ဆိုဒ် 5MB ထက် မကျော်ရပါ' : 'File size must not exceed 5MB.');
+      return;
+    }
+    setSlipFile(file);
+    setSlipUploadError(null);
+    const objectUrl = URL.createObjectURL(file);
+    setSlipPreviewUrl(objectUrl);
+  };
+
+  const handleUploadPaymentSlip = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createdOrder?.id || !slipFile || uploadingSlip) return;
+
+    setUploadingSlip(true);
+    setSlipUploadError(null);
+    setSlipUploadSuccess(false);
+
+    try {
+      const formData = new FormData();
+      formData.append('slipImage', slipFile);
+      if (createdOrder.supportCode) {
+        formData.append('supportCode', createdOrder.supportCode);
+      }
+      if (transactionRefInput.trim()) {
+        formData.append('transactionRef', transactionRefInput.trim());
+      }
+
+      let res: Response;
+      try {
+        res = await fetch(`/api/public/orders/${encodeURIComponent(createdOrder.id)}/payment-slip`, {
+          method: 'POST',
+          body: formData
+        });
+      } catch (fetchErr: any) {
+        // Network connection error (e.g. offline, connection dropped, or Myanmar ISP blocking Render without VPN)
+        const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+        const netMsg = isOffline
+          ? (lang === 'my'
+              ? 'အင်တာနက်ချိတ်ဆက်မှု မရှိပါ (Offline)။ ကျေးဇူးပြု၍ အင်တာနက်လိုင်း စစ်ဆေးပေးပါ။'
+              : 'You are currently offline. Please check your internet connection.')
+          : (lang === 'my'
+              ? 'ဆာဗာနှင့် ကွန်ရက်ချိတ်ဆက်မှု မအောင်မြင်ပါ (Network connection failed)။ KPay ငွေလွှဲပြီးပါက ပြေစာတင်ရန် VPN ပြန်လည်ဖွင့်ပေးပါ သို့မဟုတ် အင်တာနက်လိုင်း စစ်ဆေးပေးပါ။'
+              : 'Network connection failed. If you turned off VPN for KBZPay, please re-enable VPN or check your connection to submit the slip.');
+        throw new Error(netMsg);
+      }
+
+      // Safe Content-Type inspection to prevent "Unexpected token '<', <!doctype" syntax crash
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = null;
+
+      if (contentType.includes('application/json')) {
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+      } else {
+        // Non-JSON response (e.g. 502 Bad Gateway or 504 Gateway Timeout HTML page from upstream proxy)
+        const textSnippet = await res.text().catch(() => '');
+        console.warn('[PaymentSlip] Non-JSON response received from server/proxy:', res.status, textSnippet.slice(0, 100));
+      }
+
+      if (!res.ok) {
+        if (data && data.error) {
+          throw new Error(data.error);
+        }
+        if (res.status === 502 || res.status === 503 || res.status === 504) {
+          throw new Error(
+            lang === 'my'
+              ? `ဆာဗာလိုင်း မအားလပ်သေးပါ သို့မဟုတ် ပြန်လည်စတင်နေပါသည် (HTTP ${res.status})။ ခေတ္တစောင့်ပြီး ထပ်မံကြိုးစားပါ။`
+              : `The server is temporarily unavailable or restarting (HTTP ${res.status}). Please wait a moment and try again.`
+          );
+        }
+        if (res.status === 413) {
+          throw new Error(
+            lang === 'my'
+              ? 'ဖိုင်အရွယ်အစား ကြီးလွန်းပါသည်။ 5MB အောက် ပုံကိုသာ ရွေးချယ်ပေးပါ။'
+              : 'File size too large. Please select an image under 5 MiB.'
+          );
+        }
+        throw new Error(
+          lang === 'my'
+            ? `ငွေလွှဲပြေစာ တင်သွင်းမှု မအောင်မြင်ပါ (HTTP ${res.status})။`
+            : `Failed to upload payment slip (HTTP ${res.status}).`
+        );
+      }
+
+      if (!data) {
+        throw new Error(
+          lang === 'my'
+            ? 'ဆာဗာမှ တုံ့ပြန်မှု မမှန်ကန်ပါ။ ခေတ္တစောင့်ပြီး ထပ်မံကြိုးစားပါ။'
+            : 'Invalid server response. Please try again.'
+        );
+      }
+
+      setSlipUploadSuccess(true);
+      setCurrentPaymentStatus(data.paymentStatus || 'SLIP_SUBMITTED');
+      setRejectionReason(null);
+      if (data.order) {
+        setCreatedOrder(data.order);
+      }
+    } catch (err: any) {
+      setSlipUploadError(err.message || 'Payment slip submission failed');
+    } finally {
+      setUploadingSlip(false);
+    }
+  };
+
+  const handleRefreshPaymentStatus = async () => {
+    if (!createdOrder?.id || checkingStatus) return;
+    setCheckingStatus(true);
+    try {
+      const url = createdOrder.supportCode
+        ? `/api/public/orders/${encodeURIComponent(createdOrder.id)}/payment-status?code=${encodeURIComponent(createdOrder.supportCode)}&supportCode=${encodeURIComponent(createdOrder.supportCode)}`
+        : `/api/public/orders/${encodeURIComponent(createdOrder.id)}/payment-status`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          setCurrentPaymentStatus(data.paymentStatus);
+          setRejectionReason(data.rejectionReason || null);
+          if (data.order) {
+            setCreatedOrder(data.order);
+          }
+        }
+      }
+    } catch {
+      // Ignore network hiccup
+    } finally {
+      setCheckingStatus(false);
+    }
   };
 
   // Filter Products
@@ -916,15 +1097,63 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                   </div>
                 </div>
 
-                {/* Merchant Payment Instructions Preview */}
-                <div className="p-3 bg-[#11110D] rounded-xl border border-[#393426] text-[11px] space-y-1">
-                  <span className="text-[#C9A227] font-bold block">
-                    {lang === 'my' ? 'စတိုး၏ ငွေပေးချေမှု လမ်းညွှန်' : 'Payment Instructions'}:
-                  </span>
-                  <p className="text-[#B9B5A7] leading-relaxed">
-                    {store?.paymentInstructions || 'KBZPay: 09-xxx-xxxx / Wave: 09-xxx-xxxx'}
-                  </p>
-                </div>
+                {/* Merchant Verified KPay Payment Instructions Preview */}
+                {paymentMethod === 'KBZPay' ? (
+                  store?.paymentSettings?.kpayAccountName || store?.paymentSettings?.kpayPhone ? (
+                    <div className="p-3.5 bg-[#181810] rounded-xl border border-[#C9A227]/40 text-[11px] space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#C9A227] font-bold flex items-center gap-1.5">
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>{lang === 'my' ? 'KBZPay ဖြင့် ငွေပေးချေရန် လမ်းညွှန်' : 'KBZPay Payment Details'}</span>
+                        </span>
+                        <span className="text-[10px] text-[#65B985] bg-[#65B985]/15 border border-[#65B985]/30 px-2 py-0.5 rounded-full font-bold">
+                          {lang === 'my' ? 'ဆိုင်ရှင် အတည်ပြုပြီး' : 'Verified'}
+                        </span>
+                      </div>
+
+                      <div className="bg-[#11110D] p-2.5 rounded-lg border border-[#393426] space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-[#817D70]">{lang === 'my' ? 'အကောင့်အမည်' : 'Account Name'}:</span>
+                          <span className="font-bold text-[#F5F2E8]">{store.paymentSettings.kpayAccountName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#817D70]">{lang === 'my' ? 'ဖုန်းနံပါတ်' : 'Phone Number'}:</span>
+                          <span className="font-mono font-bold text-[#C9A227]">{store.paymentSettings.kpayPhone}</span>
+                        </div>
+                      </div>
+
+                      {store.paymentSettings.paymentRules && (
+                        <div className="text-[10px] text-[#B9B5A7] whitespace-pre-line leading-relaxed bg-[#11110D]/50 p-2 rounded border border-[#393426]/50">
+                          <span className="text-[#E0BD55] font-semibold block mb-0.5">
+                            {lang === 'my' ? 'ငွေလွှဲစည်းမျဉ်းများ' : 'Transfer Rules'}:
+                          </span>
+                          {store.paymentSettings.paymentRules}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-amber-950/20 border border-amber-800/40 rounded-xl text-[11px] text-amber-300 space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{lang === 'my' ? 'ဆိုင်ရှင် KPay အချက်အလက် မသတ်မှတ်ရသေးပါ' : 'KPay details pending merchant setup'}</span>
+                      </div>
+                      <p className="text-[#817D70]">
+                        {lang === 'my'
+                          ? 'ဤစတိုးသည် KPay ဆက်တင် မထည့်သွင်းရသေးပါ။ အော်ဒါတင်ပြီးနောက် ဆိုင်ရှင်ထံ ဆက်သွယ်၍ အတည်ပြုပေးပါရန်။'
+                          : 'Merchant has not completed KPay configuration. Please confirm with merchant after order placement.'}
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  <div className="p-3 bg-[#11110D] rounded-xl border border-[#393426] text-[11px] space-y-1">
+                    <span className="text-[#C9A227] font-bold block">
+                      {lang === 'my' ? 'စတိုး၏ ငွေပေးချေမှု လမ်းညွှန်' : 'Payment Instructions'}:
+                    </span>
+                    <p className="text-[#B9B5A7] leading-relaxed">
+                      {store?.paymentInstructions || (paymentMethod === 'COD' ? (lang === 'my' ? 'ပစ္စည်းရောက်မှ ငွေချေပေးပါ' : 'Pay in cash upon delivery') : 'Transfer payment to merchant account.')}
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-[#B9B5A7] font-semibold mb-1">
@@ -973,22 +1202,26 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
               </form>
             )}
 
-            {/* Step 3: Success Screen */}
+            {/* Step 3: Success Screen with KPay Transfer Info & Payment Slip Upload */}
             {checkoutStep === 'success' && (
-              <div className="text-center py-6 space-y-4 text-xs">
-                <div className="w-16 h-16 bg-[#65B985]/15 border border-[#65B985]/40 rounded-full flex items-center justify-center mx-auto text-[#65B985]">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <div>
-                  <h4 className="text-base font-bold text-[#F5F2E8]">
-                    {lang === 'my' ? 'အော်ဒါ တင်သွင်းမှု အောင်မြင်ပါသည်!' : 'Order Placed Successfully!'}
-                  </h4>
-                  <p className="text-xs text-[#817D70] mt-1">
-                    {lang === 'my' ? 'ကုန်သည်ထံသို့ အော်ဒါအချက်အလက်များ တိုက်ရိုက်ရောက်ရှိသွားပါပြီ' : 'Your order has been recorded directly in the merchant workspace.'}
-                  </p>
+              <div className="text-center py-4 space-y-5 text-xs">
+                {/* Success Banner */}
+                <div className="space-y-2">
+                  <div className="w-14 h-14 bg-[#65B985]/15 border border-[#65B985]/40 rounded-full flex items-center justify-center mx-auto text-[#65B985]">
+                    <CheckCircle2 className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-[#F5F2E8]">
+                      {lang === 'my' ? 'အော်ဒါ တင်သွင်းမှု အောင်မြင်ပါသည်!' : 'Order Placed Successfully!'}
+                    </h4>
+                    <p className="text-xs text-[#817D70]">
+                      {lang === 'my' ? 'ကုန်သည်ထံသို့ အော်ဒါအချက်အလက်များ တိုက်ရိုက်ရောက်ရှိသွားပါပြီ' : 'Your order has been recorded directly in the merchant workspace.'}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="bg-[#11110D] border border-[#393426] p-4 rounded-2xl text-left space-y-2">
+                {/* Order Summary & Support Code */}
+                <div className="bg-[#11110D] border border-[#393426] p-4 rounded-2xl text-left space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[#817D70] font-semibold">{lang === 'my' ? 'အော်ဒါ နံပါတ်' : 'Order ID'}:</span>
                     <div className="flex items-center gap-1.5 font-mono font-bold text-[#C9A227]">
@@ -996,13 +1229,14 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handleCopyOrderId(createdOrder?.id)}
-                        className="p-1 hover:bg-[#1E1D14] rounded text-[#817D70] hover:text-[#F5F2E8]"
+                        className="p-1 hover:bg-[#1E1D14] rounded text-[#817D70] hover:text-[#F5F2E8] cursor-pointer"
                         title={lang === 'my' ? 'ကူးယူရန်' : 'Copy'}
                       >
                         <Copy className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
+
                   {createdOrder?.supportCode && (
                     <div className="flex items-center justify-between pt-2 border-t border-[#393426]/50">
                       <span className="text-[#817D70] font-semibold">{lang === 'my' ? 'Support Code' : 'Support Code'}:</span>
@@ -1011,7 +1245,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                         <button
                           type="button"
                           onClick={() => handleCopyOrderId(createdOrder.supportCode)}
-                          className="p-1 hover:bg-[#1E1D14] rounded text-[#817D70] hover:text-[#F5F2E8]"
+                          className="p-1 hover:bg-[#1E1D14] rounded text-[#817D70] hover:text-[#F5F2E8] cursor-pointer"
                           title={lang === 'my' ? 'ကူးယူရန်' : 'Copy'}
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -1019,15 +1253,16 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                       </div>
                     </div>
                   )}
+
                   {copiedOrderId && (
-                    <span className="text-[10px] text-[#65B985] block text-right">
+                    <span className="text-[10px] text-[#65B985] block text-right font-medium">
                       {lang === 'my' ? 'ကူးယူပြီးပါပြီ' : 'Copied to clipboard!'}
                     </span>
                   )}
 
-                  <div className="flex items-center justify-between pt-1 border-t border-[#393426]/50">
-                    <span className="text-[#817D70]">{lang === 'my' ? 'စုစုပေါင်း' : 'Total Amount'}:</span>
-                    <span className="font-mono font-bold text-[#F5F2E8]">
+                  <div className="flex items-center justify-between pt-2 border-t border-[#393426]/50">
+                    <span className="text-[#817D70]">{lang === 'my' ? 'ကျသင့်ငွေ စုစုပေါင်း' : 'Total Amount'}:</span>
+                    <span className="font-mono font-bold text-sm text-[#F5F2E8]">
                       {createdOrder?.totalAmount?.toLocaleString()} MMK
                     </span>
                   </div>
@@ -1038,33 +1273,310 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                   </div>
                 </div>
 
-                <div className="p-3.5 bg-[#C9A227]/10 border border-[#C9A227]/30 rounded-xl text-[11px] text-[#C9A227] leading-relaxed">
-                  {lang === 'my'
-                    ? `ကျေးဇူးပြု၍ ရွေးချယ်ထားသော ${createdOrder?.paymentMethod} ဖြင့် ငွေလွှဲပေးပြီး Order ID "${createdOrder?.id}" အား ငွေလွှဲပြေစာတွင် ထည့်သွင်းပေးပါရန်။`
-                    : `Please transfer the total amount via ${createdOrder?.paymentMethod} and include your Order ID "${createdOrder?.id}" in the reference/remark.`}
-                </div>
+                {/* KBZPay Payment Info & Transfer Box */}
+                {createdOrder?.paymentMethod !== 'COD' && (
+                  <div className="space-y-4 text-left">
+                    {/* Merchant KPay Details */}
+                    {store?.paymentSettings?.kpayAccountName || store?.paymentSettings?.kpayPhone ? (
+                      <div className="bg-[#181810] border border-[#C9A227]/40 rounded-2xl p-4 space-y-3.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#C9A227] flex items-center gap-1.5">
+                            <CreditCard className="w-4 h-4" />
+                            <span>{lang === 'my' ? 'KBZPay ဖြင့် ငွေလွှဲပေးချေရန် အချက်အလက်' : 'KBZPay Transfer Information'}</span>
+                          </span>
+                          <span className="text-[10px] bg-[#65B985]/15 border border-[#65B985]/30 text-[#65B985] px-2 py-0.5 rounded-full font-bold">
+                            Official Merchant
+                          </span>
+                        </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCartOpen(false);
-                    setCheckoutStep('cart');
-                  }}
-                  className="w-full py-3 px-4 bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] font-bold rounded-xl cursor-pointer shadow-md"
-                >
-                  {lang === 'my' ? 'ဈေးဝယ်မှု ဆက်လက်ပြုလုပ်မည်' : 'Continue Shopping'}
-                </button>
+                        {/* QR Code if present */}
+                        {store.paymentSettings.kpayQrUrl && (
+                          <div className="flex flex-col items-center justify-center p-3 bg-[#11110D] border border-[#393426] rounded-xl space-y-2">
+                            <div className="relative group w-40 h-40 bg-white p-2 rounded-xl flex items-center justify-center shadow-md">
+                              <img
+                                src={store.paymentSettings.kpayQrUrl}
+                                alt="Merchant KBZPay QR"
+                                className="w-full h-full object-contain rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setPreviewQrModalUrl(store.paymentSettings!.kpayQrUrl!)}
+                                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center text-white cursor-pointer"
+                                title="Enlarge QR"
+                              >
+                                <Eye className="w-5 h-5" />
+                              </button>
+                            </div>
+                            <span className="text-[10px] text-[#817D70]">
+                              {lang === 'my' ? 'KBZPay App ဖြင့် Scan ဖတ်၍ တိုက်ရိုက် ငွေလွှဲနိုင်ပါသည်' : 'Scan with KBZPay app to transfer directly'}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Account Name & Phone */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                          <div className="bg-[#11110D] border border-[#393426] rounded-xl p-3 flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] text-[#817D70] block">{lang === 'my' ? 'အကောင့်ပိုင်ရှင် အမည်' : 'Account Name'}</span>
+                              <span className="font-bold text-[#F5F2E8]">{store.paymentSettings.kpayAccountName}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyText(store.paymentSettings!.kpayAccountName, 'name')}
+                              className="p-1.5 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] rounded-lg text-[#B9B5A7] hover:text-[#F5F2E8] cursor-pointer"
+                              title="Copy Name"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="bg-[#11110D] border border-[#393426] rounded-xl p-3 flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] text-[#817D70] block">{lang === 'my' ? 'KPay ဖုန်းနံပါတ်' : 'Phone Number'}</span>
+                              <span className="font-mono font-bold text-[#C9A227]">{store.paymentSettings.kpayPhone}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyText(store.paymentSettings!.kpayPhone, 'phone')}
+                              className="p-1.5 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] rounded-lg text-[#B9B5A7] hover:text-[#F5F2E8] cursor-pointer"
+                              title="Copy Phone"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {copiedAccountName && (
+                          <p className="text-[10px] text-[#65B985] font-semibold text-right">အကောင့်အမည် ကူးယူပြီးပါပြီ</p>
+                        )}
+                        {copiedPhone && (
+                          <p className="text-[10px] text-[#65B985] font-semibold text-right">ဖုန်းနံပါတ် ကူးယူပြီးပါပြီ</p>
+                        )}
+
+                        {/* Rules */}
+                        {store.paymentSettings.paymentRules && (
+                          <div className="bg-amber-950/20 border border-amber-800/40 rounded-xl p-3 text-[11px] text-amber-200 space-y-1">
+                            <span className="font-bold flex items-center gap-1 text-amber-300">
+                              <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                              <span>{lang === 'my' ? 'ငွေလွှဲစည်းမျဉ်းများနှင့် သတိပြုရန်များ' : 'Important Transfer Rules'}</span>
+                            </span>
+                            <div className="whitespace-pre-line leading-relaxed text-[#B9B5A7] text-[11px]">
+                              {store.paymentSettings.paymentRules}
+                            </div>
+                          </div>
+                        )}
+
+                        {store.paymentSettings.customInstructions && (
+                          <p className="text-[11px] text-[#817D70] italic">
+                            "{store.paymentSettings.customInstructions}"
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-amber-950/20 border border-amber-800/40 rounded-2xl text-xs text-amber-300 space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <AlertCircle className="w-4 h-4 text-amber-400" />
+                          <span>{lang === 'my' ? 'ဆိုင်ရှင် KPay အချက်အလက် မသတ်မှတ်ရသေးပါ' : 'KPay setup not yet completed by merchant'}</span>
+                        </div>
+                        <p className="text-[#817D70]">
+                          {lang === 'my'
+                            ? 'ဤဆိုင်သည် တရားဝင် KPay အချက်အလက်များ မသတ်မှတ်ရသေးပါ။ မလွှဲမီ ဆိုင်ရှင်ထံ ဆက်သွယ်အတည်ပြုပါရန်။'
+                            : 'This store has not verified its KPay transfer details. Please contact the merchant directly before sending money.'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Payment Slip Submission Box */}
+                    <div className="bg-[#181810] border border-[#393426] rounded-2xl p-4 space-y-3.5">
+                      <div className="flex items-center justify-between border-b border-[#393426] pb-2.5">
+                        <span className="text-xs font-bold text-[#F5F2E8] flex items-center gap-1.5">
+                          <Upload className="w-4 h-4 text-[#C9A227]" />
+                          <span>{lang === 'my' ? 'ငွေလွှဲပြေစာ (Payment Slip) တင်သွင်းရန်' : 'Submit Payment Slip'}</span>
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={handleRefreshPaymentStatus}
+                          disabled={checkingStatus}
+                          className="text-[10px] text-[#C9A227] hover:text-[#E0BD55] flex items-center gap-1 cursor-pointer font-semibold"
+                          title="Refresh status"
+                        >
+                          <RefreshCw className={`w-3 h-3 ${checkingStatus ? 'animate-spin' : ''}`} />
+                          <span>{lang === 'my' ? 'စစ်ဆေးမည်' : 'Check Status'}</span>
+                        </button>
+                      </div>
+
+                      {/* Current Status Display */}
+                      {currentPaymentStatus === 'CONFIRMED' ? (
+                        <div className="p-4 bg-emerald-950/30 border border-emerald-800/50 rounded-xl text-center space-y-1">
+                          <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+                          <h5 className="font-bold text-emerald-300 text-sm">
+                            {lang === 'my' ? 'ငွေပေးချေမှု အတည်ပြုပြီးပါပြီ!' : 'Payment Confirmed!'}
+                          </h5>
+                          <p className="text-[11px] text-emerald-200/80">
+                            {lang === 'my' ? 'ဆိုင်ရှင်မှ ငွေလက်ခံရရှိမှုကို စစ်ဆေးအတည်ပြုပြီးပါပြီ။' : 'Merchant has verified and approved your payment.'}
+                          </p>
+                        </div>
+                      ) : currentPaymentStatus === 'SLIP_SUBMITTED' ? (
+                        <div className="p-4 bg-blue-950/30 border border-blue-800/50 rounded-xl space-y-2">
+                          <div className="flex items-center gap-2 text-blue-300 font-bold text-xs">
+                            <Clock className="w-4 h-4 text-blue-400" />
+                            <span>{lang === 'my' ? 'ငွေလွှဲပြေစာ တင်သွင်းထားပြီးပါပြီ (စစ်ဆေးဆဲ)' : 'Slip Submitted (Pending Review)'}</span>
+                          </div>
+                          <p className="text-[11px] text-blue-200/80">
+                            {lang === 'my'
+                              ? 'ဆိုင်ရှင်မှ ငွေဝင်ရောက်မှုကို စစ်ဆေးနေပါပြီ။ စစ်ဆေးအတည်ပြုပြီးပါက အော်ဒါ စတင်ပို့ဆောင်ပါမည်။'
+                              : 'The merchant is verifying your transaction. You will be updated once confirmed.'}
+                          </p>
+                          <div className="pt-1 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => setCurrentPaymentStatus('PENDING')}
+                              className="text-[11px] text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                            >
+                              {lang === 'my' ? 'ပြေစာ အသစ် ထပ်မံတင်မည်' : 'Upload replacement slip'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleUploadPaymentSlip} className="space-y-3">
+                          {/* Rejection Alert if previously rejected */}
+                          {currentPaymentStatus === 'REJECTED' && (
+                            <div className="p-3 bg-rose-950/30 border border-rose-800/60 rounded-xl space-y-1 text-rose-200">
+                              <div className="flex items-center gap-1.5 font-bold text-rose-300 text-xs">
+                                <AlertCircle className="w-4 h-4 text-rose-400" />
+                                <span>{lang === 'my' ? 'ငွေလွှဲပြေစာ ငြင်းပယ်ခံရသည်' : 'Payment Slip Rejected'}</span>
+                              </div>
+                              <p className="text-[11px] leading-relaxed">
+                                <span className="font-semibold text-rose-300">{lang === 'my' ? 'အကြောင်းပြချက်' : 'Reason'}: </span>
+                                "{rejectionReason || createdOrder?.rejectionReason || 'Please upload a valid and clear transfer slip.'}"
+                              </p>
+                              <span className="text-[10px] text-rose-400 block pt-0.5">
+                                {lang === 'my' ? 'ကျေးဇူးပြု၍ ပြေစာအသစ် သို့မဟုတ် မှန်ကန်သော ပြေစာကို အောက်တွင် ပြန်လည်တင်သွင်းပေးပါ။' : 'Please upload a clear, valid slip below to resubmit.'}
+                              </span>
+                            </div>
+                          )}
+
+                          {slipUploadError && (
+                            <div className="p-2.5 bg-rose-950/20 border border-rose-800/40 rounded-xl text-rose-300 text-xs flex items-center gap-1.5">
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                              <span>{slipUploadError}</span>
+                            </div>
+                          )}
+
+                          {/* File Input & Preview */}
+                          <div className="space-y-2">
+                            <label className="block text-[#B9B5A7] font-semibold">
+                              {lang === 'my' ? 'ငွေလွှဲပြေစာ Screenshot/ပုံ ရွေးချယ်ပါ *' : 'Payment Slip Screenshot *'}
+                            </label>
+
+                            <div className="flex items-center gap-3">
+                              {slipPreviewUrl ? (
+                                <div className="relative group w-20 h-20 bg-neutral-900 border border-[#393426] rounded-xl overflow-hidden shrink-0">
+                                  <img src={slipPreviewUrl} alt="Slip Preview" className="w-full h-full object-cover" />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSlipFile(null);
+                                      setSlipPreviewUrl(null);
+                                    }}
+                                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-rose-400 cursor-pointer"
+                                    title="Remove file"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="w-20 h-20 bg-[#11110D] border-2 border-dashed border-[#393426] rounded-xl flex flex-col items-center justify-center text-[#817D70] shrink-0">
+                                  <ImageIcon className="w-6 h-6" />
+                                </div>
+                              )}
+
+                              <div className="flex-1 space-y-1">
+                                <label className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-[#F5F2E8] rounded-xl cursor-pointer font-semibold text-xs transition-colors">
+                                  <Upload className="w-3.5 h-3.5 text-[#C9A227]" />
+                                  <span>{slipFile ? (lang === 'my' ? 'ပုံအသစ်ရွေးရန်' : 'Change Image') : (lang === 'my' ? 'ဖိုင်ရွေးမည် (JPG/PNG)' : 'Choose File')}</span>
+                                  <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    onChange={handleSelectSlipFile}
+                                    className="hidden"
+                                    disabled={uploadingSlip}
+                                  />
+                                </label>
+                                <p className="text-[10px] text-[#817D70]">
+                                  {slipFile ? slipFile.name : (lang === 'my' ? 'အများဆုံး 5MB (JPG, PNG, WebP)' : 'Max 5MB (JPG, PNG, WebP)')}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Transaction Ref No */}
+                          <div>
+                            <label className="block text-[#B9B5A7] font-semibold mb-1">
+                              {lang === 'my' ? 'KBZPay Transaction ID / Ref No (ရွေးချယ်နိုင်သည်)' : 'Transaction ID / Ref No (Optional)'}
+                            </label>
+                            <input
+                              type="text"
+                              value={transactionRefInput}
+                              onChange={(e) => setTransactionRefInput(e.target.value)}
+                              placeholder="e.g. 024419284192..."
+                              className="w-full bg-[#11110D] border border-[#393426] rounded-xl px-3 py-2 text-[#F5F2E8] font-mono focus:border-[#C9A227] focus:outline-none"
+                            />
+                          </div>
+
+                          {/* Submit Slip Button */}
+                          <button
+                            type="submit"
+                            disabled={!slipFile || uploadingSlip}
+                            className="w-full py-2.5 px-4 bg-[#C9A227] hover:bg-[#A88419] disabled:opacity-50 text-[#0B0B09] font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md transition-colors"
+                          >
+                            {uploadingSlip ? (
+                              <>
+                                <RefreshCw className="w-4 h-4 animate-spin" />
+                                <span>{lang === 'my' ? 'စလစ် တင်သွင်းနေပါသည်...' : 'Uploading Slip...'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4" />
+                                <span>{lang === 'my' ? 'စလစ် ပေးပို့စစ်ဆေးမည်' : 'Submit Slip for Verification'}</span>
+                              </>
+                            )}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Support and Continue Actions */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsSupportOpen(true)}
+                    className="flex-1 py-3 px-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-[#C9A227] hover:text-[#F5F2E8] font-bold rounded-xl cursor-pointer transition-colors"
+                  >
+                    {lang === 'my' ? 'အော်ဒါ အကူအညီ ရယူရန် (Support)' : 'Contact Order Support'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      setCheckoutStep('cart');
+                    }}
+                    className="flex-1 py-3 px-4 bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] font-bold rounded-xl cursor-pointer shadow-md transition-colors"
+                  >
+                    {lang === 'my' ? 'ဈေးဝယ်မှု ဆက်လက်ပြုလုပ်မည်' : 'Continue Shopping'}
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
 
-import { OrderSupportModal } from './OrderSupportModal';
-...
-  const [isPublicStoreOpen, setIsPublicStoreOpen] = useState(false);
-  const [isSupportOpen, setIsSupportOpen] = useState(false);
-...
+
+
       {/* Discreet Public Storefront Footer */}
       <footer className="mt-12 py-8 border-t border-[#393426] text-center text-xs text-[#817D70] space-y-2">
         <p>
@@ -1088,6 +1600,37 @@ import { OrderSupportModal } from './OrderSupportModal';
           </button>
         </div>
       </footer>
+
+      {previewQrModalUrl && (
+        <div
+          onClick={() => setPreviewQrModalUrl(null)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 cursor-zoom-out"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-sm w-full bg-white rounded-2xl p-4 shadow-2xl flex flex-col items-center space-y-3"
+          >
+            <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2">
+              <span className="font-bold text-slate-800 text-xs">KBZPay QR Code</span>
+              <button
+                type="button"
+                onClick={() => setPreviewQrModalUrl(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <img
+              src={previewQrModalUrl}
+              alt="KBZPay QR"
+              className="w-64 h-64 object-contain rounded-xl"
+            />
+            <p className="text-[11px] text-slate-500 text-center">
+              {lang === 'my' ? 'KBZPay App ဖွင့်ပြီး ဤ QR ကုဒ်ကို Scan ဖတ်ပါ' : 'Open KBZPay app and scan this QR code'}
+            </p>
+          </div>
+        </div>
+      )}
 
       <OrderSupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} lang={lang} />
     </div>

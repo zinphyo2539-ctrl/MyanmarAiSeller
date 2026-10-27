@@ -69,6 +69,7 @@ export interface MerchantRecord {
     coverUrl?: string;
     deliveryInfo?: string;
     paymentInstructions?: string;
+    paymentSettings?: any;
     isPublished?: boolean;
     updatedAt?: string;
   };
