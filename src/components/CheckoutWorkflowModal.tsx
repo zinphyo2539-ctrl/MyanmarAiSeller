@@ -27,10 +27,45 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({ is
   const [transactionRef, setTransactionRef] = useState('');
   const [uploadingSlip, setUploadingSlip] = useState(false);
   const [slipSuccess, setSlipSuccess] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   if (!isOpen) return null;
 
   const totalCartAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  // Persistent Order Summary UI
+  const persistentSummary = (
+    <div className="p-3 sm:p-4 space-y-3">
+        <div className="flex items-center justify-between">
+            <h4 className="text-[10px] uppercase font-bold text-[#817D70] tracking-wider">
+                {lang === 'my' ? 'အော်ဒါ အနှစ်ချုပ်' : 'Order Summary'}
+            </h4>
+            <div className="text-xs font-bold text-[#C9A227] font-mono">
+                {totalCartAmount.toLocaleString()} MMK
+            </div>
+        </div>
+        
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {cart.map((item, idx) => (
+                <div key={idx} className="flex-shrink-0 flex items-center gap-2 bg-[#1E1D14] p-1.5 rounded-lg border border-[#393426]">
+                    {item.imageUrl && (
+                        <img src={item.imageUrl} alt={item.name} className="w-8 h-8 rounded object-cover border border-[#393426]" />
+                    )}
+                    <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-[#F5F2E8] truncate max-w-[80px]">{item.name}</p>
+                        <p className="text-[9px] text-[#817D70]">x{item.qty} · {item.variantName}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+  );
 
   // 1. Order Creation Logic (Transition from Step 3)
   const handleCreateOrder = async () => {
@@ -124,26 +159,24 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({ is
           lang={lang}
           onClose={onClose}
           onFinish={onClose}
+          persistentContent={persistentSummary}
           steps={[
             {
               title: lang === 'my' ? 'ခြင်းတောင်းစစ်ဆေးရန်' : 'Review Cart',
               instruction: lang === 'my' ? 'ဝယ်ယူမည့် ပစ္စည်းများကို စစ်ဆေးပါ။' : 'Confirm your items and quantities.',
               content: (
-                <div className="space-y-4">
-                    <div className="divide-y divide-[#393426]">
-                        {cart.map((item, idx) => (
-                            <div key={idx} className="py-3 flex justify-between items-center text-xs">
-                                <div>
-                                    <p className="font-bold text-[#F5F2E8]">{item.name}</p>
-                                    <p className="text-[#817D70]">{item.variantName} x{item.qty}</p>
-                                </div>
-                                <p className="font-mono text-[#C9A227]">{(item.price * item.qty).toLocaleString()} MMK</p>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="bg-[#11110D] p-4 rounded-xl border border-[#393426] flex justify-between items-center font-bold">
-                        <span className="text-[#B9B5A7]">{lang === 'my' ? 'စုစုပေါင်း' : 'Subtotal'}</span>
-                        <span className="text-lg text-[#C9A227] font-mono">{totalCartAmount.toLocaleString()} MMK</span>
+                <div className="space-y-4 py-4">
+                    <p className="text-xs text-[#B9B5A7]">
+                        {lang === 'my' ? 'ခြင်းတောင်းထဲရှိ ပစ္စည်းများနှင့် ကျသင့်ငွေကို အပေါ်တွင် စစ်ဆေးနိုင်ပါသည်။' : 'You can review your items and total amount in the summary above.'}
+                    </p>
+                    <div className="bg-[#C9A227]/5 border border-[#C9A227]/20 p-4 rounded-xl">
+                        <div className="flex items-center gap-2 text-[#C9A227] mb-2">
+                            <Clock className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase tracking-wider">{lang === 'my' ? 'မှာယူမှု အချိန်' : 'Order Timing'}</span>
+                        </div>
+                        <p className="text-[11px] text-[#B9B5A7] leading-relaxed">
+                            {lang === 'my' ? 'ကုန်ပစ္စည်းများကို ချက်ချင်းဖယ်ထားပေးမည် မဟုတ်ပါ။ အော်ဒါတင်ပြီး ငွေလွှဲပြေစာ တင်ပြီးမှသာ ပစ္စည်းသီးသန့်ဖယ်ထားပေးမည် ဖြစ်ပါသည်။' : 'Items are not reserved until you complete the checkout and upload your payment slip.'}
+                        </p>
                     </div>
                 </div>
               )
@@ -201,10 +234,6 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({ is
                             {lang === 'my' ? 'မှတ်ချက် - ငွေလွှဲပြီးပါက နောက်တစ်ဆင့်တွင် ပြေစာ (Slip) တင်ပေးရန် လိုအပ်ပါသည်။' : 'Note: You will need to upload the transfer slip in the next step.'}
                         </div>
                     </div>
-                    
-                    <div className="text-center font-bold text-[#C9A227] text-lg py-2">
-                        {totalCartAmount.toLocaleString()} MMK
-                    </div>
                 </div>
               )
             },
@@ -248,35 +277,67 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({ is
               title: lang === 'my' ? 'ပြီးမြောက်ခြင်း' : 'Order Confirmed',
               instruction: lang === 'my' ? 'အော်ဒါကို ဆိုင်ရှင်မှ စစ်ဆေးနေပါသည်။' : 'Your order is pending merchant approval.',
               content: (
-                <div className="text-center py-10 space-y-6">
+                <div className="text-center py-6 sm:py-10 space-y-6">
                     <div className="w-20 h-20 bg-[#65B985]/10 border-2 border-[#65B985]/30 rounded-full flex items-center justify-center mx-auto text-[#65B985]">
                         <CheckCircle2 className="w-10 h-10" />
                     </div>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-2 px-4">
                         <h4 className="text-xl font-extrabold text-[#F5F2E8]">Order Received!</h4>
                         <p className="text-sm text-[#817D70]">
                             {lang === 'my' ? 'ဆိုင်ရှင်မှ ငွေဝင်ရောက်မှုကို စစ်ဆေးပြီးပါက အော်ဒါအတည်ပြုပေးပါမည်။' : 'Merchant will confirm your payment shortly.'}
                         </p>
                     </div>
 
-                    <div className="bg-[#11110D] border border-[#393426] rounded-2xl p-5 text-left divide-y divide-[#393426]">
-                        <div className="py-3 flex justify-between">
+                    <div className="bg-[#11110D] border border-[#393426] rounded-2xl p-5 text-left divide-y divide-[#393426] mx-4">
+                        <div className="py-3 flex justify-between items-center">
                             <span className="text-xs text-[#817D70]">Status</span>
-                            <span className="text-xs font-bold text-[#E0BD55]">PENDING VERIFICATION</span>
+                            <span className="text-[10px] font-bold text-[#E0BD55] bg-[#E0BD55]/10 px-2 py-0.5 rounded border border-[#E0BD55]/20">PENDING VERIFICATION</span>
                         </div>
-                        <div className="py-3 flex justify-between">
-                            <span className="text-xs text-[#817D70]">Order Ref</span>
+                        <div className="py-3 flex justify-between items-center">
+                            <span className="text-xs text-[#817D70]">Order ID</span>
                             <span className="text-xs font-bold font-mono text-[#C9A227]">{createdOrder?.id}</span>
                         </div>
+                        {createdOrder?.supportCode && (
+                            <div className="py-4 space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs text-[#817D70]">{lang === 'my' ? 'အော်ဒါ စစ်ဆေးရေး ကုဒ်' : 'Customer Support Code'}</span>
+                                    <button 
+                                        onClick={() => handleCopyCode(createdOrder.supportCode!)}
+                                        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors ${copiedCode ? 'bg-[#65B985]/20 text-[#65B985]' : 'bg-[#1E1D14] text-[#C9A227] hover:bg-[#252419]'}`}
+                                    >
+                                        <Copy className="w-3 h-3" />
+                                        <span className="text-[10px] font-bold">{copiedCode ? (lang === 'my' ? 'ကူးယူပြီး' : 'Copied') : (lang === 'my' ? 'ကုဒ်ကူးမည်' : 'Copy Code')}</span>
+                                    </button>
+                                </div>
+                                <div className="p-3 bg-[#181810] border border-[#393426] rounded-xl font-mono text-center text-sm font-bold text-[#C9A227] tracking-widest select-all">
+                                    {createdOrder.supportCode}
+                                </div>
+                                <p className="text-[10px] text-[#817D70] leading-relaxed">
+                                    {lang === 'my' ? '* ဤကုဒ်ကို သိမ်းဆည်းထားပါ။ အော်ဒါအခြေအနေကို စစ်ဆေးရန်နှင့် အကူအညီတောင်းခံရန် ဤကုဒ်လိုအပ်ပါသည်။' : '* Save this code. You will need it to track your order status and request support.'}
+                                </p>
+                            </div>
+                        )}
                     </div>
 
-                    <button 
-                        onClick={onNavigateToSupport}
-                        className="w-full py-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] rounded-2xl text-[#C9A227] font-bold text-sm transition-all"
-                    >
-                        {lang === 'my' ? 'အော်ဒါ အကူအညီ ရယူရန်' : 'Contact Order Support'}
-                    </button>
+                    <div className="px-4 space-y-3">
+                        <div className="p-3 bg-red-950/10 border border-red-900/30 rounded-xl text-left">
+                            <div className="flex items-start gap-2 text-red-400">
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                <p className="text-[10px] leading-relaxed">
+                                    {lang === 'my' ? 'သတိပေးချက် - ငွေလွှဲပြေစာ တင်ပြထားခြင်းသည် ငွေလက်ခံအတည်ပြုပြီးကြောင်း မဆိုလိုပါ။ ဆိုင်ရှင်မှ ငွေဝင်ရောက်မှုကို စစ်ဆေးအတည်ပြုပြီးမှသာ အော်ဒါသည် အောင်မြင်မည်ဖြစ်ပါသည်။' : 'Warning: Uploading a payment slip does not mean the merchant has approved payment. The order will be confirmed only after manual verification.'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={onNavigateToSupport}
+                            className="w-full py-4 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] rounded-2xl text-[#C9A227] font-bold text-sm transition-all flex items-center justify-center gap-2"
+                        >
+                            <RefreshCw className="w-4 h-4" />
+                            <span>{lang === 'my' ? 'အော်ဒါ အခြေအနေ စစ်ဆေးမည်' : 'Track Order Status'}</span>
+                        </button>
+                    </div>
                 </div>
               )
             }

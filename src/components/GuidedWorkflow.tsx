@@ -14,9 +14,10 @@ interface GuidedWorkflowProps {
   onFinish: () => void;
   onClose: () => void;
   lang: 'my' | 'en';
+  persistentContent?: React.ReactNode;
 }
 
-export const GuidedWorkflow: React.FC<GuidedWorkflowProps> = ({ steps, onFinish, onClose, lang }) => {
+export const GuidedWorkflow: React.FC<GuidedWorkflowProps> = ({ steps, onFinish, onClose, lang, persistentContent }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
   const step = steps[currentStep];
@@ -70,6 +71,13 @@ export const GuidedWorkflow: React.FC<GuidedWorkflowProps> = ({ steps, onFinish,
       <div className="px-4 py-3 bg-[#1E1D14] border-b border-[#393426]">
         <p className="text-xs text-[#E0BD55] font-medium">{step.instruction}</p>
       </div>
+
+      {/* Persistent Summary Slot */}
+      {persistentContent && (
+        <div className="bg-[#11110D] border-b border-[#393426] max-h-[30vh] overflow-y-auto">
+          {persistentContent}
+        </div>
+      )}
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4">

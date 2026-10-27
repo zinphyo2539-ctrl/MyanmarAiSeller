@@ -61,6 +61,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [hasCreatedOrder, setHasCreatedOrder] = useState(false);
 
   // Load public store data from authoritative API
   const fetchStoreData = useCallback(async () => {
@@ -193,6 +194,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   const totalCartAmount = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   const onOrderCreated = (order: any) => {
+    setHasCreatedOrder(true);
     // Refresh catalog to reflect updated stock authoritatively
     fetchStoreData();
   };
@@ -214,7 +216,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   });
 
   // Render: Loading State
-  if (loading) {
+  if (loading && !store) {
     return (
       <div data-theme="storefront" className="min-h-screen bg-[var(--bg-app)] text-[var(--text-main)] flex flex-col items-center justify-center p-6 space-y-4 font-sans">
         <RefreshCw className="w-8 h-8 text-[#C9A227] animate-spin" />
@@ -650,7 +652,13 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
 
       <CheckoutWorkflowModal
         isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
+        onClose={() => {
+          setIsCartOpen(false);
+          if (hasCreatedOrder) {
+            setCart([]);
+            setHasCreatedOrder(false);
+          }
+        }}
         store={store}
         products={products}
         lang={lang}
