@@ -3740,9 +3740,22 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.resolve(__dirname, 'dist')));
-    app.get('*', (req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+    const distDir = path.resolve(__dirname, 'dist');
+    app.use(express.static(distDir));
+    app.get('*', (req, res, next) => {
+      const indexPath = path.join(distDir, 'index.html');
+      if (!fs.existsSync(indexPath)) {
+        console.error('[Server] Production build artifact missing at:', indexPath);
+        return res.status(503).json({ error: 'Frontend build artifact missing. Please run build.', code: 'BUILD_MISSING' });
+      }
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          console.error('[Server] Error serving index.html via sendFile:', err);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Internal server error while serving page', code: 'SERVE_ERROR' });
+          }
+        }
+      });
     });
   }
 

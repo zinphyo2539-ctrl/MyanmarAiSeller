@@ -446,43 +446,48 @@ export function withDbTransaction<T>(mutator: (db: DbState) => T | Promise<T>): 
         // 2. Asynchronously sync updated entities to Cloud Firestore
         const db = getFirestoreInstance();
         if (db) {
-          try {
-            // Sync all users
-            for (const [id, user] of Object.entries(inMemoryDb.users)) {
-              await setDoc(doc(db, 'users', id), user, { merge: true });
+          // Trigger sync in background without awaiting it to unblock mutation queue
+          (async () => {
+            try {
+                // Sync all users
+                for (const [id, user] of Object.entries(inMemoryDb.users)) {
+                  await setDoc(doc(db, 'users', id), user, { merge: true });
+                }
+                // Sync all merchants
+                for (const [id, merchant] of Object.entries(inMemoryDb.merchants)) {
+                  await setDoc(doc(db, 'merchants', id), merchant, { merge: true });
+                }
+                // Sync products
+                for (const prod of inMemoryDb.products) {
+                  await setDoc(doc(db, 'products', prod.id), prod, { merge: true });
+                }
+                // Sync orders
+                for (const order of inMemoryDb.orders) {
+                  await setDoc(doc(db, 'orders', order.id), order, { merge: true });
+                }
+                // Sync sample replies
+                for (const reply of inMemoryDb.sampleReplies) {
+                  await setDoc(doc(db, 'sampleReplies', reply.id), reply, { merge: true });
+                }
+                // Sync accounting entries
+                if (inMemoryDb.accountingEntries) {
+                  for (const entry of inMemoryDb.accountingEntries) {
+                    await setDoc(doc(db, 'accountingEntries', entry.id), entry, { merge: true });
+                  }
+                }
+                // Sync AI studio generations
+                if (inMemoryDb.aiStudioGenerations) {
+                  for (const gen of inMemoryDb.aiStudioGenerations) {
+                    await setDoc(doc(db, 'aiStudioGenerations', gen.id), gen, { merge: true });
+                  }
+                }
+            } catch (syncErr) {
+                console.error('[DbPersistence] Background Firestore sync warning:', syncErr);
             }
-            // Sync all merchants
-            for (const [id, merchant] of Object.entries(inMemoryDb.merchants)) {
-              await setDoc(doc(db, 'merchants', id), merchant, { merge: true });
-            }
-            // Sync products
-            for (const prod of inMemoryDb.products) {
-              await setDoc(doc(db, 'products', prod.id), prod, { merge: true });
-            }
-            // Sync orders
-            for (const order of inMemoryDb.orders) {
-              await setDoc(doc(db, 'orders', order.id), order, { merge: true });
-            }
-            // Sync sample replies
-            for (const reply of inMemoryDb.sampleReplies) {
-              await setDoc(doc(db, 'sampleReplies', reply.id), reply, { merge: true });
-            }
-            // Sync accounting entries
-            if (inMemoryDb.accountingEntries) {
-              for (const entry of inMemoryDb.accountingEntries) {
-                await setDoc(doc(db, 'accountingEntries', entry.id), entry, { merge: true });
-              }
-            }
-            // Sync AI studio generations
-            if (inMemoryDb.aiStudioGenerations) {
-              for (const gen of inMemoryDb.aiStudioGenerations) {
-                await setDoc(doc(db, 'aiStudioGenerations', gen.id), gen, { merge: true });
-              }
-            }
-          } catch (syncErr) {
-            console.error('[DbPersistence] Background Firestore sync warning:', syncErr);
-          }
+          })();
         }
+
+
 
         resolve(result);
         return result;
