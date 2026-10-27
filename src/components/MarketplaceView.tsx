@@ -13,9 +13,13 @@ import {
   RefreshCw,
   AlertCircle,
   Tag,
-  LogIn
+  LogIn,
+  MessageSquare,
+  X
 } from 'lucide-react';
 import { MarketplaceStore, Product } from '../types';
+import { CustomerCodeLookup } from './CustomerCodeLookup';
+import { OrderSupportModal } from './OrderSupportModal';
 
 interface MarketplaceViewProps {
   onSelectStore: (slug: string, productId?: string) => void;
@@ -37,6 +41,8 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [initialSupportCode, setInitialSupportCode] = useState<string | undefined>(undefined);
 
   // Fetch marketplace data from authoritative public API
   const fetchMarketplace = useCallback(async () => {
@@ -173,6 +179,16 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
           </div>
         </div>
       </header>
+
+      {/* Marketplace Lookup Section */}
+      <CustomerCodeLookup 
+        lang={lang} 
+        onCheckStatus={(code) => {
+          setInitialSupportCode(code);
+          setIsSupportOpen(true);
+        }}
+        onContactSupport={() => setIsSupportOpen(true)}
+      />
 
       {/* Hero & Search Banner */}
       <section className="bg-gradient-to-b from-white to-[#F8FAFC] border-b border-[#CBD5E1] px-4 py-8">
@@ -579,6 +595,16 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
           Powered by <span className="text-[#1E40AF] font-semibold">Myanmar AI Seller</span>
         </p>
       </footer>
+
+      <OrderSupportModal 
+        isOpen={isSupportOpen} 
+        onClose={() => {
+          setIsSupportOpen(false);
+          setInitialSupportCode(undefined);
+        }} 
+        lang={lang}
+        initialCode={initialSupportCode}
+      />
     </div>
   );
 };

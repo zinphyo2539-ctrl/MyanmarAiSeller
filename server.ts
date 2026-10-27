@@ -1272,7 +1272,7 @@ app.post('/api/public/support/verify', async (req: any, res: any) => {
 
     const db = readDb();
     const hashedCode = crypto.createHash('sha256').update(code.trim()).digest('hex');
-    const order = db.orders.find((o: any) => o.supportCodeHash === hashedCode && o.customerPhone === phone.trim());
+    const order = db.orders.find((o: any) => o.supportCodeHash === hashedCode && (!phone || o.customerPhone === phone.trim()));
 
     if (!order) {
       return res.status(401).json({ error: 'Invalid support code or phone number' });

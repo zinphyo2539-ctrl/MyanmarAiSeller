@@ -48,6 +48,8 @@ import { MarketplaceView } from './components/MarketplaceView';
 import { OnboardingView } from './components/OnboardingView';
 import { AccountingView } from './components/AccountingView';
 import { AiStudioView } from './components/AiStudioView';
+import { CustomerCodeLookup } from './components/CustomerCodeLookup';
+import { OrderSupportModal } from './components/OrderSupportModal';
 
 export default function App() {
   const [lang, setLang] = useState<'my' | 'en'>('my');
@@ -95,6 +97,8 @@ export default function App() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configTargetProvider, setConfigTargetProvider] = useState<'google' | 'facebook' | 'tiktok'>('google');
   const [isPublicStoreOpen, setIsPublicStoreOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [initialSupportCode, setInitialSupportCode] = useState<string | undefined>(undefined);
 
   // Dedicated Public Storefront & Marketplace Routing Detection
   const [publicStoreSlug, setPublicStoreSlug] = useState<string | null>(() => {
@@ -153,7 +157,7 @@ export default function App() {
         const hash = window.location.hash;
 
         setIsLoginView(path === '/login');
-        setIsMarketplace(path === '/' || path.startsWith('/marketplace') || search.includes('page=marketplace') || hash.includes('marketplace'));
+        setIsMarketplace((path === '/' && !isAuthenticated) || path.startsWith('/marketplace') || search.includes('page=marketplace') || hash.includes('marketplace'));
 
         const pathMatch = path.match(/^\/store\/([a-zA-Z0-9_-]+)/);
         if (pathMatch) {
@@ -972,6 +976,16 @@ export default function App() {
         </div>
       </header>
 
+      {/* Global Customer Code Lookup Section */}
+      <CustomerCodeLookup 
+        lang={lang} 
+        onCheckStatus={(code) => {
+          setInitialSupportCode(code);
+          setIsSupportOpen(true);
+        }}
+        onContactSupport={() => setIsSupportOpen(true)}
+      />
+
       {/* Main Content View Container (Padding bottom ensures persistent bottom nav never hides content) */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         {dataError && (
@@ -1131,6 +1145,16 @@ export default function App() {
         products={products}
         lang={lang}
         onOrderCreated={fetchAllData}
+      />
+
+      <OrderSupportModal 
+        isOpen={isSupportOpen} 
+        onClose={() => {
+          setIsSupportOpen(false);
+          setInitialSupportCode(undefined);
+        }} 
+        lang={lang}
+        initialCode={initialSupportCode}
       />
     </div>
   );

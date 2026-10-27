@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { OrderSupportModal } from './OrderSupportModal';
 import { CheckoutWorkflowModal } from './CheckoutWorkflowModal';
+import { CustomerCodeLookup } from './CustomerCodeLookup';
 import { Product, ProductVariant, StoreSettings } from '../types';
 
 interface CustomerStorefrontViewProps {
@@ -61,6 +62,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [initialSupportCode, setInitialSupportCode] = useState<string | undefined>(undefined);
   const [hasCreatedOrder, setHasCreatedOrder] = useState(false);
 
   // Load public store data from authoritative API
@@ -392,6 +394,16 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
         </div>
       </header>
 
+      {/* Public Store Lookup Section */}
+      <CustomerCodeLookup 
+        lang={lang} 
+        onCheckStatus={(code) => {
+          setInitialSupportCode(code);
+          setIsSupportOpen(true);
+        }}
+        onContactSupport={() => setIsSupportOpen(true)}
+      />
+
       {/* Hero Announcement & Store Badges */}
       <section className="bg-gradient-to-b from-[#181810] to-[#0B0B09] border-b border-[#393426] px-4 py-5">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
@@ -695,7 +707,15 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
 
 
 
-      <OrderSupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} lang={lang} />
+      <OrderSupportModal 
+        isOpen={isSupportOpen} 
+        onClose={() => {
+          setIsSupportOpen(false);
+          setInitialSupportCode(undefined);
+        }} 
+        lang={lang} 
+        initialCode={initialSupportCode}
+      />
     </div>
   );
 };
