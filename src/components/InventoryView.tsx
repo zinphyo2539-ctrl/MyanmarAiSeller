@@ -25,14 +25,14 @@ const ProductThumbnail: React.FC<{ imageUrl?: string | null; name: string }> = (
 
   if (!imageUrl || hasError) {
     return (
-      <div className="w-12 h-12 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex items-center justify-center shrink-0">
-        <Package className="w-6 h-6 text-[#2563EB]" />
+      <div className="w-12 h-12 rounded-xl bg-slate-900/80 border border-white/10 flex items-center justify-center shrink-0 text-purple-400 shadow-inner">
+        <Package className="w-6 h-6 stroke-[1.75]" />
       </div>
     );
   }
 
   return (
-    <div className="w-12 h-12 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex items-center justify-center shrink-0 overflow-hidden">
+    <div className="w-12 h-12 rounded-xl bg-slate-950/80 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
       <img
         src={imageUrl}
         alt={name}
@@ -345,14 +345,17 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     <div className="space-y-6">
       {/* Overview Metrics Cards */}
       <section aria-label="Inventory Metrics Overview">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            {lang === 'my' ? 'ကုန်ပစ္စည်းနှင့် စတော့ အကျဉ်းချုပ်' : 'Inventory & Stock Overview'}
-          </h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              {lang === 'my' ? 'ကုန်ပစ္စည်းနှင့် စတော့ အကျဉ်းချုပ်' : 'Inventory & Stock Overview'}
+            </h2>
+          </div>
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40"
           >
             <Plus className="w-4 h-4" />
             <span>{lang === 'my' ? 'ပစ္စည်းအသစ်ထည့်မည်' : 'Add Product'}</span>
@@ -360,11 +363,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-            <span className="text-xs font-medium text-slate-500">
+          {/* Card 1 */}
+          <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 p-5 rounded-2xl hover:border-purple-500/40 transition-all group">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="text-xs font-medium text-slate-400">
               {lang === 'my' ? 'ရောင်းချနေသော ပစ္စည်း' : 'Active Products'}
             </span>
-            <div className="text-xl sm:text-2xl font-extrabold font-mono tabular-nums text-slate-900 mt-2">
+            <div className="text-xl sm:text-2xl font-black font-mono tabular-nums text-slate-100 mt-2">
               {products.length}
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
@@ -372,11 +377,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             </span>
           </div>
 
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-            <span className="text-xs font-medium text-slate-500">
+          {/* Card 2 */}
+          <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 p-5 rounded-2xl hover:border-indigo-500/40 transition-all group">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="text-xs font-medium text-slate-400">
               {lang === 'my' ? 'စုစုပေါင်း စတော့ယူနစ်' : 'Total Stock Units'}
             </span>
-            <div className="text-xl sm:text-2xl font-extrabold font-mono tabular-nums text-slate-900 mt-2">
+            <div className="text-xl sm:text-2xl font-black font-mono tabular-nums text-slate-100 mt-2">
               {totalStockUnits.toLocaleString()}
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
@@ -384,11 +391,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             </span>
           </div>
 
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-            <span className="text-xs font-medium text-slate-500">
+          {/* Card 3 */}
+          <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 p-5 rounded-2xl hover:border-rose-500/40 transition-all group">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-rose-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="text-xs font-medium text-slate-400">
               {lang === 'my' ? 'လက်ကျန်ပြတ်လပ်မှု' : 'Out of Stock'}
             </span>
-            <div className="text-xl sm:text-2xl font-extrabold font-mono tabular-nums text-red-600 mt-2">
+            <div className="text-xl sm:text-2xl font-black font-mono tabular-nums text-rose-400 mt-2">
               {outOfStockCount}
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
@@ -396,11 +405,13 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             </span>
           </div>
 
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-            <span className="text-xs font-medium text-slate-500">
+          {/* Card 4 */}
+          <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 p-5 rounded-2xl hover:border-amber-500/40 transition-all group">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="text-xs font-medium text-slate-400">
               {lang === 'my' ? 'လက်ကျန်နည်းပါးမှု (<=3)' : 'Low Stock (<=3)'}
             </span>
-            <div className="text-xl sm:text-2xl font-extrabold font-mono tabular-nums text-amber-600 mt-2">
+            <div className="text-xl sm:text-2xl font-black font-mono tabular-nums text-amber-400 mt-2">
               {lowStockCount}
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
@@ -419,16 +430,18 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={lang === 'my' ? 'အမည်၊ SKU သို့မဟုတ် အရောင်/အရွယ်အစားဖြင့် ရှာဖွေပါ...' : 'Search by name, SKU, or variant...'}
-            className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm"
+            className="w-full bg-slate-950/60 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-white border border-slate-200 p-1 rounded-xl overflow-x-auto shadow-sm">
+        <div className="flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl overflow-x-auto border border-white/10 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setStockFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
-              stockFilter === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-all ${
+              stockFilter === 'all'
+                ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {lang === 'my' ? 'အားလုံး' : 'All'}
@@ -436,8 +449,10 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
           <button
             type="button"
             onClick={() => setStockFilter('in_stock')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
-              stockFilter === 'in_stock' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-all ${
+              stockFilter === 'in_stock'
+                ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {lang === 'my' ? 'လက်ကျန်ရှိ' : 'In Stock'}
@@ -445,8 +460,10 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
           <button
             type="button"
             onClick={() => setStockFilter('low_stock')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
-              stockFilter === 'low_stock' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-all ${
+              stockFilter === 'low_stock'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {lang === 'my' ? 'လက်ကျန်နည်း' : 'Low Stock'}
@@ -454,8 +471,10 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
           <button
             type="button"
             onClick={() => setStockFilter('out_of_stock')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
-              stockFilter === 'out_of_stock' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer transition-all ${
+              stockFilter === 'out_of_stock'
+                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {lang === 'my' ? 'လက်ကျန်ပြတ်' : 'Out of Stock'}
@@ -466,14 +485,14 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       {/* Product List Cards */}
       <section aria-label="Product Catalog List">
         {filteredProducts.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-3 shadow-sm">
-            <Package className="w-12 h-12 text-slate-300 mx-auto" />
-            <h3 className="text-base font-semibold text-slate-900">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-center space-y-3 shadow-inner">
+            <Package className="w-12 h-12 text-slate-600 mx-auto" />
+            <h3 className="text-base font-bold text-slate-100">
               {products.length === 0
                 ? (lang === 'my' ? 'ကုန်ပစ္စည်း မထည့်သွင်းရသေးပါ' : 'No products in catalog yet')
                 : (lang === 'my' ? 'ကိုက်ညီသော ကုန်ပစ္စည်း မတွေ့ပါ' : 'No products match your search/filter')}
             </h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
               {products.length === 0
                 ? (lang === 'my' ? 'အထက်ပါ "ပစ္စည်းအသစ်ထည့်မည်" ခလုတ်ကို နှိပ်၍ စတိုး၏ ပထမဆုံး ကုန်ပစ္စည်းကို စတင်ထည့်သွင်းပါ' : 'Click "Add Product" above to create your first store product.')
                 : (lang === 'my' ? 'ရှာဖွေမှုစကားလုံး သို့မဟုတ် filter ကို ပြန်လည်စစ်ဆေးပါ' : 'Try adjusting your search terms or filters.')}
@@ -482,25 +501,22 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredProducts.map((product) => {
-              const totalStock = (product.variants || []).reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
-              const isOut = totalStock === 0 || (product.variants || []).some(v => Number(v.stock) === 0);
-
               return (
                 <div
                   key={product.id}
-                  className="bg-white border border-slate-200 hover:border-blue-300 rounded-2xl p-5 flex flex-col justify-between transition-all space-y-3 shadow-sm"
+                  className="bg-white/[0.03] backdrop-blur-xl border border-white/10 hover:border-purple-500/40 rounded-2xl p-5 flex flex-col justify-between transition-all space-y-3 shadow-lg hover:shadow-purple-500/10 group"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 min-w-0">
                       <ProductThumbnail imageUrl={product.imageUrl} name={product.name} />
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 leading-snug">
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-slate-100 leading-snug truncate group-hover:text-purple-300 transition-colors">
                           {product.name}
                         </h3>
-                        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-1">
+                        <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mt-1">
                           <span>SKU: {product.sku}</span>
                           <span>·</span>
-                          <span className="text-slate-900 font-bold">
+                          <span className="text-purple-300 font-bold">
                             {product.price.toLocaleString()} MMK
                           </span>
                         </div>
@@ -511,7 +527,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(product)}
-                        className="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-slate-600 hover:text-blue-600 transition-colors cursor-pointer"
+                        className="p-2 bg-slate-900/80 hover:bg-purple-600/20 border border-white/10 text-slate-300 hover:text-purple-300 rounded-xl transition-colors cursor-pointer"
                         title={lang === 'my' ? 'ပြင်ဆင်ရန်' : 'Edit'}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -520,7 +536,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                         type="button"
                         disabled={deletingId === product.id}
                         onClick={() => handleDelete(product.id)}
-                        className="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-slate-400 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50"
+                        className="p-2 bg-slate-900/80 hover:bg-rose-600/20 border border-white/10 text-slate-400 hover:text-rose-400 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                         title={lang === 'my' ? 'ဖျက်မည်' : 'Delete'}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -529,37 +545,41 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                   </div>
 
                   {product.description && (
-                    <p className="text-xs text-slate-600 line-clamp-2">
+                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
                       {product.description}
                     </p>
                   )}
 
                   {product.discount && (
-                    <div className="flex items-center gap-1.5 text-xs text-amber-700 font-medium">
+                    <div className="flex items-center gap-1.5 text-xs text-amber-300 font-medium">
                       <Tag className="w-3.5 h-3.5" />
                       <span>{product.discount}</span>
                     </div>
                   )}
 
                   {/* Variants and Stock Breakdown */}
-                  <div className="pt-2.5 border-t border-slate-100">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+                  <div className="pt-2.5 border-t border-white/10">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
                       {lang === 'my' ? 'အရွယ်အစားနှင့် စတော့ လက်ကျန်' : 'Variants & Stock'}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {(product.variants || []).map((v) => {
-                        const isZero = Number(v.stock) === 0;
-                        const isLow = Number(v.stock) > 0 && Number(v.stock) <= 3;
+                        const stockNum = Number(v.stock) || 0;
+                        const isZero = stockNum === 0;
+                        const isLow = stockNum > 0 && stockNum <= 3;
+                        const isGood = stockNum > 5;
 
                         return (
                           <div
                             key={v.id}
                             className={`px-2.5 py-1 rounded-lg text-xs font-mono tabular-nums border ${
                               isZero
-                                ? 'bg-red-50 border-red-200 text-red-700 font-semibold'
+                                ? 'bg-rose-500/15 border-rose-500/30 text-rose-300 font-semibold'
                                 : isLow
-                                ? 'bg-amber-50 border-amber-200 text-amber-700 font-semibold'
-                                : 'bg-slate-50 border-slate-200 text-slate-700'
+                                ? 'bg-amber-500/15 border-amber-500/30 text-amber-300 font-semibold'
+                                : isGood
+                                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-semibold'
+                                : 'bg-slate-900/80 border-white/10 text-slate-300 font-medium'
                             }`}
                           >
                             <span>{v.color}/{v.size}: </span>

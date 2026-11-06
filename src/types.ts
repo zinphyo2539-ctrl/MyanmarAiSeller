@@ -217,7 +217,7 @@ export interface AiHealth {
   lastCheck: string;
 }
 
-export type NavigationDestination = 'home' | 'messages' | 'inventory' | 'accounting' | 'aistudio' | 'ai' | 'profile' | 'lab';
+export type NavigationDestination = 'home' | 'messages' | 'inventory' | 'accounting' | 'aistudio' | 'ai' | 'profile' | 'lab' | 'avatar_studio';
 
 export interface TestLabMessage {
   id: string;

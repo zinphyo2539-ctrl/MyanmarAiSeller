@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   CheckCircle2,
   Lock,
-  FlaskConical
+  FlaskConical,
+  Sparkles
 } from 'lucide-react';
 
 import {
@@ -48,6 +49,7 @@ import { MarketplaceView } from './components/MarketplaceView';
 import { OnboardingView } from './components/OnboardingView';
 import { AccountingView } from './components/AccountingView';
 import { AiStudioView } from './components/AiStudioView';
+import { StudioView } from './components/StudioView';
 import { CustomerCodeLookup } from './components/CustomerCodeLookup';
 import { OrderSupportModal } from './components/OrderSupportModal';
 
@@ -124,7 +126,7 @@ export default function App() {
     try {
       if (typeof window === 'undefined') return false;
       const path = window.location.pathname;
-      return path === '/' || path.startsWith('/marketplace');
+      return path.startsWith('/marketplace');
     } catch {
       return false;
     }
@@ -157,7 +159,7 @@ export default function App() {
         const hash = window.location.hash;
 
         setIsLoginView(path === '/login');
-        setIsMarketplace((path === '/' && !isAuthenticated) || path.startsWith('/marketplace') || search.includes('page=marketplace') || hash.includes('marketplace'));
+        setIsMarketplace(path.startsWith('/marketplace') || search.includes('page=marketplace') || hash.includes('marketplace'));
 
         const pathMatch = path.match(/^\/store\/([a-zA-Z0-9_-]+)/);
         if (pathMatch) {
@@ -212,7 +214,7 @@ export default function App() {
     if (isLoginView && isAuthenticated === true) {
       window.history.replaceState({}, '', '/');
       setIsLoginView(false);
-      setIsMarketplace(true);
+      setIsMarketplace(false);
     }
   }, [isLoginView, isAuthenticated]);
 
@@ -734,6 +736,10 @@ export default function App() {
           setPublicStoreSlug(null);
           setSelectedProductId(null);
         }}
+        onNavigateToAvatarStudio={() => {
+          setCurrentTab('avatar_studio');
+          setIsMarketplace(false);
+        }}
       />
     );
   }
@@ -770,21 +776,24 @@ export default function App() {
   }
 
   // Unauthenticated Login Screen (Only the Login Box is displayed)
-  if (isLoginView || isAuthenticated === false) {
+  if ((isLoginView || isAuthenticated === false) && currentTab !== 'avatar_studio') {
     return (
-      <main className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-center items-center p-4 sm:p-6">
-        <div className="w-full max-w-md bg-white border border-[#CBD5E1] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+      <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden selection:bg-purple-500 selection:text-white">
+        {/* Background Ambient Orbs */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-purple-600/25 via-indigo-600/25 to-pink-500/15 blur-[140px] rounded-full pointer-events-none" />
+
+        <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 sm:p-8 space-y-6 shadow-[0_25px_60px_rgba(0,0,0,0.8)] relative z-10 text-slate-100">
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-center mx-auto text-[#2563EB] shadow-xs">
+            <div className="w-14 h-14 bg-gradient-to-tr from-purple-600 to-indigo-500 border border-white/20 rounded-2xl flex items-center justify-center mx-auto text-white shadow-lg shadow-purple-600/30">
               <Lock className="w-7 h-7" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
-              ShopSone (ဆိုင်စုံ)
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+              ShopSone <span className="text-purple-400 font-normal">(ဆိုင်စုံ)</span>
             </h1>
-            <p className="text-xs text-[#2563EB] font-mono font-semibold">
+            <p className="text-xs text-purple-400 font-mono font-semibold">
               Myanmar AI Seller
             </p>
-            <p className="text-xs text-[#64748B] max-w-xs mx-auto">
+            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
               {lang === 'my'
                 ? 'လူမှုကွန်ရက် ကုန်သည်များအတွက် သီးသန့် AI အရောင်းကွပ်ကဲမှု စနစ်'
                 : 'Mobile-First AI Sales Operating System for Social Merchants.'}
@@ -792,9 +801,9 @@ export default function App() {
           </div>
 
           {authError && (
-            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 space-y-1">
+            <div className="p-3.5 bg-rose-500/15 border border-rose-500/30 rounded-xl text-xs text-rose-300 space-y-1">
               <div className="flex items-center gap-1.5 font-bold">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                 <span>{lang === 'my' ? 'ချိတ်ဆက်မှု မအောင်မြင်ပါ' : 'Sign-In Error'}</span>
               </div>
               <p className="text-[11px] leading-relaxed">{authError}</p>
@@ -806,7 +815,7 @@ export default function App() {
               type="button"
               disabled={authLoading}
               onClick={handleGoogleLogin}
-              className="w-full py-3 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-purple-600/25 disabled:opacity-50"
             >
               <svg className="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
                 <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
@@ -818,7 +827,7 @@ export default function App() {
               type="button"
               disabled={authLoading}
               onClick={handleFacebookLogin}
-              className="w-full py-3 px-4 bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              className="w-full py-3 px-4 bg-[#1877F2]/90 hover:bg-[#1877F2] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
             >
               <span>{lang === 'my' ? 'Facebook ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with Facebook'}</span>
             </button>
@@ -827,18 +836,18 @@ export default function App() {
               type="button"
               disabled={authLoading}
               onClick={handleTiktokLogin}
-              className="w-full py-3 px-4 bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              className="w-full py-3 px-4 bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
             >
               <span>{lang === 'my' ? 'TikTok ဖြင့် အကောင့်ဝင်မည်' : 'Sign In with TikTok'}</span>
             </button>
           </div>
 
-          <div className="pt-2 border-t border-[#CBD5E1] flex items-center justify-between text-xs text-[#64748B]">
+          <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
             <span>{lang === 'my' ? 'လုံခြုံစိတ်ချရသော စနစ်' : 'Authoritative Security'}</span>
             <button
               type="button"
               onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
-              className="hover:text-[#0F172A] text-[#2563EB] font-semibold cursor-pointer"
+              className="hover:text-white text-purple-400 font-semibold cursor-pointer font-mono"
             >
               {lang === 'my' ? 'English' : 'မြန်မာ'}
             </button>
@@ -858,37 +867,39 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#E9EEF5] text-[#0F172A] flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden selection:bg-purple-500 selection:text-white">
+      {/* Background Glowing Ambient Orbs */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-tr from-purple-600/20 via-indigo-600/20 to-pink-500/10 blur-[140px] rounded-full pointer-events-none -z-10" />
+      <div className="fixed bottom-0 right-0 w-[500px] h-[400px] bg-blue-600/15 blur-[120px] rounded-full pointer-events-none -z-10" />
+
       {/* Top Application Header Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 sm:px-6 py-4 sm:py-5 shadow-xs">
+      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-2xl border-b border-white/10 px-4 sm:px-6 py-3.5 sm:py-4 shadow-lg shadow-black/40">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
           {/* Brand Wordmark (Zone 1) */}
           <div className="flex items-center gap-3 sm:gap-3.5 shrink-0">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border border-[#DBEAFE] flex items-center justify-center overflow-hidden shadow-sm">
-              <img
-                src="/assets/aistudio/1792178753519_42de44bf.jpg"
-                alt="ShopSone"
-                className="w-full h-full object-contain"
-              />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 border border-white/20 flex items-center justify-center overflow-hidden shadow-lg shadow-purple-600/30 shrink-0">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-[#0F172A] block leading-tight">
-                ShopSone (ဆိုင်စုံ)
+              <span className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-white block leading-tight">
+                ShopSone <span className="text-purple-400 font-light">(ဆိုင်စုံ)</span>
               </span>
-              <span className="text-[11px] sm:text-xs text-[#2563EB] font-mono block leading-none font-semibold mt-1">
+              <span className="text-[11px] sm:text-xs text-purple-400 font-mono block leading-none font-semibold mt-1">
                 Myanmar AI Seller
               </span>
             </div>
           </div>
 
-          {/* Desktop Navigation Links (Zone 2 - Single line, clean typography) */}
+          {/* Desktop Navigation Links (Zone 2 - Single line, clean dark glass typography) */}
           <nav
             aria-label="Desktop Primary Navigation"
-            className="hidden lg:flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1]"
+            className="hidden lg:flex items-center gap-1 bg-white/[0.04] p-1.5 rounded-2xl border border-white/10 backdrop-blur-xl"
           >
-            {((user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local')
-              ? ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile', 'lab']
-              : ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile']
+            {(isAuthenticated === false 
+              ? [] 
+              : (user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local')
+                ? ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile', 'lab']
+                : ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile']
             ).map((tab) => {
               const isActive = currentTab === tab;
               const labels: Record<string, { my: string; en: string }> = {
@@ -906,12 +917,12 @@ export default function App() {
                   key={tab}
                   type="button"
                   onClick={() => setCurrentTab(tab as NavigationDestination)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-[#2563EB] text-white shadow-sm'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30 font-bold'
                       : tab === 'lab'
-                      ? 'text-[#2563EB] hover:text-[#1D4ED8] font-bold'
-                      : 'text-[#475569] hover:text-[#0F172A]'
+                      ? 'text-purple-400 hover:text-white font-bold'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
                   }`}
                 >
                   {tab === 'lab' && <FlaskConical className="w-3.5 h-3.5" />}
@@ -927,10 +938,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setCurrentTab('lab')}
-                className={`md:hidden px-2.5 py-1.5 border text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                className={`md:hidden px-2.5 py-1.5 border text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                   currentTab === 'lab'
-                    ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                    : 'bg-white hover:bg-[#F8FAFC] border-[#CBD5E1] text-[#2563EB] hover:text-[#1D4ED8]'
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-transparent'
+                    : 'bg-white/[0.05] hover:bg-white/[0.1] border-white/10 text-purple-400 hover:text-white'
                 }`}
                 title={lang === 'my' ? 'AI Chat စမ်းသပ်ခန်း' : 'AI Testing Lab'}
               >
@@ -948,43 +959,26 @@ export default function App() {
                 } catch {}
                 setIsMarketplace(true);
               }}
-              className="px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-purple-300 hover:text-white rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
               title={lang === 'my' ? 'ဆိုင်စုံ (ShopSone) သို့ သွားမည်' : 'View ShopSone Marketplace'}
             >
-              <Store className="w-3.5 h-3.5 text-[#2563EB]" />
+              <Store className="w-3.5 h-3.5 text-purple-400" />
               <span className="hidden sm:inline">{lang === 'my' ? 'ဆိုင်စုံ' : 'ShopSone'}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
-              className="px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-xs font-semibold text-[#475569] hover:text-[#0F172A] rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+              className="px-2.5 py-1.5 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white rounded-xl transition-colors cursor-pointer flex items-center gap-1 font-mono uppercase"
             >
-              <Globe className="w-3.5 h-3.5 text-[#2563EB]" />
-              <span className="font-mono uppercase">{lang}</span>
+              <Globe className="w-3.5 h-3.5 text-purple-400" />
+              <span>{lang}</span>
             </button>
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="p-1.5 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#64748B] hover:text-[#E06B61] rounded-lg transition-colors cursor-pointer"
-              title={lang === 'my' ? 'အကောင့်ထွက်မည်' : 'Sign Out'}
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </header>
 
-      {/* Global Customer Code Lookup Section */}
-      <CustomerCodeLookup 
-        lang={lang} 
-        onCheckStatus={(code) => {
-          setInitialSupportCode(code);
-          setIsSupportOpen(true);
-        }}
-        onContactSupport={() => setIsSupportOpen(true)}
-      />
 
       {/* Main Content View Container (Padding bottom ensures persistent bottom nav never hides content) */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
@@ -1070,6 +1064,16 @@ export default function App() {
           />
         )}
 
+        {currentTab === 'avatar_studio' && (
+          <StudioView 
+            lang={lang} 
+            onBack={() => {
+              setIsMarketplace(true);
+              setCurrentTab('home');
+            }}
+          />
+        )}
+
         {currentTab === 'lab' && (user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local') && (
           <AiTestingLabView
             lang={lang}
@@ -1126,6 +1130,8 @@ export default function App() {
           inventoryAlertCount,
           paymentsReviewCount
         }}
+        userRole={user?.role}
+        provider={user?.provider}
       />
 
       {/* Modals */}

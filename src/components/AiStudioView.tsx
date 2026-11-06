@@ -244,17 +244,17 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Studio Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#CBD5E1] shadow-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB]">
-            <Sparkles className="w-5 h-5" />
+      {/* Header Banner - Luxury Studio Header Card */}
+      <div className="bg-gradient-to-r from-indigo-950 via-purple-950 to-slate-900 rounded-2xl p-5 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/30 shrink-0">
+            <Sparkles className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
+            <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-white leading-relaxed">
               AI Studio (ဆိုင်စုံ စတူဒီယို)
             </h1>
-            <p className="text-xs text-[#64748B]">
+            <p className="text-xs text-purple-200/80 leading-relaxed">
               {lang === 'my'
                 ? 'စတော့ကုန်ပစ္စည်းများအတွက် AI ဓာတ်ပုံဖန်တီးမှုနှင့် ဆိုရှယ်မီဒီယာ အရောင်းကြော်ငြာစာသားများ'
                 : 'AI-powered studio product photography, descriptions & high-converting marketing copy'}
@@ -263,14 +263,14 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
         </div>
 
         {/* Studio Sub-Navigation Tabs */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+        <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md p-1 rounded-xl border border-white/10">
           <button
             type="button"
             onClick={() => setActiveTab('image_studio')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'image_studio'
-                ? 'bg-white text-[#2563EB] shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-indigo-950 shadow-sm font-bold'
+                : 'text-purple-200 hover:text-white'
             }`}
           >
             <Camera className="w-3.5 h-3.5" />
@@ -280,10 +280,10 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('copy_studio')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'copy_studio'
-                ? 'bg-white text-[#2563EB] shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-indigo-950 shadow-sm font-bold'
+                : 'text-purple-200 hover:text-white'
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
@@ -293,10 +293,10 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('history')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'history'
-                ? 'bg-white text-[#2563EB] shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-indigo-950 shadow-sm font-bold'
+                : 'text-purple-200 hover:text-white'
             }`}
           >
             <History className="w-3.5 h-3.5" />
@@ -306,7 +306,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
       </div>
 
       {/* Product Selector Bar (Unified across AI Studio) */}
-      <div className="bg-white p-4 rounded-2xl border border-[#CBD5E1] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-slate-700 whitespace-nowrap">
             {lang === 'my' ? 'ပစ္စည်းရွေးချယ်ပါ:' : 'Target Product:'}
@@ -314,7 +314,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
           <select
             value={selectedProductId}
             onChange={(e) => setSelectedProductId(e.target.value)}
-            className="w-full sm:w-80 px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+            className="w-full sm:w-80 px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white font-medium focus:outline-none focus:ring-2 focus:ring-purple-600"
           >
             {products.length === 0 ? (
               <option value="">{lang === 'my' ? 'စတော့တွင် ပစ္စည်းမရှိသေးပါ' : 'No products in inventory'}</option>
@@ -336,7 +336,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
               {Number(activeProduct.price).toLocaleString()} MMK
             </span>
             {activeProduct.imageUrl && (
-              <div className="w-7 h-7 rounded-lg border border-slate-200 overflow-hidden shrink-0">
+              <div className="w-8 h-8 rounded-lg border border-slate-200 overflow-hidden shrink-0 shadow-2xs">
                 <img
                   src={activeProduct.imageUrl}
                   alt={activeProduct.name}
@@ -352,10 +352,10 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
       {activeTab === 'image_studio' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Controls Column (Left) */}
-          <div className="lg:col-span-5 space-y-5 bg-white p-5 rounded-2xl border border-[#CBD5E1] shadow-xs">
+          <div className="lg:col-span-5 space-y-5 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
             <div>
-              <h2 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-[#2563EB]" />
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-purple-600" />
                 <span>{lang === 'my' ? 'ဓာတ်ပုံ ဖန်တီးမှု ရွေးချယ်စရာများ' : 'Studio Generation Settings'}</span>
               </h2>
               <p className="text-[11px] text-slate-500 mt-0.5">
@@ -365,71 +365,99 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
               </p>
             </div>
 
-            {/* Generation Modes */}
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700">
+            {/* Generation Modes with colorful 40x40px gradient icon boxes and check icon */}
+            <div className="space-y-2.5">
+              <label className="block text-xs font-bold text-slate-700">
                 {lang === 'my' ? 'စတူဒီယို စတိုင် (Generation Mode)' : 'Generation Mode'}
               </label>
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 gap-2.5">
                 {[
                   {
                     id: 'clean_background',
                     title: lang === 'my' ? 'Clean Background (နောက်ခံသန့်စင်ဖြူစင်)' : 'Clean White Studio',
-                    desc: lang === 'my' ? 'အဖြူရောင်စတူဒီယိုနောက်ခံ၊ အရိပ်အစွန်းနူးညံ့' : 'Isolated product, soft natural studio drop shadow'
+                    desc: lang === 'my' ? 'အဖြူရောင်စတူဒီယိုနောက်ခံ၊ အရိပ်အစွန်းနူးညံ့' : 'Isolated product, soft natural studio drop shadow',
+                    icon: Sparkles,
+                    color: 'from-sky-500 to-blue-600'
                   },
                   {
                     id: 'premium_photo',
                     title: lang === 'my' ? 'Premium Photography (ဇိမ်ခံ စတူဒီယို)' : 'Premium Luxury Studio',
-                    desc: lang === 'my' ? 'အမှောင်ရောင်နောက်ခံ၊ စတူဒီယိုမီးရောင်' : 'Dramatic rim lighting, dark slate surface'
+                    desc: lang === 'my' ? 'အမှောင်ရောင်နောက်ခံ၊ စတူဒီယိုမီးရောင်' : 'Dramatic rim lighting, dark slate surface',
+                    icon: Camera,
+                    color: 'from-amber-500 to-orange-600'
                   },
                   {
                     id: 'social_ad',
                     title: lang === 'my' ? 'Social Media Ad (ဆိုရှယ်မီဒီယာ ကြော်ငြာ)' : 'Social Media Commercial',
-                    desc: lang === 'my' ? 'အရောင်အသွေးစုံလင်၊ လူကြိုက်များသောကြော်ငြာစတိုင်' : 'Vibrant colors, high conversion commercial style'
+                    desc: lang === 'my' ? 'အရောင်အသွေးစုံလင်၊ လူကြိုက်များသောကြော်ငြာစတိုင်' : 'Vibrant colors, high conversion commercial style',
+                    icon: Wand2,
+                    color: 'from-fuchsia-500 to-pink-600'
                   },
                   {
                     id: 'lifestyle',
                     title: lang === 'my' ? 'Lifestyle Showcase (လူနေမှုစတိုင် နောက်ခံ)' : 'Lifestyle Showcase',
-                    desc: lang === 'my' ? 'ခေတ်မီအိမ်တွင်းအလှဆင်၊ သဘာဝအလင်းရောင်' : 'Warm natural morning daylight, authentic setting'
+                    desc: lang === 'my' ? 'ခေတ်မီအိမ်တွင်းအလှဆင်၊ သဘာဝအလင်းရောင်' : 'Warm natural morning daylight, authentic setting',
+                    icon: Layers,
+                    color: 'from-emerald-500 to-teal-600'
                   },
                   {
                     id: 'catalog',
                     title: lang === 'my' ? 'Product Catalog (ကတ်တလောက် ပြကွက်)' : 'Catalog Pedestal',
-                    desc: lang === 'my' ? 'အရောင်းပြခန်း စင်တင်ပြသမှု' : 'Minimalist retail pedestal, clean balanced framing'
+                    desc: lang === 'my' ? 'အရောင်းပြခန်း စင်တင်ပြသမှု' : 'Minimalist retail pedestal, clean balanced framing',
+                    icon: ShoppingBag,
+                    color: 'from-indigo-500 to-violet-600'
                   }
-                ].map((mode) => (
-                  <button
-                    key={mode.id}
-                    type="button"
-                    onClick={() => setImageMode(mode.id as AiStudioImageMode)}
-                    className={`p-3 text-left rounded-xl border transition-all cursor-pointer ${
-                      imageMode === mode.id
-                        ? 'border-[#2563EB] bg-blue-50/50 ring-1 ring-[#2563EB]'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="font-bold text-xs text-slate-800">{mode.title}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{mode.desc}</div>
-                  </button>
-                ))}
+                ].map((mode) => {
+                  const Icon = mode.icon;
+                  const isSelected = imageMode === mode.id;
+
+                  return (
+                    <div
+                      key={mode.id}
+                      onClick={() => setImageMode(mode.id as AiStudioImageMode)}
+                      className={`cursor-pointer rounded-xl p-3 border transition-all flex items-center justify-between gap-3 ${
+                        isSelected
+                          ? 'border-purple-600 ring-2 ring-purple-600/20 bg-purple-50/40 shadow-xs'
+                          : 'border-slate-200 hover:border-purple-300 hover:bg-slate-50/60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode.color} text-white flex items-center justify-center shadow-xs shrink-0`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-xs text-slate-900 leading-snug truncate">
+                            {mode.title}
+                          </div>
+                          <div className="text-[11px] text-slate-500 leading-snug truncate mt-0.5">
+                            {mode.desc}
+                          </div>
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0" />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Aspect Ratio */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
+              <label className="block text-xs font-bold text-slate-700">
                 {lang === 'my' ? 'ပုံချိုး အချိုးအစား (Aspect Ratio)' : 'Aspect Ratio'}
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-xl">
                 {(['1:1', '4:5', '16:9'] as const).map((ratio) => (
                   <button
                     key={ratio}
                     type="button"
                     onClick={() => setAspectRatio(ratio)}
-                    className={`py-2 text-center text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${
+                    className={`py-2 text-center text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                       aspectRatio === ratio
-                        ? 'border-[#2563EB] bg-[#2563EB] text-white shadow-xs'
-                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     {ratio} {ratio === '1:1' ? '(Square)' : ratio === '4:5' ? '(Portrait)' : '(Landscape)'}
@@ -444,7 +472,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                 {lang === 'my' ? 'နမူနာဓာတ်ပုံ ထည့်သွင်းရန် (Optional)' : 'Reference Image (Optional)'}
               </label>
               <div className="flex items-center gap-3">
-                <label className="flex-1 border-2 border-dashed border-slate-200 hover:border-[#2563EB] rounded-xl p-3 text-center cursor-pointer transition-colors">
+                <label className="flex-1 border-2 border-dashed border-slate-200 hover:border-purple-500 rounded-xl p-3 text-center cursor-pointer transition-colors">
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -452,12 +480,12 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                     className="hidden"
                   />
                   <div className="flex items-center justify-center gap-2 text-xs text-slate-600">
-                    <Upload className="w-4 h-4 text-slate-400" />
+                    <Upload className="w-4 h-4 text-purple-600" />
                     <span>{referenceFile ? referenceFile.name : (lang === 'my' ? 'ပုံရွေးချယ်ပါ' : 'Upload file')}</span>
                   </div>
                 </label>
                 {referencePreview && (
-                  <div className="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden relative group shrink-0">
+                  <div className="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden relative group shrink-0 shadow-2xs">
                     <img src={referencePreview} alt="Ref" className="w-full h-full object-cover" />
                     <button
                       type="button"
@@ -484,16 +512,16 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                 placeholder={lang === 'my' ? 'ဥပမာ: Add soft golden hour glow, wooden table...' : 'e.g. Add subtle warm morning light...'}
                 value={customImagePrompt}
                 onChange={(e) => setCustomImagePrompt(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
 
-            {/* Generate Trigger Button */}
+            {/* Generate Trigger Button (Animated AI Magic Gradient) */}
             <button
               type="button"
               disabled={generatingImage || !activeProduct}
               onClick={handleGenerateImage}
-              className="w-full py-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              className="w-full py-3.5 px-6 rounded-xl btn-ai-gradient text-white font-bold text-xs shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {generatingImage ? (
                 <>
@@ -510,11 +538,11 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
           </div>
 
           {/* Preview & Action Column (Right) */}
-          <div className="lg:col-span-7 space-y-5 bg-white p-5 rounded-2xl border border-[#CBD5E1] shadow-xs flex flex-col justify-between">
+          <div className="lg:col-span-7 space-y-5 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h2 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-[#2563EB]" />
+                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-purple-600" />
                   <span>{lang === 'my' ? 'ဖန်တီးမှု ပြကွက် (Preview & Apply)' : 'Studio Photo Preview'}</span>
                 </h2>
                 {generatedImageUrl && (
@@ -544,17 +572,17 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                 </div>
               )}
 
-              {/* Preview Display Area */}
-              <div className="mt-4 aspect-square max-h-[460px] w-full rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center relative">
+              {/* Preview Display Area with subtle studio dot-grid background */}
+              <div className="mt-4 aspect-square max-h-[460px] w-full rounded-2xl border-2 border-dashed border-slate-200 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px] bg-slate-50/50 overflow-hidden flex items-center justify-center relative">
                 {generatingImage ? (
                   <div className="text-center p-6 space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-100 text-[#2563EB] flex items-center justify-center mx-auto animate-pulse">
-                      <Wand2 className="w-6 h-6 animate-bounce" />
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-600 flex items-center justify-center mx-auto shadow-inner animate-pulse">
+                      <Wand2 className="w-7 h-7 animate-bounce" />
                     </div>
                     <div className="font-bold text-xs text-slate-800">
                       {lang === 'my' ? 'AI စတူဒီယိုမှ ဓာတ်ပုံဖန်တီးနေပါသည်...' : 'Synthesizing Studio Product Image...'}
                     </div>
-                    <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+                    <p className="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
                       {lang === 'my'
                         ? 'ရွေးချယ်ထားသော စတိုင်အတိုင်း အလင်းအမှောင်နှင့် နောက်ခံကို အဆင့်မြင့်ဆုံး ပြင်ဆင်နေပါသည်'
                         : 'Balancing lighting, shadows, and high-fidelity product reflection'}
@@ -568,13 +596,15 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                   />
                 ) : (
                   <div className="text-center p-6 space-y-2 text-slate-400">
-                    <Camera className="w-10 h-10 mx-auto opacity-40" />
-                    <p className="text-xs font-semibold text-slate-600">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-600 flex items-center justify-center shadow-inner mb-3 mx-auto">
+                      <Sparkles className="w-8 h-8" />
+                    </div>
+                    <p className="font-bold text-sm text-slate-700">
                       {lang === 'my' ? 'ဖန်တီးထားသော ပုံ မရှိသေးပါ' : 'No Studio Photo Generated Yet'}
                     </p>
-                    <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed mt-1">
                       {lang === 'my'
-                        ? 'ဘယ်ဘက်ရှိ ရွေးချယ်စရာများကို သတ်မှတ်ပြီး "AI ဓာတ်ပုံ စတင်ဖန်တီးမည်" ကို နှိပ်ပါ'
+                        ? 'အပေါ်ဘက်ရှိ စတူဒီယိုစတိုင်ကို ရွေးချယ်သတ်မှတ်ပြီး "AI ဓာတ်ပုံ စတင်ဖန်တီးမည်" ကို နှိပ်ပါ'
                         : 'Configure your settings on the left and click "Generate Studio Photo" to begin.'}
                     </p>
                   </div>

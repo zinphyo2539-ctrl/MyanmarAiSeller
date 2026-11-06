@@ -1869,10 +1869,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Sample Reply Add/Edit Modal */}
       {isSampleModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#181810] border border-[#393426] rounded-2xl w-full max-w-lg p-6 space-y-5 text-xs shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#393426] pb-3">
-              <h3 className="text-sm font-bold text-[#F5F2E8]">
+        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+          <div className="bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl w-full max-w-lg p-6 space-y-4 text-xs shadow-[0_20px_50px_rgba(15,23,42,0.15)] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-slate-900 tracking-tight">
                 {editingSample
                   ? (lang === 'my' ? 'နမူနာ ဖြေကြားချက် ပြင်ဆင်ရန်' : 'Edit Sample Reply')
                   : (lang === 'my' ? 'နမူနာ ဖြေကြားချက် အသစ်ထည့်ရန်' : 'Add New Sample Reply')}
@@ -1880,15 +1880,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSampleModalOpen(false)}
-                className="text-[#817D70] hover:text-[#F5F2E8] cursor-pointer"
+                className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveSample} className="space-y-4">
               <div>
-                <label className="block text-[#B9B5A7] font-semibold mb-1">
+                <label className="block text-slate-700 font-semibold mb-1.5 text-xs">
                   {lang === 'my' ? 'အမျိုးအစား (Category)' : 'Category'}
                 </label>
                 <input
@@ -1896,27 +1896,27 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   value={sampleForm.category}
                   onChange={(e) => setSampleForm({ ...sampleForm, category: e.target.value })}
                   placeholder="Stock and variants, Pricing, Shipping..."
-                  className="w-full bg-[#11110D] border border-[#393426] rounded-xl px-3 py-2 text-[#F5F2E8] focus:border-[#C9A227] focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl px-3.5 py-2.5 text-slate-900 transition-all outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[#B9B5A7] font-semibold mb-1">
-                  {lang === 'my' ? 'ဖောက်သည်၏ မေးခွန်း (Customer Query)' : 'Customer Query'}
+                <label className="block text-slate-700 font-semibold mb-1.5 text-xs">
+                  {lang === 'my' ? 'ဖောက်သည်၏ မေးခွန်း (Customer Query)' : 'Customer Query'} *
                 </label>
                 <input
                   type="text"
                   required
                   value={sampleForm.customerMessage}
                   onChange={(e) => setSampleForm({ ...sampleForm, customerMessage: e.target.value })}
-                  placeholder="e.g. Size L ရှိသေးလားင်..."
-                  className="w-full bg-[#11110D] border border-[#393426] rounded-xl px-3 py-2 text-[#F5F2E8] focus:border-[#C9A227] focus:outline-none"
+                  placeholder="e.g. Size L ရှိသေးလားရှင်..."
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl px-3.5 py-2.5 text-slate-900 transition-all outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[#B9B5A7] font-semibold mb-1">
-                  {lang === 'my' ? 'နှစ်သက်သော တုံ့ပြန်ပုံ (Preferred Reply)' : 'Preferred Reply'}
+                <label className="block text-slate-700 font-semibold mb-1.5 text-xs">
+                  {lang === 'my' ? 'နှစ်သက်သော တုံ့ပြန်ပုံ (Preferred Reply)' : 'Preferred Reply'} *
                 </label>
                 <textarea
                   rows={3}
@@ -1924,22 +1924,22 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   value={sampleForm.preferredReply}
                   onChange={(e) => setSampleForm({ ...sampleForm, preferredReply: e.target.value })}
                   placeholder="e.g. ဟုတ်ကဲ့ရှင် Size L လက်ကျန် ၃ ထည်ရှိပါတယ်..."
-                  className="w-full bg-[#11110D] border border-[#393426] rounded-xl p-3 text-[#F5F2E8] focus:border-[#C9A227] focus:outline-none leading-relaxed"
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl p-3 text-slate-900 focus:outline-none leading-relaxed transition-all resize-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#393426]">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsSampleModalOpen(false)}
-                  className="px-4 py-2 bg-[#11110D] hover:bg-[#1E1D14] border border-[#393426] text-[#B9B5A7] font-bold rounded-xl cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl cursor-pointer transition-colors"
                 >
                   {lang === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   disabled={savingSample}
-                  className="px-5 py-2 bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] font-bold rounded-xl cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-gradient-to-r from-indigo-600 via-blue-600 to-violet-600 hover:from-indigo-500 hover:to-violet-700 text-white font-bold rounded-xl cursor-pointer disabled:opacity-50 shadow-md shadow-indigo-500/20 transition-all"
                 >
                   {savingSample ? (lang === 'my' ? 'သိမ်းဆည်းနေသည်...' : 'Saving...') : (lang === 'my' ? 'သိမ်းမည်' : 'Save')}
                 </button>
@@ -1951,45 +1951,45 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Rejection Modal with Mandatory Reason & Template Chips */}
       {rejectModalOrder && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 space-y-4 text-xs shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-2xl flex items-center justify-center p-4 transition-all duration-300">
+          <div className="bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-3xl w-full max-w-md p-6 space-y-4 text-xs shadow-[0_25px_60px_rgba(0,0,0,0.8)] text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
                 <AlertCircle className="w-5 h-5" />
                 <span>{lang === 'my' ? 'ငွေလွှဲစလစ် ငြင်းပယ်ရန်' : 'Reject Payment Slip'}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setRejectModalOrder(null)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="p-1.5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white cursor-pointer transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
-              <div className="flex justify-between text-slate-600">
+            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 space-y-1.5 font-mono">
+              <div className="flex justify-between text-slate-400">
                 <span>{lang === 'my' ? 'အော်ဒါ အမှတ်' : 'Order'}:</span>
-                <span className="font-mono font-bold text-slate-800">#{rejectModalOrder.id.slice(0, 8)}</span>
+                <span className="font-bold text-white">#{rejectModalOrder.id.slice(0, 8)}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-slate-400">
                 <span>{lang === 'my' ? 'ဖောက်သည်' : 'Customer'}:</span>
-                <span className="font-semibold text-slate-800">{rejectModalOrder.customerName} ({rejectModalOrder.customerPhone})</span>
+                <span className="font-semibold text-white">{rejectModalOrder.customerName} ({rejectModalOrder.customerPhone})</span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-slate-400">
                 <span>{lang === 'my' ? 'ကျသင့်ငွေ' : 'Amount'}:</span>
-                <span className="font-mono font-bold text-blue-700">{rejectModalOrder.totalAmount.toLocaleString()} MMK</span>
+                <span className="font-bold text-purple-300">{rejectModalOrder.totalAmount.toLocaleString()} MMK</span>
               </div>
             </div>
 
             {rejectionError && (
-              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-xs font-medium">
+              <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-rose-300 rounded-xl text-xs font-medium">
                 {rejectionError}
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="block text-slate-700 font-bold">
+              <label className="block text-slate-300 font-bold">
                 {lang === 'my' ? 'ငြင်းပယ်ရသည့် အကြောင်းပြချက် (မဖြစ်မနေ ဖြည့်ပါ) *' : 'Rejection Reason (Required) *'}
               </label>
 
@@ -2005,7 +2005,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     key={chip}
                     type="button"
                     onClick={() => setRejectionReasonText(chip)}
-                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-medium transition-colors cursor-pointer border border-slate-200"
+                    className="px-2.5 py-1 bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white rounded-lg text-[11px] font-medium transition-colors cursor-pointer border border-white/10"
                   >
                     {chip}
                   </button>
@@ -2018,18 +2018,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 placeholder={lang === 'my' ? 'ဖောက်သည် သိရှိစေရန် အကြောင်းပြချက်ကို ရှင်းလင်းစွာ ရေးသားပါ...' : 'Explain clearly why the slip was rejected...'}
                 value={rejectionReasonText}
                 onChange={(e) => setRejectionReasonText(e.target.value)}
-                className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-slate-900 focus:border-rose-500 focus:outline-none"
+                className="w-full bg-white/[0.04] border border-white/10 rounded-xl p-3 text-white placeholder-slate-500 focus:border-rose-500 focus:outline-none transition-all resize-none"
               />
-              <span className="text-[11px] text-slate-500 block">
+              <span className="text-[11px] text-slate-400 block leading-relaxed">
                 {lang === 'my' ? 'ဤအကြောင်းပြချက်ကို ဖောက်သည်၏ စစ်ဆေးမှု စာမျက်နှာတွင် ဖော်ပြပေးမည်ဖြစ်ပြီး စလစ်အသစ် ပြန်တင်ခွင့်ရပါမည်။' : 'Customer will see this reason on their order tracking page and can resubmit a valid slip.'}
               </span>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setRejectModalOrder(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl cursor-pointer"
+                className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 font-bold rounded-xl cursor-pointer transition-colors"
               >
                 {lang === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel'}
               </button>
@@ -2037,7 +2037,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 type="button"
                 disabled={!rejectionReasonText.trim() || submittingRejection}
                 onClick={handleConfirmRejectOrder}
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl cursor-pointer disabled:opacity-50 shadow-xs flex items-center gap-1.5"
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl cursor-pointer disabled:opacity-50 shadow-lg shadow-rose-600/30 flex items-center gap-1.5 transition-all"
               >
                 <X className="w-4 h-4" />
                 <span>{submittingRejection ? (lang === 'my' ? 'ငြင်းပယ်နေသည်...' : 'Rejecting...') : (lang === 'my' ? 'အတည်ပြု ငြင်းပယ်မည်' : 'Confirm Rejection')}</span>
@@ -2051,16 +2051,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {previewSlipUrl && (
         <div
           onClick={() => setPreviewSlipUrl(null)}
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 cursor-zoom-out"
+          className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-2xl flex items-center justify-center p-4 cursor-zoom-out transition-all duration-300"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-2xl max-h-[90vh] bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl flex flex-col items-center p-2"
+            className="relative max-w-2xl max-h-[90vh] bg-slate-900/90 backdrop-blur-2xl border border-white/15 rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] flex flex-col items-center p-3 animate-in fade-in zoom-in-95 duration-200"
           >
             <button
               type="button"
               onClick={() => setPreviewSlipUrl(null)}
-              className="absolute top-3 right-3 p-2 bg-black/60 hover:bg-black/90 text-white rounded-full cursor-pointer z-10 transition-colors"
+              className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full cursor-pointer z-10 transition-colors shadow-md"
               title="Close"
             >
               <X className="w-5 h-5" />
@@ -2068,7 +2068,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <img
               src={previewSlipUrl}
               alt="Enlarged Preview"
-              className="max-w-full max-h-[82vh] object-contain rounded-xl"
+              className="max-w-full max-h-[82vh] object-contain rounded-2xl"
             />
           </div>
         </div>

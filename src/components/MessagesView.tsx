@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ExternalLink,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  MessageCircle
 } from 'lucide-react';
 import { Conversation, ProviderStatus } from '../types';
 
@@ -28,6 +29,25 @@ interface MessagesViewProps {
   onRefresh: () => void;
   initialFilter?: string;
 }
+
+const avatarGradients = [
+  'from-indigo-500 to-purple-600',
+  'from-emerald-500 to-teal-600',
+  'from-rose-500 to-pink-600',
+  'from-amber-500 to-orange-600',
+  'from-blue-500 to-cyan-600',
+];
+
+const getInitials = (name: string) =>
+  name
+    ? name
+        .split(' ')
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2) || 'C'
+    : 'C';
 
 export const MessagesView: React.FC<MessagesViewProps> = ({
   conversations,
@@ -81,131 +101,133 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
   };
 
   return (
-    <>
-      <div className="space-y-4">
-        {/* Top Controls: Channel Tabs and Human Review Queue */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#FFFFFF] border border-[#CBD5E1] p-3 rounded-2xl">
-          {/* Channel Segmented Control */}
-          <div className="flex items-center gap-1 bg-[#F8FAFC] p-1 rounded-xl border border-[#CBD5E1]">
-            <button
-              type="button"
-              onClick={() => setSelectedChannel('all')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                selectedChannel === 'all'
-                  ? 'bg-[#2563EB] text-white shadow-sm'
-                  : 'text-[#475569] hover:text-[#0F172A]'
-              }`}
-            >
-              {lang === 'my' ? 'အားလုံး' : 'All Channels'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedChannel('messenger')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                selectedChannel === 'messenger'
-                  ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
-                  : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-              }`}
-            >
-              Messenger
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedChannel('tiktok')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                selectedChannel === 'tiktok'
-                  ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm'
-                  : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-              }`}
-            >
-              TikTok
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedChannel('support')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                selectedChannel === 'support'
-                  ? 'bg-[#65B985] text-white shadow-sm'
-                  : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-              }`}
-            >
-              {lang === 'my' ? 'အော်ဒါအကူအညီ' : 'Order Support'}
-            </button>
-          </div>
-          
-          {/* Human Review Filter & Refresh */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowHumanReviewOnly(!showHumanReviewOnly)}
-              className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer ${
-                showHumanReviewOnly
-                  ? 'bg-[#E0BD55]/15 border-[#E0BD55] text-[#E0BD55]'
-                  : 'bg-[#1E1D14] border-[#393426] text-[#B9B5A7] hover:text-[#F5F2E8]'
-              }`}
-            >
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>
-                {lang === 'my' ? 'လူဖြေကြားရန် လိုအပ်မှု သီးသန့်' : 'Human Review Only'}
-              </span>
-            </button>
+    <div className="space-y-4 animate-fade-up">
+      {/* Top Filter Bar */}
+      <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-3 border border-white/10 shadow-lg flex flex-wrap items-center justify-between gap-3">
+        {/* Channel Segmented Control */}
+        <div className="flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-white/5">
+          <button
+            type="button"
+            onClick={() => setSelectedChannel('all')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              selectedChannel === 'all'
+                ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {lang === 'my' ? 'အားလုံး' : 'All Channels'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedChannel('messenger')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              selectedChannel === 'messenger'
+                ? 'bg-blue-600/30 text-blue-200 border border-blue-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Messenger
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedChannel('tiktok')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              selectedChannel === 'tiktok'
+                ? 'bg-rose-600/30 text-rose-200 border border-rose-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            TikTok
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedChannel('support')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              selectedChannel === 'support'
+                ? 'bg-emerald-600/30 text-emerald-200 border border-emerald-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {lang === 'my' ? 'အော်ဒါအကူအညီ' : 'Order Support'}
+          </button>
+        </div>
 
-            <button
-              type="button"
-              onClick={onRefresh}
-              className="p-2 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-[#C9A227] rounded-xl transition-colors cursor-pointer"
-              title={lang === 'my' ? 'ပြန်လည်ရယူရန်' : 'Refresh'}
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-          </div>
+        {/* Human Review Filter & Refresh */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowHumanReviewOnly(!showHumanReviewOnly)}
+            className={`px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
+              showHumanReviewOnly
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-200 shadow-xs'
+                : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300'
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+            <span>
+              {lang === 'my' ? 'လူဖြေကြားရန် လိုအပ်မှု သီးသန့်' : 'Human Review Only'}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="p-2 bg-slate-900/80 hover:bg-purple-600/20 text-slate-300 hover:text-purple-300 border border-white/10 rounded-xl transition-colors cursor-pointer"
+            title={lang === 'my' ? 'ပြန်လည်ရယူရန်' : 'Refresh'}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[500px]">
-        {/* Left Column: Conversation List (or full view on mobile when none selected) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[520px]">
+        {/* Left Column: Clean SaaS Conversation List */}
         <div
           className={`${
             activeConversationId ? 'hidden lg:block lg:col-span-5' : 'col-span-12 lg:col-span-5'
-          } bg-[#181810] border border-[#393426] rounded-2xl flex flex-col overflow-hidden`}
+          } bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/10 shadow-lg flex flex-col overflow-hidden`}
         >
-          <div className="p-3.5 border-b border-[#393426] flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#B9B5A7]">
-              {lang === 'my' ? 'မက်ဆေ့ခ်ျများ' : 'Conversations'} ({filteredConversations.length})
-            </span>
-            <span className="text-[11px] text-[#817D70]">
+          <div className="px-5 py-3.5 bg-slate-900/60 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-purple-400" />
+              <h3 className="font-bold text-sm text-slate-100">
+                {lang === 'my' ? 'မက်ဆေ့ချ်များ' : 'Conversations'} ({filteredConversations.length})
+              </h3>
+            </div>
+            <span className="text-[10px] font-bold tracking-wider uppercase text-purple-300 bg-purple-500/20 border border-purple-500/30 px-2.5 py-0.5 rounded-full">
               {selectedChannel.toUpperCase()}
             </span>
           </div>
 
           {filteredConversations.length === 0 ? (
-            /* Honest Empty State for Inbox */
             <div className="p-8 text-center flex-1 flex flex-col items-center justify-center space-y-4">
-              <MessageSquare className="w-12 h-12 text-[#776324]" />
+              <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+                <MessageSquare className="w-7 h-7" />
+              </div>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold text-[#F5F2E8]">
+                <h3 className="text-base font-bold text-slate-100">
                   {showHumanReviewOnly
                     ? (lang === 'my' ? 'လူဖြေကြားရန် မရှိသေးပါ' : 'No conversations awaiting human review')
                     : (lang === 'my' ? 'ဖောက်သည် စာတိုများ မရှိသေးပါ' : 'No customer messages yet')}
                 </h3>
-                <p className="text-xs text-[#817D70] max-w-xs">
+                <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
                   {lang === 'my'
                     ? 'ချိတ်ဆက်ထားသော Social Media များမှ ဝင်ရောက်လာသော မေးခွန်းများကို ဤနေရာတွင် စစ်မှန်စွာ ပြသပါမည်။'
                     : 'Customer messages received from connected platforms will appear here in real time.'}
                 </p>
               </div>
 
-              {/* Truthful Connection Status Cards */}
-              <div className="w-full max-w-xs bg-[#11110D] border border-[#393426] rounded-xl p-3 text-left space-y-2 text-xs">
+              {/* Status Breakdown */}
+              <div className="w-full max-w-xs bg-slate-950/60 border border-white/10 rounded-xl p-3.5 text-left space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[#B9B5A7]">Facebook Messenger:</span>
-                  <span className={`font-semibold ${providerStatus?.facebook ? 'text-[#65B985]' : 'text-[#A88419]'}`}>
+                  <span className="text-slate-400 font-medium">Facebook Messenger:</span>
+                  <span className={`font-semibold ${providerStatus?.facebook ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {providerStatus?.facebook ? (lang === 'my' ? 'ချိတ်ဆက်ထားသည်' : 'Connected') : (lang === 'my' ? 'မချိတ်ဆက်ရသေးပါ' : 'Not Configured')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#B9B5A7]">TikTok Direct Message:</span>
-                  <span className={`font-semibold ${providerStatus?.tiktok ? 'text-[#65B985]' : 'text-[#A88419]'}`}>
+                  <span className="text-slate-400 font-medium">TikTok Direct Message:</span>
+                  <span className={`font-semibold ${providerStatus?.tiktok ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {providerStatus?.tiktok ? (lang === 'my' ? 'ချိတ်ဆက်ထားသည်' : 'Connected') : (lang === 'my' ? 'မချိတ်ဆက်ရသေးပါ' : 'Not Configured')}
                   </span>
                 </div>
@@ -214,7 +236,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                   <button
                     type="button"
                     onClick={() => onOpenConfig(!providerStatus?.facebook ? 'facebook' : 'tiktok')}
-                    className="w-full mt-2 py-1.5 px-3 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-xs font-semibold text-[#C9A227] rounded-lg transition-colors cursor-pointer text-center"
+                    className="w-full mt-2 py-1.5 px-3 bg-slate-900 hover:bg-slate-800 border border-purple-500/30 text-xs font-semibold text-purple-300 rounded-lg transition-colors cursor-pointer text-center shadow-xs"
                   >
                     {lang === 'my' ? 'Channel ချိတ်ဆက်ရန်' : 'Configure Integration'}
                   </button>
@@ -222,100 +244,113 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
               </div>
             </div>
           ) : (
-            <div className="divide-y divide-[#393426] overflow-y-auto max-h-[600px]">
-              {filteredConversations.map((conv) => {
+            <div className="divide-y divide-white/5 overflow-y-auto max-h-[600px]">
+              {filteredConversations.map((conv, idx) => {
                 const isSelected = conv.id === activeConversationId;
-                const statusColor =
-                  conv.status === 'needs_human_review'
-                    ? 'text-[#E0BD55]'
-                    : conv.status === 'human_handling'
-                    ? 'text-[#83A9D6]'
-                    : conv.status === 'resolved'
-                    ? 'text-[#65B985]'
-                    : 'text-[#C9A227]';
+                const channelBadgeColor =
+                  conv.platform === 'messenger'
+                    ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                    : conv.platform === 'tiktok'
+                    ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                    : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
 
                 return (
-                  <button
+                  <div
                     key={conv.id}
-                    type="button"
                     onClick={() => setActiveConversationId(conv.id)}
-                    className={`w-full p-3.5 text-left transition-colors cursor-pointer flex flex-col gap-1.5 ${
-                      isSelected ? 'bg-[#1E1D14] border-l-2 border-l-[#C9A227]' : 'hover:bg-[#15150E]'
+                    className={`px-5 py-4 transition-all cursor-pointer flex items-center justify-between gap-4 group ${
+                      isSelected
+                        ? 'bg-purple-600/20 border-l-4 border-l-purple-500'
+                        : 'hover:bg-white/[0.02]'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-xs font-bold text-[#F5F2E8] truncate">
-                          {conv.customerName}
-                        </span>
-                        <span className="text-[10px] text-[#817D70] uppercase font-mono">
-                          · {conv.platform}
-                        </span>
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      {/* Gradient Avatar */}
+                      <div
+                        className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${
+                          avatarGradients[idx % avatarGradients.length]
+                        } text-white font-bold text-sm flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform`}
+                      >
+                        {getInitials(conv.customerName)}
                       </div>
-                      <span className="text-[10px] text-[#817D70] font-mono shrink-0">
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-100 text-sm truncate group-hover:text-purple-300 transition-colors">
+                            {conv.customerName}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wide ${channelBadgeColor}`}>
+                            {conv.platform}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5 truncate leading-relaxed">
+                          {conv.lastMessagePreview || (lang === 'my' ? 'မက်ဆေ့ခ်ျမရှိသေးပါ' : 'No messages')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className="text-[11px] font-medium text-slate-500 tabular-nums">
                         {new Date(conv.lastActivityAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                    </div>
-
-                    <p className="text-xs text-[#B9B5A7] line-clamp-2">
-                      {conv.lastMessagePreview || (lang === 'my' ? 'မက်ဆေ့ခ်ျမရှိသေးပါ' : 'No messages')}
-                    </p>
-
-                    <div className="flex items-center justify-between text-[11px] pt-1">
-                      <span className={`font-medium ${statusColor}`}>
-                        {conv.status === 'needs_human_review' ? '⚠️ Human Review' : conv.status}
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                        conv.status === 'needs_human_review'
+                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                          : conv.status === 'resolved'
+                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                          : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          conv.status === 'needs_human_review' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
+                        }`} />
+                        {conv.status === 'needs_human_review' ? 'Review' : conv.status}
                       </span>
-                      {conv.aiPaused && (
-                        <span className="text-[10px] text-[#E0BD55] font-mono">
-                          [AI Paused]
-                        </span>
-                      )}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
           )}
         </div>
 
-        {/* Right Column: Conversation Detail & Real AI Controls */}
+        {/* Right Column: Clean Dark Conversation Detail & AI Controls */}
         <div
           className={`${
             activeConversationId ? 'col-span-12 lg:col-span-7' : 'hidden lg:flex lg:col-span-7'
-          } bg-[#181810] border border-[#393426] rounded-2xl flex flex-col justify-between overflow-hidden`}
+          } bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between overflow-hidden`}
         >
           {activeConversation ? (
             <div className="flex flex-col h-full">
               {/* Detail Header */}
-              <div className="p-3.5 border-b border-[#393426] flex items-center justify-between gap-3 bg-[#1E1D14]">
-                <div className="flex items-center gap-2">
+              <div className="p-4 border-b border-white/10 flex items-center justify-between gap-3 bg-slate-900/60">
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveConversationId(null)}
-                    className="lg:hidden p-1.5 hover:bg-[#252419] rounded-lg text-[#B9B5A7]"
+                    className="lg:hidden p-1.5 hover:bg-white/10 rounded-xl text-slate-300 transition-colors"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <div>
-                    <h3 className="text-sm font-bold text-[#F5F2E8]">
+                    <h3 className="text-sm font-bold text-slate-100 leading-snug">
                       {activeConversation.customerName}
                     </h3>
-                    <span className="text-[11px] text-[#817D70] font-mono">
+                    <span className="text-[11px] text-slate-400 font-mono">
                       Platform: {activeConversation.platform} · Status: {activeConversation.status}
                     </span>
                   </div>
                 </div>
 
-                {/* AI Control Buttons (Server-Authoritative) */}
-                <div className="flex items-center gap-1.5">
+                {/* AI Control Buttons */}
+                <div className="flex items-center gap-2">
                   {activeConversation.aiPaused ? (
                     <button
                       type="button"
                       disabled={Boolean(actionInProgress)}
                       onClick={() => handleAction('resume_ai')}
-                      className="px-2.5 py-1.5 bg-[#C9A227] hover:bg-[#A88419] text-[#0B0B09] font-bold text-xs rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-purple-600/20 cursor-pointer"
                     >
-                      <Play className="w-3 h-3" />
+                      <Play className="w-3.5 h-3.5 fill-current" />
                       <span>{lang === 'my' ? 'AI ဖွင့်မည်' : 'Resume AI'}</span>
                     </button>
                   ) : (
@@ -323,9 +358,9 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                       type="button"
                       disabled={Boolean(actionInProgress)}
                       onClick={() => handleAction('pause_ai')}
-                      className="px-2.5 py-1.5 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-[#E0BD55] font-semibold text-xs rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                     >
-                      <Pause className="w-3 h-3" />
+                      <Pause className="w-3.5 h-3.5" />
                       <span>{lang === 'my' ? 'AI ရပ်မည်' : 'Pause AI'}</span>
                     </button>
                   )}
@@ -334,9 +369,9 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                     type="button"
                     disabled={Boolean(actionInProgress)}
                     onClick={() => handleAction('resolve')}
-                    className="px-2.5 py-1.5 bg-[#1E1D14] hover:bg-[#252419] border border-[#393426] text-[#65B985] font-semibold text-xs rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                   >
-                    <CheckCircle2 className="w-3 h-3" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                     <span>{lang === 'my' ? 'ပြီးဆုံး' : 'Resolve'}</span>
                   </button>
                 </div>
@@ -344,8 +379,8 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
 
               {/* Human Review Banner if Flagged */}
               {activeConversation.humanReviewReason && (
-                <div className="bg-[#E0BD55]/10 border-b border-[#E0BD55]/30 p-2.5 px-4 text-xs text-[#E0BD55] flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                <div className="bg-amber-500/10 border-b border-amber-500/30 p-3 px-4 text-xs text-amber-300 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>
                     <strong>{lang === 'my' ? 'လွှဲပြောင်းရသည့် အကြောင်းရင်း' : 'Human Review Trigger'}:</strong>{' '}
                     {activeConversation.humanReviewReason}
@@ -353,10 +388,10 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                 </div>
               )}
 
-              {/* Message Thread (Authoritative Real Message History) */}
-              <div className="flex-1 p-4 overflow-y-auto space-y-3 min-h-[300px] max-h-[450px]">
+              {/* Message Thread */}
+              <div className="flex-1 p-5 overflow-y-auto space-y-3.5 min-h-[320px] max-h-[460px] bg-slate-950/40">
                 {(!activeConversation.messages || activeConversation.messages.length === 0) ? (
-                  <p className="text-center text-xs text-[#817D70] py-8">
+                  <p className="text-center text-xs text-slate-500 py-10">
                     {lang === 'my' ? 'စာတိုမှတ်တမ်း မရှိသေးပါ' : 'No message history'}
                   </p>
                 ) : (
@@ -371,20 +406,22 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                         className={`flex flex-col ${isCustomer ? 'items-start' : 'items-end'}`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs ${
+                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs shadow-md ${
                             isCustomer
-                              ? 'bg-[#1E1D14] text-[#F5F2E8] border border-[#393426]'
+                              ? 'bg-slate-900 text-slate-100 border border-white/10'
                               : isAi
-                              ? 'bg-[#181810] text-[#E0BD55] border border-[#C9A227]/40'
-                              : 'bg-[#C9A227] text-[#0B0B09] font-medium'
+                              ? 'bg-purple-600/20 text-purple-200 border border-purple-500/30'
+                              : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium shadow-purple-600/20'
                           }`}
                         >
-                          <div className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70">
-                            {isCustomer ? activeConversation.customerName : isAi ? 'Groq AI Assistant' : (msg.senderName || 'Staff')}
+                          <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${
+                            isStaff ? 'text-purple-200' : 'text-slate-400'
+                          }`}>
+                            {isCustomer ? activeConversation.customerName : isAi ? 'Groq AI Assistant' : (msg.senderName || 'Merchant Staff')}
                           </div>
-                          <p className="whitespace-pre-wrap">{msg.text}</p>
+                          <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
                         </div>
-                        <span className="text-[10px] text-[#817D70] mt-1 font-mono px-1">
+                        <span className="text-[10px] text-slate-500 mt-1 font-mono px-1">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -394,18 +431,18 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
               </div>
 
               {/* Human Staff Reply Form */}
-              <form onSubmit={handleReplySubmit} className="p-3 border-t border-[#393426] bg-[#1E1D14] flex gap-2">
+              <form onSubmit={handleReplySubmit} className="p-3 border-t border-white/10 bg-slate-900/80 flex gap-2">
                 <input
                   type="text"
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder={lang === 'my' ? 'ဖောက်သည်ထံ လူကိုယ်တိုင် စာပြန်ရန်...' : 'Type human reply to customer...'}
-                  className="flex-1 bg-[#11110D] border border-[#393426] rounded-xl px-3.5 py-2 text-xs text-[#F5F2E8] placeholder-[#817D70] focus:outline-none focus:border-[#C9A227]"
+                  className="flex-1 bg-slate-950/60 border border-white/15 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
                 />
                 <button
                   type="submit"
                   disabled={!replyText.trim() || sendingReply}
-                  className="px-4 py-2 bg-[#C9A227] hover:bg-[#A88419] disabled:opacity-50 text-[#0B0B09] font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-4 py-2.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-purple-600/25"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{lang === 'my' ? 'ပို့မည်' : 'Send'}</span>
@@ -413,13 +450,17 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
               </form>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center text-xs text-[#817D70] space-y-2">
-              <MessageSquare className="w-10 h-10 text-[#393426]" />
-              <p>{lang === 'my' ? 'အသေးစိတ်ကြည့်ရှုရန် မက်ဆေ့ခ်ျတစ်ခု ရွေးချယ်ပါ' : 'Select a conversation to view message history and AI controls'}</p>
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center text-xs text-slate-500 space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-slate-500 mb-1">
+                <MessageSquare className="w-6 h-6 stroke-[1.75]" />
+              </div>
+              <p className="font-semibold text-slate-300">
+                {lang === 'my' ? 'အသေးစိတ်ကြည့်ရှုရန် မက်ဆေ့ချ်တစ်ခု ရွေးချယ်ပါ' : 'Select a conversation to view message history and AI controls'}
+              </p>
             </div>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };

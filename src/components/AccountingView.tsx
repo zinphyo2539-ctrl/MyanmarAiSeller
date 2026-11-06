@@ -294,17 +294,17 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#CBD5E1] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/[0.03] backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-lg">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-100">
                 {lang === 'my' ? 'စာရင်းကိုင်နှင့် ဘဏ္ဍာရေး' : 'Accounting & Financials'}
               </h1>
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-slate-400 mt-0.5">
                 {lang === 'my'
                   ? 'ဝင်ငွေ၊ ထွက်ငွေ၊ ရောင်းရကုန်ကျစရိတ် (COGS) နှင့် အသားတင်အမြတ်အစွန်း မှတ်တမ်း'
                   : 'Real revenue, expenses, cost of goods sold, profit/loss, and receivables'}
@@ -319,27 +319,27 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             type="button"
             onClick={handleReconcileOrders}
             disabled={reconciling}
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-[#0F172A] text-xs font-semibold rounded-xl border border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+            className="px-3.5 py-2 bg-slate-900/80 hover:bg-slate-800 text-slate-200 text-xs font-semibold rounded-xl border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             title={lang === 'my' ? 'အော်ဒါများမှ စာရင်းအလိုအလျောက် ချိန်ညှိမည်' : 'Sync verified sales from orders'}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${reconciling ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-purple-400 ${reconciling ? 'animate-spin' : ''}`} />
             <span>{lang === 'my' ? 'အော်ဒါများနှင့် ချိန်ညှိမည်' : 'Reconcile Orders'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleExportCsv}
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-[#0F172A] text-xs font-semibold rounded-xl border border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3.5 py-2 bg-slate-900/80 hover:bg-slate-800 text-slate-200 text-xs font-semibold rounded-xl border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
             title={lang === 'my' ? 'CSV ဖိုင်အဖြစ် ဒေါင်းလုဒ်ရယူမည်' : 'Export to CSV'}
           >
-            <Download className="w-3.5 h-3.5 text-slate-600" />
+            <Download className="w-3.5 h-3.5 text-slate-400" />
             <span>{lang === 'my' ? 'CSV ရယူမည်' : 'Export CSV'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleOpenCreateModal}
-            className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40"
           >
             <Plus className="w-4 h-4" />
             <span>{lang === 'my' ? 'စာရင်းအသစ် ထည့်မည်' : 'New Entry'}</span>
@@ -349,35 +349,35 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
       {/* Notifications */}
       {successMessage && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex items-center justify-between gap-2">
+        <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
             <span>{error}</span>
           </div>
-          <button type="button" onClick={reloadData} className="font-bold underline cursor-pointer">
+          <button type="button" onClick={reloadData} className="font-bold underline cursor-pointer text-rose-200 hover:text-white">
             Retry
           </button>
         </div>
       )}
 
       {/* Date Filter Bar & Primary View Tabs */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-[#CBD5E1] shadow-xs">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white/[0.03] backdrop-blur-xl p-3 rounded-2xl border border-white/10 shadow-lg">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+        <div className="flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-white/5">
           <button
             type="button"
             onClick={() => setActiveTab('overview')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               activeTab === 'overview'
-                ? 'bg-white text-[#2563EB] shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {lang === 'my' ? 'ဘဏ္ဍာရေး အနှစ်ချုပ်' : 'Overview'}
@@ -386,10 +386,10 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('transactions')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               activeTab === 'transactions'
-                ? 'bg-white text-[#2563EB] shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {lang === 'my' ? 'စာရင်းမှတ်တမ်းများ' : 'Transactions'}
@@ -398,10 +398,10 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('reports')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               activeTab === 'reports'
-                ? 'bg-white text-[#2563EB] shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 font-bold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {lang === 'my' ? 'အစီရင်ခံစာများ' : 'Reports'}
@@ -410,14 +410,14 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
         {/* Date Range Segmented Controls */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] text-slate-500 font-medium mr-1 hidden sm:inline">
+          <span className="text-[11px] text-slate-400 font-medium mr-1 hidden sm:inline">
             {lang === 'my' ? 'ကာလ:' : 'Range:'}
           </span>
           <button
             type="button"
             onClick={() => setRange('today')}
-            className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors cursor-pointer ${
-              range === 'today' ? 'bg-[#2563EB] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${
+              range === 'today' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'
             }`}
           >
             {lang === 'my' ? 'ယနေ့' : 'Today'}
@@ -425,8 +425,8 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
           <button
             type="button"
             onClick={() => setRange('week')}
-            className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors cursor-pointer ${
-              range === 'week' ? 'bg-[#2563EB] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${
+              range === 'week' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'
             }`}
           >
             {lang === 'my' ? 'ဒီအပတ်' : 'This Week'}
@@ -434,8 +434,8 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
           <button
             type="button"
             onClick={() => setRange('month')}
-            className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors cursor-pointer ${
-              range === 'month' ? 'bg-[#2563EB] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${
+              range === 'month' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'
             }`}
           >
             {lang === 'my' ? 'ဒီလ' : 'This Month'}
@@ -443,8 +443,8 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
           <button
             type="button"
             onClick={() => setRange('custom')}
-            className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors cursor-pointer ${
-              range === 'custom' ? 'bg-[#2563EB] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${
+              range === 'custom' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'
             }`}
           >
             {lang === 'my' ? 'စိတ်ကြိုက်' : 'Custom'}
@@ -454,29 +454,29 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
       {/* Custom Date Range Picker when selected */}
       {range === 'custom' && (
-        <div className="p-4 bg-white border border-[#CBD5E1] rounded-2xl flex flex-wrap items-center gap-3">
+        <div className="p-4 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-600">{lang === 'my' ? 'မှ:' : 'From:'}</span>
+            <span className="text-xs text-slate-400">{lang === 'my' ? 'မှ:' : 'From:'}</span>
             <input
               type="date"
               value={customStartDate}
               onChange={(e) => setCustomStartDate(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+              className="px-3 py-1.5 text-xs bg-slate-950/60 border border-white/15 rounded-lg text-slate-100 focus:outline-none focus:border-purple-500"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-600">{lang === 'my' ? 'ထိ:' : 'To:'}</span>
+            <span className="text-xs text-slate-400">{lang === 'my' ? 'ထိ:' : 'To:'}</span>
             <input
               type="date"
               value={customEndDate}
               onChange={(e) => setCustomEndDate(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+              className="px-3 py-1.5 text-xs bg-slate-950/60 border border-white/15 rounded-lg text-slate-100 focus:outline-none focus:border-purple-500"
             />
           </div>
           <button
             type="button"
             onClick={fetchSummary}
-            className="px-3 py-1.5 bg-[#2563EB] text-white text-xs font-semibold rounded-lg hover:bg-[#1D4ED8] cursor-pointer"
+            className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-semibold rounded-lg hover:from-purple-500 hover:to-indigo-500 cursor-pointer shadow-md shadow-purple-600/20"
           >
             {lang === 'my' ? 'ကြည့်ရှုမည်' : 'Apply'}
           </button>
@@ -485,14 +485,14 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
       {/* Limitation Disclosure Banner (if some products lack purchase cost) */}
       {summary && summary.missingCostPricesCount > 0 && (
-        <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-start justify-between gap-3 text-xs text-amber-800">
+        <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start justify-between gap-3 text-xs text-amber-300">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold">
+              <p className="font-semibold text-amber-200">
                 {lang === 'my' ? 'ဝယ်ရင်းစရိတ် အချက်အလက် သတိပေးချက်' : 'Product Cost Basis Notice'}
               </p>
-              <p className="text-[11px] text-amber-700 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-amber-300/80 mt-0.5 leading-relaxed">
                 {lang === 'my'
                   ? `ရောင်းချပြီးသော ပစ္စည်းများအနက် ${summary.missingCostPricesCount} ခုတွင် ဝယ်ရင်းစရိတ် (Cost Price) မသတ်မှတ်ရသေးပါ။ COGS ကို စာရင်းသွင်းထားသော စရိတ်များဖြင့်သာ တွက်ချက်ထားပါသည်။ ပိုမိုတိကျစေရန် စတော့စာမျက်နှာတွင် ကုန်ပစ္စည်းဝယ်ရင်းစျေး ထည့်သွင်းနိုင်ပါသည်။`
                   : `${summary.missingCostPricesCount} sold items lack an explicit cost price basis. COGS is derived from recorded costs. Configure product cost price in Inventory for full margin fidelity.`}
@@ -503,7 +503,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             <button
               type="button"
               onClick={onNavigateToInventory}
-              className="shrink-0 px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-semibold cursor-pointer"
+              className="shrink-0 px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-200 rounded-lg text-xs font-semibold cursor-pointer transition-all"
             >
               {lang === 'my' ? 'စတော့သို့ သွားမည်' : 'Go to Inventory'}
             </button>
@@ -514,19 +514,20 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
       {/* TAB 1: EXECUTIVE FINANCIAL OVERVIEW */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Top 4 Primary Financial Pillars */}
+          {/* Top 4 Primary Financial Pillars with top glow accents */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Sales Revenue */}
-            <div className="bg-white border border-[#CBD5E1] rounded-2xl p-4 shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-semibold uppercase tracking-wider">
+            <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-2 hover:border-purple-500/40 transition-all group">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   {lang === 'my' ? 'ရောင်းရငွေ စုစုပေါင်း' : 'Total Sales Revenue'}
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 stroke-[2.2]" />
                 </div>
               </div>
-              <div className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-[#0F172A]">
+              <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-slate-100 tabular-nums">
                 {formatMMK(summary?.salesRevenue)}
               </div>
               <div className="text-[11px] text-slate-500">
@@ -535,16 +536,17 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             </div>
 
             {/* Cash Actually Received */}
-            <div className="bg-white border border-[#CBD5E1] rounded-2xl p-4 shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-semibold uppercase tracking-wider">
+            <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-2 hover:border-emerald-500/40 transition-all group">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   {lang === 'my' ? 'လက်ခံရရှိငွေ အမှန်' : 'Cash Received'}
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <Wallet className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <Wallet className="w-4 h-4 stroke-[2.2]" />
                 </div>
               </div>
-              <div className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-emerald-600">
+              <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-emerald-400 tabular-nums">
                 {formatMMK(summary?.cashReceived)}
               </div>
               <div className="text-[11px] text-slate-500">
@@ -553,16 +555,17 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             </div>
 
             {/* Outstanding Receivables */}
-            <div className="bg-white border border-[#CBD5E1] rounded-2xl p-4 shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-semibold uppercase tracking-wider">
+            <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-2 hover:border-amber-500/40 transition-all group">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">
                   {lang === 'my' ? 'ရရန်ကျန်ငွေ (Receivables)' : 'Outstanding Receivables'}
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Clock className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <Clock className="w-4 h-4 stroke-[2.2]" />
                 </div>
               </div>
-              <div className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-amber-600">
+              <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-amber-400 tabular-nums">
                 {formatMMK(summary?.receivables)}
               </div>
               <div className="text-[11px] text-slate-500">
@@ -571,19 +574,20 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             </div>
 
             {/* Net Profit / Loss */}
-            <div className="bg-white border border-[#CBD5E1] rounded-2xl p-4 shadow-xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-semibold uppercase tracking-wider">
+            <div className="relative overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-2 hover:border-indigo-500/40 transition-all group">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   {lang === 'my' ? 'အသားတင် အမြတ်/အရှုံး' : 'Net Profit / Loss'}
                 </span>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  (summary?.netProfit || 0) >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                  (summary?.netProfit || 0) >= 0 ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
                 }`}>
-                  {(summary?.netProfit || 0) >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                  {(summary?.netProfit || 0) >= 0 ? <ArrowUpRight className="w-4 h-4 stroke-[2.2]" /> : <ArrowDownRight className="w-4 h-4 stroke-[2.2]" />}
                 </div>
               </div>
-              <div className={`text-xl sm:text-2xl font-bold font-mono tracking-tight ${
-                (summary?.netProfit || 0) >= 0 ? 'text-emerald-700' : 'text-red-600'
+              <div className={`text-xl sm:text-2xl font-black font-mono tracking-tight tabular-nums ${
+                (summary?.netProfit || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
               }`}>
                 {formatMMK(summary?.netProfit)}
               </div>
@@ -593,54 +597,54 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             </div>
           </div>
 
-          {/* Secondary Financial Calculation Metrics */}
+          {/* Secondary Financial Calculation Metrics (3 Breakdown Cards) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* COGS and Gross Profit Card */}
-            <div className="bg-white border border-[#CBD5E1] rounded-2xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold text-[#0F172A]">
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-3 hover:border-purple-500/30 transition-all">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-slate-200">
                   {lang === 'my' ? 'ကုန်ကျစရိတ်နှင့် အကြမ်းဖျင်းအမြတ်' : 'COGS & Gross Margin'}
                 </h3>
-                <Building2 className="w-4 h-4 text-slate-400" />
+                <Building2 className="w-4 h-4 text-purple-400" />
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">{lang === 'my' ? 'ရောင်းရငွေ (Sales Revenue):' : 'Recognized Sales:'}</span>
-                  <span className="font-mono font-semibold text-slate-800">{formatMMK(summary?.salesRevenue)}</span>
+              <div className="text-xs divide-y divide-dashed divide-white/10">
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-slate-400">{lang === 'my' ? 'ရောင်းရငွေ (Sales Revenue):' : 'Recognized Sales:'}</span>
+                  <span className="font-mono font-semibold text-slate-100 tabular-nums text-right">{formatMMK(summary?.salesRevenue)}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">{lang === 'my' ? 'ကုန်ကျစရိတ် (COGS):' : 'Cost of Goods (COGS):'}</span>
-                  <span className="font-mono font-semibold text-red-600">- {formatMMK(summary?.cogs)}</span>
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-slate-400">{lang === 'my' ? 'ကုန်ကျစရိတ် (COGS):' : 'Cost of Goods (COGS):'}</span>
+                  <span className="font-mono font-semibold text-rose-400 tabular-nums text-right">- {formatMMK(summary?.cogs)}</span>
                 </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between font-bold text-sm">
-                  <span>{lang === 'my' ? 'အကြမ်းဖျင်း အမြတ် (Gross Profit):' : 'Gross Profit:'}</span>
-                  <span className="font-mono text-emerald-700">{formatMMK(summary?.grossProfit)}</span>
+                <div className="pt-3 flex items-center justify-between font-bold text-sm">
+                  <span className="text-slate-200">{lang === 'my' ? 'အကြမ်းဖျင်း အမြတ် (Gross Profit):' : 'Gross Profit:'}</span>
+                  <span className="font-mono text-emerald-400 tabular-nums text-right">{formatMMK(summary?.grossProfit)}</span>
                 </div>
               </div>
             </div>
 
             {/* Operating Expenses Breakdown */}
-            <div className="bg-white border border-[#CBD5E1] rounded-2xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold text-[#0F172A]">
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-3 hover:border-purple-500/30 transition-all">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-slate-200">
                   {lang === 'my' ? 'လုပ်ငန်းလည်ပတ်စရိတ်များ' : 'Operating Expenses'}
                 </h3>
-                <CreditCard className="w-4 h-4 text-slate-400" />
+                <CreditCard className="w-4 h-4 text-purple-400" />
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">{lang === 'my' ? 'အကြမ်းဖျင်း အမြတ်:' : 'Gross Profit:'}</span>
-                  <span className="font-mono font-semibold text-slate-800">{formatMMK(summary?.grossProfit)}</span>
+              <div className="text-xs divide-y divide-dashed divide-white/10">
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-slate-400">{lang === 'my' ? 'အကြမ်းဖျင်း အမြတ်:' : 'Gross Profit:'}</span>
+                  <span className="font-mono font-semibold text-slate-100 tabular-nums text-right">{formatMMK(summary?.grossProfit)}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">{lang === 'my' ? 'လည်ပတ်စရိတ် (Operating Expenses):' : 'Operating Expenses:'}</span>
-                  <span className="font-mono font-semibold text-red-600">- {formatMMK(summary?.operatingExpenses)}</span>
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-slate-400">{lang === 'my' ? 'လည်ပတ်စရိတ် (Operating Expenses):' : 'Operating Expenses:'}</span>
+                  <span className="font-mono font-semibold text-rose-400 tabular-nums text-right">- {formatMMK(summary?.operatingExpenses)}</span>
                 </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between font-bold text-sm">
-                  <span>{lang === 'my' ? 'အသားတင် အမြတ်/အရှုံး:' : 'Net Profit / Loss:'}</span>
-                  <span className={`font-mono ${(summary?.netProfit || 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                <div className="pt-3 flex items-center justify-between font-bold text-sm">
+                  <span className="text-slate-200">{lang === 'my' ? 'အသားတင် အမြတ်/အရှုံး:' : 'Net Profit / Loss:'}</span>
+                  <span className={`font-mono tabular-nums text-right ${(summary?.netProfit || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {formatMMK(summary?.netProfit)}
                   </span>
                 </div>
@@ -648,26 +652,26 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             </div>
 
             {/* Cash Flow Health */}
-            <div className="bg-white border border-[#CBD5E1] rounded-2xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold text-[#0F172A]">
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-3 hover:border-purple-500/30 transition-all">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-slate-200">
                   {lang === 'my' ? 'ငွေစီးဆင်းမှု (Cash Flow)' : 'Cash Flow Health'}
                 </h3>
-                <TrendingUp className="w-4 h-4 text-slate-400" />
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">{lang === 'my' ? 'ငွေဝင် (Inflows):' : 'Cash Inflows:'}</span>
-                  <span className="font-mono font-semibold text-emerald-600">+ {formatMMK(summary?.cashInflows)}</span>
+              <div className="text-xs divide-y divide-dashed divide-white/10">
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-slate-400">{lang === 'my' ? 'ငွေဝင် (Inflows):' : 'Cash Inflows:'}</span>
+                  <span className="font-mono font-semibold text-emerald-400 tabular-nums text-right">+ {formatMMK(summary?.cashInflows)}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">{lang === 'my' ? 'ငွေထွက် (Outflows):' : 'Cash Outflows:'}</span>
-                  <span className="font-mono font-semibold text-red-600">- {formatMMK(summary?.cashOutflows)}</span>
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-slate-400">{lang === 'my' ? 'ငွေထွက် (Outflows):' : 'Cash Outflows:'}</span>
+                  <span className="font-mono font-semibold text-rose-400 tabular-nums text-right">- {formatMMK(summary?.cashOutflows)}</span>
                 </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between font-bold text-sm">
-                  <span>{lang === 'my' ? 'ငွေစီးဆင်းမှု အသားတင်:' : 'Net Cash Flow:'}</span>
-                  <span className={`font-mono ${(summary?.netCashFlow || 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                <div className="pt-3 flex items-center justify-between font-bold text-sm">
+                  <span className="text-slate-200">{lang === 'my' ? 'ငွေစီးဆင်းမှု အသားတင်:' : 'Net Cash Flow:'}</span>
+                  <span className={`font-mono tabular-nums text-right ${(summary?.netCashFlow || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {formatMMK(summary?.netCashFlow)}
                   </span>
                 </div>
@@ -676,52 +680,52 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
           </div>
 
           {/* Recent 5 Transactions Snapshot */}
-          <div className="bg-white border border-[#CBD5E1] rounded-2xl p-5 shadow-xs space-y-4">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-[#0F172A]">
+                <h3 className="text-sm font-bold text-slate-100">
                   {lang === 'my' ? 'လတ်တလော စာရင်းမှတ်တမ်းများ' : 'Recent Accounting Records'}
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-400">
                   {lang === 'my' ? 'နောက်ဆုံးထည့်သွင်းထားသော စာရင်းများ' : 'Latest verified entries'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveTab('transactions')}
-                className="text-xs text-[#2563EB] hover:text-[#1D4ED8] font-semibold cursor-pointer"
+                className="text-xs text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
               >
                 {lang === 'my' ? 'အားလုံးကြည့်မည် →' : 'View All →'}
               </button>
             </div>
 
             {entries.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">
+              <div className="p-8 text-center text-slate-500 text-xs">
                 <Receipt className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p>{lang === 'my' ? 'စာရင်းမှတ်တမ်းများ မရှိသေးပါ' : 'No transactions recorded yet'}</p>
                 <button
                   type="button"
                   onClick={handleOpenCreateModal}
-                  className="mt-3 px-3 py-1.5 bg-[#2563EB] text-white text-xs font-bold rounded-lg"
+                  className="mt-3 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold rounded-lg cursor-pointer"
                 >
                   {lang === 'my' ? '+ ပထမဆုံး စာရင်းထည့်မည်' : '+ Add First Entry'}
                 </button>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-white/5">
                 {entries.slice(0, 5).map((entry) => (
-                  <div key={entry.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                  <div key={entry.id} className="py-3 flex items-center justify-between gap-3 text-xs hover:bg-white/[0.02] px-2 rounded-xl transition-all">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                        entry.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                        entry.type === 'income' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
                       }`}>
                         {entry.type === 'income' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                       </div>
                       <div>
-                        <div className="font-semibold text-slate-800">
+                        <div className="font-semibold text-slate-200">
                           {entry.description || getCategoryLabel(entry.category)}
                         </div>
-                        <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                        <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
                           <span>{entry.date}</span>
                           <span>·</span>
                           <span>{getCategoryLabel(entry.category)}</span>
@@ -731,7 +735,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                       </div>
                     </div>
                     <div className={`font-mono font-bold text-right shrink-0 ${
-                      entry.type === 'income' ? 'text-emerald-700' : 'text-slate-800'
+                      entry.type === 'income' ? 'text-emerald-400' : 'text-slate-300'
                     }`}>
                       {entry.type === 'income' ? '+' : '-'} {formatMMK(entry.amount)}
                     </div>
@@ -745,11 +749,11 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
       {/* TAB 2: DETAILED TRANSACTIONS LIST */}
       {activeTab === 'transactions' && (
-        <div className="bg-white border border-[#CBD5E1] rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-4">
           {/* Filters Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
               <input
                 type="text"
                 placeholder={lang === 'my' ? 'စာရင်းရှာဖွေရန်...' : 'Search transactions...'}
@@ -758,7 +762,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                   setSearchQuery(e.target.value);
                   setPage(1);
                 }}
-                className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                className="w-full pl-9 pr-3 py-2 text-xs bg-slate-950/60 border border-white/15 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
               />
             </div>
 
@@ -769,7 +773,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                   setFilterType(e.target.value);
                   setPage(1);
                 }}
-                className="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none"
+                className="px-3 py-2 text-xs border border-white/15 rounded-xl bg-slate-950/80 text-slate-200 focus:outline-none focus:border-purple-500"
               >
                 <option value="all">{lang === 'my' ? 'အမျိုးအစား အားလုံး' : 'All Types'}</option>
                 <option value="income">{lang === 'my' ? 'ဝင်ငွေ (Income)' : 'Income'}</option>
@@ -782,7 +786,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                   setFilterCategory(e.target.value);
                   setPage(1);
                 }}
-                className="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none"
+                className="px-3 py-2 text-xs border border-white/15 rounded-xl bg-slate-950/80 text-slate-200 focus:outline-none focus:border-purple-500"
               >
                 <option value="all">{lang === 'my' ? 'ကဏ္ဍ အားလုံး' : 'All Categories'}</option>
                 <option value="cost_of_goods">{lang === 'my' ? 'ကုန်ပစ္စည်းဝယ်ရင်းစရိတ်' : 'Cost of Goods'}</option>
@@ -801,15 +805,15 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
           {/* Table */}
           {entries.length === 0 ? (
-            <div className="p-12 text-center text-slate-400 text-xs">
+            <div className="p-12 text-center text-slate-500 text-xs">
               <Receipt className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p className="font-semibold text-slate-600">
+              <p className="font-semibold text-slate-300">
                 {lang === 'my' ? 'ရှာဖွေမှုနှင့် ကိုက်ညီသော စာရင်းမှတ်တမ်း မရှိပါ' : 'No transactions match your criteria'}
               </p>
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="mt-4 px-4 py-2 bg-[#2563EB] text-white text-xs font-bold rounded-xl shadow-xs"
+                className="mt-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-600/25 cursor-pointer"
               >
                 {lang === 'my' ? '+ စာရင်းမှတ်တမ်းအသစ် ထည့်မည်' : '+ Add New Transaction'}
               </button>
@@ -818,7 +822,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-400 text-[11px] uppercase tracking-wider font-semibold">
+                  <tr className="border-b border-white/10 text-slate-400 text-[11px] uppercase tracking-wider font-semibold">
                     <th className="py-3 px-3">{lang === 'my' ? 'ရက်စွဲ' : 'Date'}</th>
                     <th className="py-3 px-3">{lang === 'my' ? 'အမျိုးအစား' : 'Type'}</th>
                     <th className="py-3 px-3">{lang === 'my' ? 'ကဏ္ဍ' : 'Category'}</th>
@@ -828,35 +832,35 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                     <th className="py-3 px-3 text-right">{lang === 'my' ? 'လုပ်ဆောင်ချက်' : 'Actions'}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/5">
                   {entries.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-3 font-mono text-slate-600 whitespace-nowrap">
+                    <tr key={entry.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-3 font-mono text-slate-400 whitespace-nowrap">
                         {entry.date}
                       </td>
                       <td className="py-3 px-3 whitespace-nowrap">
                         <span className={`font-semibold ${
-                          entry.type === 'income' ? 'text-emerald-700' : 'text-red-600'
+                          entry.type === 'income' ? 'text-emerald-400' : 'text-rose-400'
                         }`}>
                           {entry.type === 'income' ? (lang === 'my' ? 'ဝင်ငွေ' : 'Income') : (lang === 'my' ? 'ထွက်ငွေ' : 'Expense')}
                         </span>
                       </td>
-                      <td className="py-3 px-3 whitespace-nowrap text-slate-700 font-medium">
+                      <td className="py-3 px-3 whitespace-nowrap text-slate-200 font-medium">
                         {getCategoryLabel(entry.category)}
                       </td>
-                      <td className="py-3 px-3 text-slate-600 max-w-xs truncate" title={entry.description}>
+                      <td className="py-3 px-3 text-slate-400 max-w-xs truncate" title={entry.description}>
                         {entry.description || '-'}
                         {entry.orderId && (
-                          <span className="block text-[10px] text-slate-400 font-mono mt-0.5">
+                          <span className="block text-[10px] text-slate-500 font-mono mt-0.5">
                             Order: #{entry.orderId}
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
+                      <td className="py-3 px-3 text-slate-400 whitespace-nowrap">
                         {entry.paymentMethod}
                       </td>
                       <td className={`py-3 px-3 text-right font-mono font-bold whitespace-nowrap ${
-                        entry.type === 'income' ? 'text-emerald-700' : 'text-slate-900'
+                        entry.type === 'income' ? 'text-emerald-400' : 'text-slate-100'
                       }`}>
                         {entry.type === 'income' ? '+' : '-'} {formatMMK(entry.amount)}
                       </td>
@@ -865,7 +869,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(entry)}
-                            className="p-1.5 text-slate-500 hover:text-[#2563EB] hover:bg-blue-50 rounded-lg cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg cursor-pointer transition-colors"
                             title={lang === 'my' ? 'ပြင်ဆင်မည်' : 'Edit'}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -873,7 +877,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDeleteEntry(entry.id)}
-                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg cursor-pointer transition-colors"
                             title={lang === 'my' ? 'ဖျက်မည်' : 'Delete'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -889,7 +893,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
           {/* Pagination */}
           {totalCount > limit && (
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
               <span>
                 {lang === 'my' ? `စုစုပေါင်း ${totalCount} ခုအနက်` : `Total ${totalCount} records`}
               </span>
@@ -898,7 +902,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage(p => Math.max(1, p - 1))}
-                  className="px-3 py-1 bg-slate-100 rounded-lg disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-1 bg-slate-900 border border-white/10 rounded-lg disabled:opacity-40 cursor-pointer text-slate-200"
                 >
                   {lang === 'my' ? 'ရှေ့သို့' : 'Previous'}
                 </button>
@@ -907,7 +911,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                   type="button"
                   disabled={page >= Math.ceil(totalCount / limit)}
                   onClick={() => setPage(p => p + 1)}
-                  className="px-3 py-1 bg-slate-100 rounded-lg disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-1 bg-slate-900 border border-white/10 rounded-lg disabled:opacity-40 cursor-pointer text-slate-200"
                 >
                   {lang === 'my' ? 'နောက်သို့' : 'Next'}
                 </button>
@@ -921,40 +925,40 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
       {activeTab === 'reports' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Monthly Profit & Loss Summary */}
-          <div className="bg-white border border-[#CBD5E1] rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-[#0F172A]">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-sm font-bold text-slate-100">
                 {lang === 'my' ? 'အမြတ်အစွန်း ရှင်းတမ်း (P&L Summary)' : 'Profit & Loss Statement'}
               </h3>
-              <FileText className="w-4 h-4 text-slate-400" />
+              <FileText className="w-4 h-4 text-purple-400" />
             </div>
 
             <div className="space-y-2.5 text-xs">
-              <div className="flex justify-between py-1.5 border-b border-slate-50">
-                <span className="font-semibold text-slate-700">
+              <div className="flex justify-between py-1.5 border-b border-white/5">
+                <span className="font-semibold text-slate-300">
                   {lang === 'my' ? '၁။ စုစုပေါင်း အရောင်းရငွေ (Gross Revenue)' : '1. Gross Sales Revenue'}
                 </span>
-                <span className="font-mono font-bold text-slate-900">{formatMMK(summary?.salesRevenue)}</span>
+                <span className="font-mono font-bold text-slate-100">{formatMMK(summary?.salesRevenue)}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-50 pl-3 text-red-600">
+              <div className="flex justify-between py-1.5 border-b border-white/5 pl-3 text-rose-400">
                 <span>{lang === 'my' ? 'နုတ်: ရောင်းရကုန်ကျစရိတ် (Less: COGS)' : 'Less: Cost of Goods Sold'}</span>
                 <span className="font-mono font-semibold">- {formatMMK(summary?.cogs)}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-slate-200 bg-slate-50/50 px-2 rounded font-bold">
-                <span className="text-slate-800">
+              <div className="flex justify-between py-2 border-b border-white/10 bg-white/[0.02] px-2 rounded font-bold">
+                <span className="text-slate-200">
                   {lang === 'my' ? '၂။ အကြမ်းဖျင်း အမြတ် (Gross Profit)' : '2. Gross Profit'}
                 </span>
-                <span className="font-mono text-emerald-700">{formatMMK(summary?.grossProfit)}</span>
+                <span className="font-mono text-emerald-400">{formatMMK(summary?.grossProfit)}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-50 pl-3 text-red-600">
+              <div className="flex justify-between py-1.5 border-b border-white/5 pl-3 text-rose-400">
                 <span>{lang === 'my' ? 'နုတ်: လုပ်ငန်းလည်ပတ်စရိတ်များ (Operating Expenses)' : 'Less: Operating Expenses'}</span>
                 <span className="font-mono font-semibold">- {formatMMK(summary?.operatingExpenses)}</span>
               </div>
-              <div className="flex justify-between py-2.5 border-t-2 border-slate-900 bg-blue-50/40 px-2 rounded-lg font-bold text-sm">
-                <span className="text-[#0F172A]">
+              <div className="flex justify-between py-2.5 border-t-2 border-purple-500/30 bg-purple-500/10 px-2 rounded-lg font-bold text-sm">
+                <span className="text-slate-100">
                   {lang === 'my' ? '၃။ အသားတင် အမြတ်/အရှုံး (Net Profit)' : '3. Net Profit / Loss'}
                 </span>
-                <span className={`font-mono ${(summary?.netProfit || 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                <span className={`font-mono ${(summary?.netProfit || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                   {formatMMK(summary?.netProfit)}
                 </span>
               </div>
@@ -962,12 +966,12 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
           </div>
 
           {/* Expense Category Breakdown */}
-          <div className="bg-white border border-[#CBD5E1] rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-[#0F172A]">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-sm font-bold text-slate-100">
                 {lang === 'my' ? 'အသုံးစရိတ် အမျိုးအစားခွဲခြမ်းစိတ်ဖြာမှု' : 'Expense Category Breakdown'}
               </h3>
-              <PieChart className="w-4 h-4 text-slate-400" />
+              <PieChart className="w-4 h-4 text-purple-400" />
             </div>
 
             <div className="space-y-3">
@@ -990,13 +994,13 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
                 return (
                   <div key={key} className="text-xs space-y-1">
-                    <div className="flex justify-between items-center text-slate-700">
+                    <div className="flex justify-between items-center text-slate-300">
                       <span>{label}</span>
                       <span className="font-mono font-semibold">{formatMMK(totalForCat)} ({percent}%)</span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-white/5">
                       <div
-                        className="bg-[#2563EB] h-full rounded-full transition-all duration-300"
+                        className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(100, percent)}%` }}
                       />
                     </div>
@@ -1010,10 +1014,10 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
       {/* Create / Edit Transaction Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 border border-slate-200 shadow-xl my-8">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="text-base font-bold text-[#0F172A]">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto transition-all duration-300">
+          <div className="bg-slate-900/95 backdrop-blur-2xl rounded-3xl max-w-lg w-full p-6 space-y-5 border border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.8)] text-slate-100 my-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <h2 className="text-base font-bold text-slate-100 tracking-tight">
                 {editingEntry
                   ? (lang === 'my' ? 'စာရင်းမှတ်တမ်း ပြင်ဆင်ရန်' : 'Edit Accounting Entry')
                   : (lang === 'my' ? 'စာရင်းမှတ်တမ်း အသစ်ထည့်သွင်းရန်' : 'New Accounting Entry')}
@@ -1021,15 +1025,15 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="p-1.5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white cursor-pointer transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                 <span>{formError}</span>
               </div>
             )}
@@ -1037,17 +1041,17 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
             <form onSubmit={handleSaveEntry} className="space-y-4 text-xs">
               {/* Type toggle */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1.5">
+                <label className="block font-semibold text-slate-300 mb-1.5">
                   {lang === 'my' ? 'စာရင်းအမျိုးအစား' : 'Transaction Type'}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: 'income', category: 'sales_revenue' })}
-                    className={`py-2 text-center rounded-xl font-bold transition-colors cursor-pointer border ${
+                    className={`py-2 text-center rounded-xl font-bold transition-all cursor-pointer border ${
                       formData.type === 'income'
-                        ? 'bg-emerald-600 text-white border-emerald-600'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm'
+                        : 'bg-slate-950/60 text-slate-400 border-white/10 hover:bg-white/5'
                     }`}
                   >
                     {lang === 'my' ? '+ ဝင်ငွေ (Income)' : '+ Income'}
@@ -1055,10 +1059,10 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: 'expense', category: 'cost_of_goods' })}
-                    className={`py-2 text-center rounded-xl font-bold transition-colors cursor-pointer border ${
+                    className={`py-2 text-center rounded-xl font-bold transition-all cursor-pointer border ${
                       formData.type === 'expense'
-                        ? 'bg-red-600 text-white border-red-600'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm'
+                        : 'bg-slate-950/60 text-slate-400 border-white/10 hover:bg-white/5'
                     }`}
                   >
                     {lang === 'my' ? '- အသုံးစရိတ် (Expense)' : '- Expense'}
@@ -1068,13 +1072,13 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
               {/* Category */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-slate-300 mb-1">
                   {lang === 'my' ? 'ကဏ္ဍ' : 'Category'}
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB] bg-white"
+                  className="w-full px-3 py-2 border border-white/15 rounded-xl bg-slate-950/80 text-slate-100 focus:outline-none focus:border-purple-500"
                 >
                   {formData.type === 'expense' ? (
                     <>
@@ -1099,7 +1103,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
               {/* Amount */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-slate-300 mb-1">
                   {lang === 'my' ? 'ငွေပမာဏ (MMK)' : 'Amount (MMK)'}
                 </label>
                 <input
@@ -1109,14 +1113,14 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                   required
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB] font-mono text-sm"
+                  className="w-full px-3 py-2 border border-white/15 rounded-xl bg-slate-950/80 text-slate-100 focus:outline-none focus:border-purple-500 font-mono text-sm"
                 />
               </div>
 
               {/* Date & Payment Method */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-slate-300 mb-1">
                     {lang === 'my' ? 'ရက်စွဲ' : 'Date'}
                   </label>
                   <input
@@ -1124,18 +1128,18 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    className="w-full px-3 py-2 border border-white/15 rounded-xl bg-slate-950/80 text-slate-100 focus:outline-none focus:border-purple-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-slate-300 mb-1">
                     {lang === 'my' ? 'ငွေပေးချေမှုစနစ်' : 'Payment Method'}
                   </label>
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB] bg-white"
+                    className="w-full px-3 py-2 border border-white/15 rounded-xl bg-slate-950/80 text-slate-100 focus:outline-none focus:border-purple-500"
                   >
                     <option value="Cash">Cash (ငွေသား)</option>
                     <option value="KBZPay">KBZPay</option>
@@ -1150,7 +1154,7 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
 
               {/* Description */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-slate-300 mb-1">
                   {lang === 'my' ? 'ဖော်ပြချက် / အကြောင်းအရာ' : 'Description'}
                 </label>
                 <textarea
@@ -1158,23 +1162,23 @@ export const AccountingView: React.FC<AccountingViewProps> = ({
                   placeholder={lang === 'my' ? 'အသေးစိတ်မှတ်ချက်...' : 'Enter details or remarks...'}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  className="w-full px-3 py-2 border border-white/15 rounded-xl bg-slate-950/80 text-slate-100 focus:outline-none focus:border-purple-500"
                 />
               </div>
 
               {/* Buttons */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-slate-300 rounded-xl text-slate-600 hover:bg-slate-50 cursor-pointer"
+                  className="px-4 py-2 border border-white/15 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 cursor-pointer transition-all"
                 >
                   {lang === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-xl cursor-pointer shadow-sm disabled:opacity-50"
+                  className="px-5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl cursor-pointer shadow-lg shadow-purple-600/25 disabled:opacity-50 transition-all"
                 >
                   {formSubmitting
                     ? (lang === 'my' ? 'သိမ်းဆည်းနေသည်...' : 'Saving...')

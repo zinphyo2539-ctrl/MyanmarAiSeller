@@ -5,7 +5,8 @@ import {
   Package,
   Store,
   Receipt,
-  Sparkles
+  Sparkles,
+  Box
 } from 'lucide-react';
 import { NavigationDestination } from '../types';
 
@@ -18,15 +19,19 @@ interface NavigationProps {
     inventoryAlertCount: number;
     paymentsReviewCount: number;
   };
+  userRole?: string;
+  provider?: string;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
   currentTab,
   onSelectTab,
   lang,
-  badges
+  badges,
+  userRole,
+  provider
 }) => {
-  const destinations: Array<{
+  const allDestinations: Array<{
     id: NavigationDestination;
     labelMy: string;
     labelEn: string;
@@ -71,16 +76,38 @@ export const Navigation: React.FC<NavigationProps> = ({
       labelEn: 'Account & AI',
       icon: Store,
       badge: badges.paymentsReviewCount > 0 ? badges.paymentsReviewCount : undefined
+    },
+    {
+      id: 'avatar_studio',
+      labelMy: 'Avatar Studio',
+      labelEn: 'Avatar Studio',
+      icon: Box
     }
   ];
+
+  const destinations = allDestinations.filter(d => {
+    if (d.id === 'avatar_studio') return true;
+    if (!userRole) return false; // Hide merchant tabs if unauthenticated
+    
+    // Merchant tabs require roles
+    const isMerchantAdmin = userRole === 'merchant_admin' || userRole === 'admin' || provider === 'local';
+    if (!isMerchantAdmin) {
+      // If just a regular customer, they might only see profile and home? 
+      // Existing App.tsx logic for desktop suggests they see everything except 'lab'.
+      // But 'home', 'messages', etc. are merchant-centric.
+      // However, I should follow the existing pattern in App.tsx line 898.
+      return ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile'].includes(d.id);
+    }
+    return true; // Merchant admin sees everything
+  });
 
   return (
     <nav
       aria-label="Primary Mobile Navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#CBD5E1] transition-all lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_35px_rgba(0,0,0,0.8)] transition-all lg:hidden"
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
-        <div className="grid grid-cols-6 items-center h-16">
+        <div className={`grid items-center h-16 py-1 gap-1`} style={{ gridTemplateColumns: `repeat(${destinations.length}, minmax(0, 1fr))` }}>
           {destinations.map((item) => {
             const isActive = currentTab === item.id;
             const Icon = item.icon;
@@ -92,40 +119,34 @@ export const Navigation: React.FC<NavigationProps> = ({
                 type="button"
                 onClick={() => onSelectTab(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative min-h-[48px] flex flex-col items-center justify-center py-1 px-1 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] rounded-lg ${
+                className={`relative min-h-[48px] flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all duration-200 select-none focus:outline-none ${
                   isActive
-                    ? 'text-[#1D4ED8]'
-                    : 'text-[#64748B] hover:text-[#475569]'
+                    ? 'bg-white/[0.08] text-purple-300 border border-white/10 shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
               >
                 <div className="relative">
                   <Icon
-                    className={`w-5 h-5 transition-transform ${
-                      isActive ? 'scale-110 text-[#2563EB]' : ''
+                    className={`w-5 h-5 transition-transform duration-200 ${
+                      isActive ? 'scale-110 text-purple-300 stroke-[2.2]' : 'text-slate-400'
                     }`}
                   />
                   {item.badge !== undefined && item.badge > 0 && (
                     <span
                       aria-label={`${item.badge} notifications`}
-                      className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-[#2563EB] text-white text-[10px] font-bold flex items-center justify-center font-mono tabular-nums leading-none shadow"
+                      className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-bold flex items-center justify-center font-mono tabular-nums leading-none shadow-md shadow-purple-600/40"
                     >
                       {item.badge > 99 ? '99+' : item.badge}
                     </span>
                   )}
                 </div>
                 <span
-                  className={`text-[9px] sm:text-[10px] font-medium tracking-tighter sm:tracking-tight mt-1 truncate max-w-full ${
-                    isActive ? 'font-semibold text-[#1D4ED8]' : 'text-[#64748B]'
+                  className={`text-[9px] sm:text-[10px] tracking-tight mt-1 truncate max-w-full leading-tight ${
+                    isActive ? 'font-bold text-purple-300' : 'font-medium text-slate-400'
                   }`}
                 >
                   {label}
                 </span>
-                {isActive && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute bottom-1 w-6 h-0.5 rounded-full bg-[#2563EB]"
-                  />
-                )}
               </button>
             );
           })}

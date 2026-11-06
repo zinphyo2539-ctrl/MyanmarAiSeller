@@ -15,21 +15,122 @@ import {
   Tag,
   LogIn,
   MessageSquare,
+  Sparkles,
+  Compass,
   X
 } from 'lucide-react';
 import { MarketplaceStore, Product } from '../types';
 import { CustomerCodeLookup } from './CustomerCodeLookup';
 import { OrderSupportModal } from './OrderSupportModal';
+import { MiniAvatarPreview } from './studio/MiniAvatarPreview';
 
 interface MarketplaceViewProps {
   onSelectStore: (slug: string, productId?: string) => void;
   onNavigateToMerchant?: () => void;
+  onNavigateToAvatarStudio?: () => void;
   initialSearchQuery?: string;
 }
+
+const MarketplaceProductCard: React.FC<{
+  product: Product;
+  storeSlug: string;
+  lang: 'my' | 'en';
+  onSelect: (slug: string, productId?: string) => void;
+}> = ({ product, storeSlug, lang, onSelect }) => {
+  const [imageFailed, setImageFailed] = useState(false);
+  const totalStock = (product.variants || []).reduce(
+    (acc, v) => acc + (Number(v.stock) || 0),
+    0
+  );
+  const inStock = totalStock > 0;
+
+  return (
+    <div
+      onClick={() => onSelect(storeSlug, product.id)}
+      className="group bg-white/[0.03] backdrop-blur-xl border border-white/10 hover:border-purple-500/40 hover:bg-white/[0.06] rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 cursor-pointer relative shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:shadow-purple-500/10"
+    >
+      <div className="space-y-3">
+        {/* Thumbnail Image */}
+        <div className="aspect-square rounded-xl bg-slate-900/60 border border-white/10 overflow-hidden flex items-center justify-center relative">
+          {product.imageUrl && !imageFailed ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-purple-950/30 p-3 text-center">
+              <ShoppingBag className="w-8 h-8 text-purple-400/60 mb-1" />
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider truncate max-w-full px-1">
+                {product.sku || 'ITEM'}
+              </span>
+            </div>
+          )}
+
+          {/* Stock status badge - Glass Pill */}
+          <div className="absolute top-2.5 left-2.5 z-10">
+            {inStock ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-md font-bold text-[9px] uppercase tracking-wider shadow-xs">
+                {lang === 'my' ? 'ပစ္စည်းရှိ' : 'In Stock'}
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 backdrop-blur-md font-bold text-[9px] uppercase tracking-wider shadow-xs">
+                {lang === 'my' ? 'ပစ္စည်းပြတ်' : 'Sold Out'}
+              </span>
+            )}
+          </div>
+
+          {/* Discount badge if present */}
+          {product.discount && (
+            <div className="absolute bottom-2.5 right-2.5 z-10 px-2 py-0.5 rounded-md bg-purple-600/90 text-white font-bold text-[10px] shadow-xs">
+              {product.discount}
+            </div>
+          )}
+        </div>
+
+        {/* Product Info */}
+        <div>
+          <h3 className="text-xs font-bold text-white line-clamp-2 leading-snug group-hover:text-purple-300 transition-colors">
+            {product.name}
+          </h3>
+          <p className="text-[11px] text-slate-400 line-clamp-1 mt-1 leading-relaxed">
+            {product.description || (lang === 'my' ? 'အရည်အသွေးမြင့် ကုန်ပစ္စည်း' : 'Quality Item')}
+          </p>
+        </div>
+      </div>
+
+      {/* Price & Action */}
+      <div className="pt-3 border-t border-white/10 mt-3 flex items-center justify-between gap-1">
+        <div>
+          <span className="text-xs sm:text-sm font-bold text-purple-300 font-mono tabular-nums">
+            {product.price.toLocaleString()} {product.currency || 'MMK'}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect(storeSlug, product.id);
+          }}
+          disabled={!inStock}
+          className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 text-white font-bold text-[11px] rounded-full transition-all cursor-pointer flex items-center gap-1 shadow-md shadow-purple-600/25 active:scale-95"
+        >
+          <span>{lang === 'my' ? 'ဝယ်မည်' : 'Buy'}</span>
+          <ArrowRight className="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
   onSelectStore,
   onNavigateToMerchant,
+  onNavigateToAvatarStudio,
   initialSearchQuery = ''
 }) => {
   const [lang, setLang] = useState<'my' | 'en'>('my');
@@ -114,7 +215,6 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
             return null;
           }
 
-          // If store matches, keep all products matching category; otherwise keep only matching products
           return {
             ...store,
             filteredProducts: storeMatches ? matchingProducts : productMatches
@@ -155,24 +255,45 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] text-[#0F172A] font-sans pb-24">
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CBD5E1] px-4 py-3.5 shadow-xs">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="text-base font-bold text-[#0F172A] tracking-tight">
-              ShopSone <span className="font-semibold text-[#2563EB]">(ဆိုင်စုံ)</span>
-            </span>
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-28 relative overflow-hidden selection:bg-purple-500 selection:text-white">
+      {/* Background Glowing Ambiance Orbs (Loopstack Style) */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-tr from-purple-600/25 via-indigo-600/25 to-pink-500/15 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute top-10 left-10 w-80 h-80 bg-blue-600/15 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-600/15 blur-[140px] rounded-full pointer-events-none" />
+
+      {/* Glassmorphic Navigation Bar */}
+      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-2xl border-b border-white/10 px-4 py-4 shadow-lg shadow-black/40">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <span className="font-extrabold text-lg tracking-wider text-white">
+                ShopSone <span className="text-purple-400 font-light">(ဆိုင်စုံ)</span>
+              </span>
+              <span className="hidden sm:block text-[10px] text-slate-400 font-mono tracking-tight leading-none mt-0.5">
+                Next-Gen AI Social Commerce
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Merchant Login Access */}
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setLang(lang === 'my' ? 'en' : 'my')}
+              className="px-3 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white backdrop-blur-md transition-all cursor-pointer font-mono uppercase"
+            >
+              {lang}
+            </button>
+
             {onNavigateToMerchant && (
               <button
                 type="button"
                 onClick={onNavigateToMerchant}
-                className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 cursor-pointer shadow-sm hover:border-purple-400/40"
               >
-                <LogIn className="w-3.5 h-3.5 text-white" />
+                <LogIn className="w-3.5 h-3.5 text-purple-300" />
                 <span>{lang === 'my' ? 'ကုန်သည် ဝင်ရန်' : 'Merchant Portal'}</span>
               </button>
             )}
@@ -180,7 +301,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
         </div>
       </header>
 
-      {/* Marketplace Lookup Section */}
+      {/* Customer Code Lookup Strip */}
       <CustomerCodeLookup 
         lang={lang} 
         onCheckStatus={(code) => {
@@ -190,420 +311,279 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
         onContactSupport={() => setIsSupportOpen(true)}
       />
 
-      {/* Hero & Search Banner */}
-      <section className="bg-gradient-to-b from-white to-[#F8FAFC] border-b border-[#CBD5E1] px-4 py-8">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[#1E40AF] text-xs font-medium">
-            <ShoppingBag className="w-3.5 h-3.5 text-[#2563EB]" />
-            <span>
-              {lang === 'my'
-                ? `ဖွင့်လှစ်ထားသော စတိုး ${stores.length} ဆိုင် • ကုန်ပစ္စည်း ${stores.reduce((sum, s) => sum + s.productCount, 0)} ခု`
-                : `${stores.length} Published Store${stores.length === 1 ? '' : 's'} • ${stores.reduce((sum, s) => sum + s.productCount, 0)} Active Products`}
-            </span>
-          </div>
-
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight max-w-xl mx-auto leading-tight">
-              ShopSone <span className="text-[#2563EB]">(ဆိုင်စုံ)</span>
-            </h1>
-            <p className="text-sm sm:text-base font-semibold text-[#475569]">
-              {lang === 'my'
-                ? 'ဆိုင်စုံ၊ ပစ္စည်းစုံ၊ တစ်နေရာတည်း'
-                : 'All Stores, All Products, in One Place'}
+      {/* Avatar Studio Card */}
+      <section aria-label="Avatar Studio" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="rounded-3xl bg-gradient-to-r from-slate-900 to-indigo-950 p-6 sm:p-8 border border-white/10 shadow-2xl flex flex-col sm:flex-row items-center gap-6">
+          <div className="flex-1 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-[10px] font-bold text-purple-300 uppercase tracking-wider">
+              <Sparkles className="w-3 h-3" />
+              <span>Your Virtual Fashion Studio</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Create Your 3D Avatar
+            </h2>
+            <p className="text-sm text-slate-400 leading-relaxed max-w-md">
+              Build your virtual body, customize your appearance, and get ready to explore fashion in 3D.
             </p>
+            <button
+              onClick={onNavigateToAvatarStudio}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm rounded-full shadow-lg transition-all cursor-pointer"
+            >
+              Customize Avatar
+            </button>
           </div>
-
-          <p className="text-xs sm:text-sm text-[#64748B] max-w-lg mx-auto">
-            {lang === 'my'
-              ? 'မြန်မာ အွန်လိုင်းစတိုးများမှ ကုန်ပစ္စည်းများကို စုံလင်စွာရှာဖွေပြီး တိုက်ရိုက်စိတ်ချစွာ ဝယ်ယူပါ'
-              : 'Discover published Myanmar shops, browse live inventory, and purchase directly'}
-          </p>
-
-          {/* Search Input Bar */}
-          <div className="pt-2 max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={
-                  lang === 'my'
-                    ? 'စတိုးအမည် သို့မဟုတ် ကုန်ပစ္စည်းအမည် ရှာဖွေပါ...'
-                    : 'Search by store name, product or keyword...'
-                }
-                className="w-full bg-white border border-[#CBD5E1] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 rounded-2xl pl-10 pr-24 py-3 text-xs sm:text-sm text-[#0F172A] placeholder-[#64748B] outline-none shadow-sm transition-all"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#0F172A] text-xs font-semibold cursor-pointer transition-colors"
-                >
-                  {lang === 'my' ? 'ဖျက်မည်' : 'Clear'}
-                </button>
-              )}
-            </div>
+          <div className="w-full sm:w-1/3 h-48 sm:h-64 rounded-2xl overflow-hidden border border-white/10 bg-slate-950">
+            <MiniAvatarPreview />
           </div>
-
-          {/* Real Categories Filter (Only shown if real categories exist) */}
-          {realCategories.length > 0 && (
-            <div className="flex items-center justify-center gap-1.5 flex-wrap pt-2">
-              <button
-                type="button"
-                onClick={() => setSelectedCategory('all')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                  selectedCategory === 'all'
-                    ? 'bg-[#2563EB] text-white shadow-xs'
-                    : 'bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A]'
-                }`}
-              >
-                {lang === 'my' ? 'အားလုံး' : 'All Categories'}
-              </button>
-              {realCategories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1 ${
-                    selectedCategory === cat
-                      ? 'bg-[#2563EB] text-white shadow-xs'
-                      : 'bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A]'
-                  }`}
-                >
-                  <Tag className="w-3 h-3" />
-                  <span>{cat}</span>
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </section>
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Next-Gen Hero Section (Loopstack & Vercel Style) */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-16 pb-20 text-center flex flex-col items-center">
+        {/* Status Pill */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-xs font-medium text-purple-300 mb-6 shadow-inner">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Next-Gen AI Social Commerce Platform</span>
+        </div>
+
+        {/* High-End Serif / Bold Typography */}
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-4xl leading-[1.1]">
+          Discover Fashion & <br />
+          <span className="bg-gradient-to-r from-purple-400 via-fuchsia-300 to-indigo-400 bg-clip-text text-transparent">
+            AI-Crafted Elegance.
+          </span>
+        </h1>
+
+        <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl leading-relaxed">
+          {lang === 'my'
+            ? 'မြန်မာနိုင်ငံ၏ အဆန်းသစ်ဆုံး AI စွမ်းပကားသုံး အွန်လိုင်းဆိုင်များနှင့် ဖက်ရှင်ပစ္စည်းများကို တစ်နေရာတည်းတွင် ခမ်းနားစွာ ရှာဖွေဝယ်ယူလိုက်ပါ။'
+            : 'Explore verified Myanmar social merchants, live inventories, and automated AI order fulfillment in one seamless showcase.'}
+        </p>
+
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <a
+            href="#explore-products"
+            className="px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-purple-600/30 hover:shadow-purple-600/50 transition-all flex items-center gap-3 group"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>{lang === 'my' ? 'ကုန်ပစ္စည်းများ ကြည့်မည်' : 'Explore Catalog'}</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </a>
+          
+          <button
+            onClick={() => setIsSupportOpen(true)}
+            className="px-8 py-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 text-white font-semibold text-sm backdrop-blur-md transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <MessageSquare className="w-4 h-4 text-purple-400" />
+            <span>{lang === 'my' ? 'Customer Service ဆက်သွယ်ရန်' : 'Customer Service'}</span>
+          </button>
+        </div>
+
+        {/* Floating Glass Showcase Card (Loopstack Vibe) */}
+        {stores.length > 0 && (
+          <div className="mt-14 w-full rounded-3xl p-6 sm:p-8 bg-gradient-to-b from-white/10 to-white/[0.02] border border-white/15 backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] relative group overflow-hidden text-left">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-transparent to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
+              <div className="text-left space-y-1">
+                <div className="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Featured Store</span>
+                </div>
+                <h3 className="text-2xl font-extrabold text-white">
+                  {stores[0].storeName}
+                </h3>
+                <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
+                  {stores[0].description || 'Instant AI customer service & fast nationwide delivery.'}
+                </p>
+                <div className="flex items-center gap-4 text-xs text-slate-400 pt-2 font-mono">
+                  <span>{stores[0].productCount} items cataloged</span>
+                  <span>•</span>
+                  <span className="text-emerald-400 font-semibold">Active Now</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => onSelectStore(stores[0].slug)}
+                className="px-7 py-3.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30 transition-all shrink-0 cursor-pointer flex items-center gap-2 group-hover:scale-105"
+              >
+                <span>{lang === 'my' ? 'ဆိုင်သို့ သွားမည်' : 'Visit Store'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Catalog Search & Filter Controls */}
+      <div id="explore-products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        {/* Floating Glass Search Pill */}
+        <div className="bg-white/[0.04] backdrop-blur-2xl border border-white/10 rounded-2xl p-3 sm:p-4 shadow-[0_15px_35px_rgba(0,0,0,0.6)] flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="relative w-full md:max-w-md">
+            <Search className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={lang === 'my' ? 'စတိုး သို့မဟုတ် ပစ္စည်းအမည် ရှာဖွေပါ...' : 'Search stores or products...'}
+              className="w-full bg-white/[0.04] border border-white/10 focus:border-purple-500/80 focus:bg-white/[0.08] rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 scrollbar-hide">
+            <button
+              type="button"
+              onClick={() => setSelectedCategory('all')}
+              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                selectedCategory === 'all'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30'
+                  : 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white border border-white/10'
+              }`}
+            >
+              {lang === 'my' ? 'အားလုံး' : 'All Categories'}
+            </button>
+            {realCategories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedCategory === cat
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30'
+                    : 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white border border-white/10'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Loading State */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <RefreshCw className="w-8 h-8 text-[#2563EB] animate-spin" />
-            <p className="text-xs text-[#475569] font-medium">
-              {lang === 'my' ? 'ဆိုင်စုံ (ShopSone) စတိုးများကို ရယူနေပါသည်...' : 'Loading ShopSone stores...'}
+          <div className="text-center py-20 space-y-4">
+            <RefreshCw className="w-8 h-8 text-purple-400 animate-spin mx-auto" />
+            <p className="text-sm text-slate-400 font-mono">
+              {lang === 'my' ? 'စတိုးများကို ရယူနေပါသည်...' : 'Loading stores and catalog...'}
             </p>
           </div>
         )}
 
         {/* Error State */}
         {error && !loading && (
-          <div className="max-w-md mx-auto bg-white border border-[#FCA5A5] rounded-3xl p-8 text-center space-y-4 shadow-sm">
-            <AlertCircle className="w-12 h-12 text-[#B91C1C] mx-auto" />
-            <h2 className="text-base font-bold text-[#0F172A]">
-              {lang === 'my' ? 'ဆိုင်စုံ (ShopSone) ရယူရာတွင် အခက်အခဲရှိနေပါသည်' : 'Failed to Load ShopSone'}
-            </h2>
-            <p className="text-xs text-[#475569]">{error}</p>
+          <div className="p-8 text-center bg-white/[0.03] backdrop-blur-xl border border-rose-500/30 rounded-3xl max-w-md mx-auto space-y-4">
+            <AlertCircle className="w-10 h-10 text-rose-400 mx-auto" />
+            <p className="text-sm text-rose-300">{error}</p>
             <button
-              type="button"
               onClick={fetchMarketplace}
-              className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl cursor-pointer transition-colors shadow-xs"
+              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold"
             >
-              {lang === 'my' ? 'ပြန်လည်ကြိုးစားမည်' : 'Retry'}
+              {lang === 'my' ? 'ပြန်လည်ကြိုးစားရန်' : 'Try Again'}
             </button>
           </div>
         )}
 
-        {/* Empty Search State */}
-        {!loading && !error && stores.length > 0 && filteredStores.length === 0 && (
-          <div className="max-w-md mx-auto bg-white border border-[#CBD5E1] rounded-3xl p-8 text-center space-y-4 shadow-sm">
-            <Search className="w-12 h-12 text-[#64748B] mx-auto" />
-            <h2 className="text-base font-bold text-[#0F172A]">
-              {lang === 'my' ? 'ရှာဖွေတွေ့ရှိမှု မရှိပါ' : 'No Stores or Products Found'}
-            </h2>
-            <p className="text-xs text-[#475569]">
-              {lang === 'my'
-                ? `"${searchQuery}" နှင့် ကိုက်ညီသော စတိုး သို့မဟုတ် ကုန်ပစ္စည်း မရှိသေးပါ။`
-                : `We could not find any stores or products matching "${searchQuery}".`}
+        {/* Stores and Products Grid */}
+        {!loading && !error && filteredStores.length === 0 && (
+          <div className="text-center py-16 bg-white/[0.02] border border-white/10 rounded-3xl p-8 space-y-3">
+            <Package className="w-10 h-10 text-slate-500 mx-auto" />
+            <h4 className="text-base font-bold text-white">
+              {lang === 'my' ? 'ရှာဖွေမှုနှင့် ကိုက်ညီသော ကုန်ပစ္စည်းမရှိပါ' : 'No items found matching your criteria'}
+            </h4>
+            <p className="text-xs text-slate-400">
+              {lang === 'my' ? 'အခြားအမည်ဖြင့် ပြန်လည်ရှာဖွေကြည့်ပါ' : 'Try adjusting your search terms or category filter.'}
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('all');
-              }}
-              className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl cursor-pointer transition-colors shadow-xs"
-            >
-              {lang === 'my' ? 'ရှာဖွေမှု အားလုံးကြည့်မည်' : 'View All Stores'}
-            </button>
           </div>
         )}
 
-        {/* Zero Published Stores State */}
-        {!loading && !error && stores.length === 0 && (
-          <div className="max-w-md mx-auto bg-white border border-[#CBD5E1] rounded-3xl p-8 text-center space-y-4 shadow-sm">
-            <Store className="w-12 h-12 text-[#64748B] mx-auto" />
-            <h2 className="text-base font-bold text-[#0F172A]">
-              {lang === 'my' ? 'လတ်တလော ဖွင့်လှစ်ထားသော စတိုးများ မရှိသေးပါ' : 'No Stores Available Yet'}
-            </h2>
-            <p className="text-xs text-[#475569]">
-              {lang === 'my'
-                ? 'မကြာမီ စတိုးများ ဖွင့်လှစ်လာပါမည်။ ကုန်သည်ဖြစ်ပါက Myanmar AI Seller စနစ်တွင် မိမိစတိုးကို ဖွင့်လှစ်နိုင်ပါသည်။'
-                : 'Stores are being set up. If you are a merchant, publish your store from the merchant portal.'}
-            </p>
-            {onNavigateToMerchant && (
-              <button
-                type="button"
-                onClick={onNavigateToMerchant}
-                className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl cursor-pointer transition-colors shadow-xs"
-              >
-                {lang === 'my' ? 'ကုန်သည် အကောင့်သို့ သွားမည်' : 'Go to Merchant Portal'}
-              </button>
-            )}
-          </div>
-        )}
+        {!loading && !error && filteredStores.map((store) => (
+          <div
+            key={store.slug}
+            className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-8 space-y-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
+          >
+            {/* Store Header Banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/10">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <h2 className="text-xl font-extrabold text-white">
+                    {store.storeName}
+                  </h2>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md">
+                    Verified
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
+                  {store.description || 'Quality social merchant catalog.'}
+                </p>
+              </div>
 
-        {/* Stores List */}
-        {!loading && !error && filteredStores.length > 0 && (
-          <div className="space-y-8">
-            <div className="flex items-center justify-between text-xs text-[#64748B]">
-              <span>
-                {lang === 'my'
-                  ? `စတိုး ${filteredStores.length} ဆိုင် (ပစ္စည်း ${totalMatchingProducts} ခု)`
-                  : `Showing ${filteredStores.length} store${filteredStores.length === 1 ? '' : 's'} (${totalMatchingProducts} products)`}
-              </span>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={(e) => handleCopyStoreLink(store.slug, e)}
+                  className="px-3.5 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="Copy Store Link"
+                >
+                  {copiedSlug === store.slug ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-emerald-400">{lang === 'my' ? 'ကူးပြီး' : 'Copied'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{lang === 'my' ? 'လင့်ခ်ကူး' : 'Share'}</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onSelectStore(store.slug)}
+                  className="px-5 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-purple-600/30 hover:shadow-purple-600/50"
+                >
+                  <span>{lang === 'my' ? 'စတိုးသို့ ဝင်မည်' : 'Enter Store'}</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
-            {filteredStores.map((store) => {
-              const storeUrl = typeof window !== 'undefined'
-                ? `${window.location.origin}/store/${store.slug}`
-                : `/store/${store.slug}`;
-              const isCopied = copiedSlug === store.slug;
-
-              return (
-                <article
-                  key={store.slug}
-                  className="bg-white border border-[#CBD5E1] rounded-3xl overflow-hidden shadow-sm hover:border-[#2563EB]/40 hover:shadow-md transition-all"
-                >
-                  {/* Store Header Banner */}
-                  <div className="p-5 sm:p-6 border-b border-[#CBD5E1] bg-[#F8FAFC]">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      {/* Store Identity */}
-                      <div className="flex items-start gap-4">
-                        {store.logoUrl ? (
-                          <img
-                            src={store.logoUrl}
-                            alt={store.storeName}
-                            className="w-14 h-14 rounded-2xl object-cover border border-[#CBD5E1] shrink-0"
-                          />
-                        ) : (
-                          <div className="w-14 h-14 rounded-2xl bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center text-[#2563EB] font-bold text-lg shrink-0">
-                            {store.storeName.substring(0, 2).toUpperCase()}
-                          </div>
-                        )}
-
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h2 className="text-base sm:lg font-bold text-[#0F172A]">
-                              {store.storeName}
-                            </h2>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#EFF6FF] border border-[#DBEAFE] text-[#1E40AF] text-[10px] font-semibold">
-                              <ShieldCheck className="w-3 h-3 text-[#2563EB]" />
-                              <span>{lang === 'my' ? 'ဖွင့်လှစ်ပြီး' : 'Published'}</span>
-                            </span>
-                            <span className="text-[11px] font-mono text-[#64748B]">
-                              /store/{store.slug}
-                            </span>
-                          </div>
-
-                          <p className="text-xs text-[#475569] max-w-xl line-clamp-2 leading-relaxed">
-                            {store.description}
-                          </p>
-
-                          {store.deliveryInfo && (
-                            <div className="flex items-center gap-1.5 text-[11px] text-[#475569] pt-0.5">
-                              <Truck className="w-3.5 h-3.5 text-[#2563EB]" />
-                              <span>{store.deliveryInfo}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Store Action Links */}
-                      <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
-                        {/* Copy Link Button */}
-                        <button
-                          type="button"
-                          onClick={(e) => handleCopyStoreLink(store.slug, e)}
-                          className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-colors cursor-pointer ${
-                            isCopied
-                              ? 'bg-[#DCFCE7] border-[#86EFAC] text-[#15803D]'
-                              : 'bg-white hover:bg-[#F8FAFC] border-[#CBD5E1] text-[#475569] hover:text-[#0F172A]'
-                          }`}
-                          title={storeUrl}
-                        >
-                          {isCopied ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-[#15803D]" />
-                              <span>{lang === 'my' ? 'ကူးယူပြီး' : 'Copied'}</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5 text-[#2563EB]" />
-                              <span>{lang === 'my' ? 'လင့်ခ်ကူးရန်' : 'Copy Link'}</span>
-                            </>
-                          )}
-                        </button>
-
-                        {/* Visit Store Button */}
-                        <button
-                          type="button"
-                          onClick={() => onSelectStore(store.slug)}
-                          className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-                        >
-                          <span>{lang === 'my' ? 'စတိုးသို့ သွားမည်' : 'Visit Store'}</span>
-                          <ArrowRight className="w-3.5 h-3.5 text-white" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Store Products Preview Grid */}
-                  <div className="p-5 sm:p-6 bg-white">
-                    <div className="flex items-center justify-between mb-3 text-xs">
-                      <span className="font-bold text-[#475569] uppercase tracking-wider text-[11px]">
-                        {lang === 'my'
-                          ? `ရရှိနိုင်သော ကုန်ပစ္စည်းများ (${store.filteredProducts.length})`
-                          : `Available Products (${store.filteredProducts.length})`}
-                      </span>
-                      {store.filteredProducts.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => onSelectStore(store.slug)}
-                          className="text-[11px] text-[#2563EB] hover:text-[#1D4ED8] hover:underline font-semibold cursor-pointer flex items-center gap-1"
-                        >
-                          <span>{lang === 'my' ? 'စတိုးအတွင်း အကုန်ကြည့်မည်' : 'View Full Catalog'}</span>
-                          <ExternalLink className="w-3 h-3 text-[#2563EB]" />
-                        </button>
-                      )}
-                    </div>
-
-                    {store.filteredProducts.length === 0 ? (
-                      <p className="text-xs text-[#64748B] py-4 text-center">
-                        {lang === 'my'
-                          ? 'ဤစတိုးတွင် ရွေးချယ်ထားသော အုပ်စုနှင့် ကိုက်ညီသော ပစ္စည်း မရှိသေးပါ။'
-                          : 'No products in this store match the current filter.'}
-                      </p>
-                    ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                        {store.filteredProducts.map((product) => {
-                          const totalStock = (product.variants || []).reduce(
-                            (acc, v) => acc + (Number(v.stock) || 0),
-                            0
-                          );
-                          const inStock = totalStock > 0;
-
-                          return (
-                            <div
-                              key={product.id}
-                              onClick={() => onSelectStore(store.slug, product.id)}
-                              className="group bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] hover:border-[#2563EB]/40 rounded-2xl p-3 flex flex-col justify-between transition-all cursor-pointer relative shadow-xs hover:shadow-sm"
-                            >
-                              <div className="space-y-2">
-                                {/* Thumbnail Image */}
-                                <div className="aspect-square rounded-xl bg-[#F1F5F9] border border-[#CBD5E1] overflow-hidden flex items-center justify-center relative">
-                                  {product.imageUrl ? (
-                                    <img
-                                      src={product.imageUrl}
-                                      alt={product.name}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                      loading="lazy"
-                                    />
-                                  ) : (
-                                    <Package className="w-8 h-8 text-[#64748B]/40" />
-                                  )}
-
-                                  {/* Stock status badge */}
-                                  <div className="absolute top-2 left-2">
-                                    {inStock ? (
-                                      <span className="px-1.5 py-0.5 rounded-md bg-[#15803D] text-white font-bold text-[9px] uppercase tracking-wider shadow-xs">
-                                        {lang === 'my' ? 'ပစ္စည်းရှိ' : 'In Stock'}
-                                      </span>
-                                    ) : (
-                                      <span className="px-1.5 py-0.5 rounded-md bg-[#B91C1C] text-white font-bold text-[9px] uppercase tracking-wider shadow-xs">
-                                        {lang === 'my' ? 'ပစ္စည်းပြတ်' : 'Sold Out'}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {/* Discount badge if present */}
-                                  {product.discount && (
-                                    <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-[#DBEAFE] text-[#1E40AF] border border-[#93C5FD] font-bold text-[9px]">
-                                      {product.discount}
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Product Info */}
-                                <div>
-                                  <h3 className="text-xs font-bold text-[#0F172A] line-clamp-2 leading-snug group-hover:text-[#2563EB] transition-colors">
-                                    {product.name}
-                                  </h3>
-                                  <p className="text-[11px] text-[#475569] line-clamp-1 mt-0.5">
-                                    {product.description || (lang === 'my' ? 'အရည်အသွေးမြင့် ကုန်ပစ္စည်း' : 'Quality Item')}
-                                  </p>
-                                </div>
-                              </div>
-
-                              {/* Price & Action */}
-                              <div className="pt-3 border-t border-[#CBD5E1]/60 mt-2 flex items-center justify-between gap-1">
-                                <div>
-                                  <span className="text-xs sm:text-sm font-bold text-[#1E40AF] font-mono">
-                                    {product.price.toLocaleString()} {product.currency || 'MMK'}
-                                  </span>
-                                </div>
-
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSelectStore(store.slug, product.id);
-                                  }}
-                                  disabled={!inStock}
-                                  className="px-2.5 py-1 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-40 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
-                                >
-                                  <span>{lang === 'my' ? 'ဝယ်မည်' : 'Buy'}</span>
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
+            {/* Products Grid - Bento Style */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {store.filteredProducts.map((product) => (
+                <MarketplaceProductCard
+                  key={product.id}
+                  product={product}
+                  storeSlug={store.slug}
+                  lang={lang}
+                  onSelect={onSelectStore}
+                />
+              ))}
+            </div>
           </div>
-        )}
-      </main>
+        ))}
+      </div>
 
-      {/* Footer Attribution */}
-      <footer className="mt-12 py-8 border-t border-[#CBD5E1] bg-white text-center space-y-2 max-w-6xl mx-auto px-4 rounded-2xl shadow-xs">
-        <div className="flex items-center justify-center gap-2 text-xs font-medium text-[#475569]">
-          <span className="font-bold text-[#0F172A]">ShopSone (ဆိုင်စုံ)</span>
-          <span>•</span>
-          <span className="text-[#2563EB] font-semibold">ဆိုင်စုံ၊ ပစ္စည်းစုံ၊ တစ်နေရာတည်း</span>
-        </div>
-        <p className="text-[11px] text-[#64748B]">
-          Powered by <span className="text-[#1E40AF] font-semibold">Myanmar AI Seller</span>
-        </p>
-      </footer>
-
-      <OrderSupportModal 
-        isOpen={isSupportOpen} 
+      {/* Order Support Modal */}
+      <OrderSupportModal
+        isOpen={isSupportOpen}
         onClose={() => {
           setIsSupportOpen(false);
           setInitialSupportCode(undefined);
-        }} 
-        lang={lang}
+        }}
         initialCode={initialSupportCode}
+        lang={lang}
       />
     </div>
   );
