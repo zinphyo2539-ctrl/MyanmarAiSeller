@@ -1,9 +1,10 @@
-name = "myanmaraiseller"
+name = "shopsone-staging-api"
 main = "src/worker/index.ts"
 compatibility_date = "2026-11-06"
 compatibility_flags = ["nodejs_compat"]
 
 [env.staging]
-name = "myanmaraiseller"
+name = "shopsone-staging-api"
+compatibility_date = "2026-11-06"
 compatibility_flags = ["nodejs_compat"]
 vars = { FIREBASE_PROJECT_ID = "gen-lang-client-0903319954", FIRESTORE_DATABASE_ID = "ai-studio-myanmaraiseller-5ecdcad1-2fa1-4433-8ee7-fae758ed7e19" }

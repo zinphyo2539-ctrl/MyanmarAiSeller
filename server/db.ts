@@ -34,13 +34,28 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '..');
-const DATA_DIR = path.resolve(ROOT_DIR, 'data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
-const TOKENS_FILE = path.join(DATA_DIR, 'active-tokens.json');
-const CONFIG_FILE = path.join(ROOT_DIR, 'firebase-applet-config.json');
+let __filename = '';
+let __dirname = '';
+let ROOT_DIR = '';
+let DATA_DIR = '';
+let DB_FILE = '';
+let TOKENS_FILE = '';
+let CONFIG_FILE = '';
+
+try {
+  if (typeof import.meta !== 'undefined' && import.meta.url) {
+    __filename = fileURLToPath(import.meta.url);
+    __dirname = dirname(__filename);
+  }
+} catch {
+  __dirname = '/';
+}
+
+ROOT_DIR = path.resolve(__dirname, '..');
+DATA_DIR = path.resolve(ROOT_DIR, 'data');
+DB_FILE = path.join(DATA_DIR, 'db.json');
+TOKENS_FILE = path.join(DATA_DIR, 'active-tokens.json');
+CONFIG_FILE = path.join(ROOT_DIR, 'firebase-applet-config.json');
 
 // Types
 export interface UserRecord {
