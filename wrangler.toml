@@ -11,4 +11,10 @@ run_worker_first = ["/api/*"]
 
 [env.staging]
 name = "myanmaraiseller-staging"
-vars = { FIREBASE_PROJECT_ID = "gen-lang-client-0903319954", FIRESTORE_DATABASE_ID = "ai-studio-myanmaraiseller-5ecdcad1-2fa1-4433-8ee7-fae758ed7e19" }
+vars = { 
+  FRONTEND_URL = "https://myanmaraiseller.pages.dev",
+  GOOGLE_CALLBACK_URL = "https://myanmaraiseller.zentrymodernization.workers.dev/api/auth/google/callback",
+  GOOGLE_CLIENT_ID = "853667431134-nbcm3i78hd0lj2kti4p0vka41cgra5ef.apps.googleusercontent.com",
+  FIREBASE_PROJECT_ID = "gen-lang-client-0903319954", 
+  FIRESTORE_DATABASE_ID = "ai-studio-myanmaraiseller-5ecdcad1-2fa1-4433-8ee7-fae758ed7e19" 
+}
