@@ -31,10 +31,11 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow get, list: if true;
-      allow write: if isValidId(productId)
+      allow create, update: if isValidId(productId)
         && request.resource.data.id is string
         && request.resource.data.merchantId is string
         && request.resource.data.name is string;
+      allow delete: if isValidId(productId);
     }
 
     match /orders/{orderId} {
@@ -73,6 +74,18 @@ service cloud.firestore {
 
     match /authTokens/{tokenId} {
       allow get, list, write: if true;
+    }
+
+    match /idempotencyKeys/{key} {
+      allow get, list, write: if isValidId(key);
+    }
+
+    match /journalEntries/{entryId} {
+      allow get, list, write: if isValidId(entryId);
+    }
+
+    match /usedActionTokens/{tokenHash} {
+      allow get, list, write: if isValidId(tokenHash);
     }
   }
 }

@@ -1,0 +1,3456 @@
+{
+  "users": {
+    "google_108037106339950406469": {
+      "email": "zinphyo2539@gmail.com",
+      "role": "merchant_admin",
+      "name": "Zin Phyo Htike",
+      "createdAt": "2026-10-25T10:51:48.631Z",
+      "id": "google_108037106339950406469",
+      "provider": "google",
+      "merchantId": "merchant_001",
+      "providerId": "google_108037106339950406469"
+    },
+    "test_user_1792925158395": {
+      "name": "Test Merchant",
+      "role": "merchant_admin",
+      "createdAt": "2026-10-25T10:45:58.395Z",
+      "email": "test@shopsone.mm",
+      "provider": "google",
+      "id": "test_user_1792925158395",
+      "merchantId": "merchant_001"
+    },
+    "user_owner_001": {
+      "id": "user_owner_001",
+      "createdAt": "2026-10-25T10:52:19.888Z",
+      "email": "aung@yangonstyle.mm",
+      "provider": "local",
+      "role": "merchant_admin",
+      "name": "Ko Aung (Merchant Owner)",
+      "merchantId": "merchant_001"
+    },
+    "google_108762646682109667430": {
+      "merchantId": "merchant_1792927191739_ce04",
+      "createdAt": "2026-10-25T11:18:52.374Z",
+      "id": "google_108762646682109667430",
+      "provider": "google",
+      "email": "htetthiri965@gmail.com",
+      "providerId": "google_108762646682109667430",
+      "name": "Htet Thiri",
+      "role": "merchant_admin",
+      "updatedAt": "2026-10-25T11:19:51.739Z"
+    },
+    "user_test_A": {
+      "role": "merchant_admin",
+      "name": "Merchant A Owner",
+      "id": "user_test_A",
+      "merchantId": "test_merchant_A",
+      "email": "merchantA@test.mm",
+      "createdAt": "2026-10-26T07:15:40.424Z",
+      "provider": "local"
+    },
+    "user_test_B": {
+      "merchantId": "test_merchant_B",
+      "name": "Merchant B Owner",
+      "provider": "local",
+      "role": "merchant_admin",
+      "id": "user_test_B",
+      "email": "merchantB@test.mm",
+      "createdAt": "2026-10-26T07:15:40.424Z"
+    },
+    "user_merchant_002": {
+      "merchantId": "merchant_002",
+      "createdAt": "2026-10-26T13:32:08.510Z",
+      "name": "Owner (merchant_002)",
+      "role": "merchant_admin",
+      "email": "merchant_002@shop.mm",
+      "provider": "local",
+      "id": "user_merchant_002"
+    }
+  },
+  "merchants": {
+    "merchant_001": {
+      "id": "merchant_001",
+      "ownerName": "Ko Aung",
+      "store": {
+        "draftThemeConfig": {
+          "typography": {
+            "textAlignment": "left",
+            "headingScale": "normal",
+            "bodyFont": "Plus Jakarta Sans",
+            "bodyScale": "normal",
+            "headingFont": "Outfit"
+          },
+          "homepage": {
+            "sections": [
+              {
+                "enabled": true,
+                "title": "Welcome to our Official Storefront",
+                "subtitle": "Curated premium collection",
+                "id": "hero"
+              },
+              {
+                "subtitle": "Track your order status with your support code",
+                "enabled": true,
+                "title": "Order & Support Lookup",
+                "id": "customer_lookup"
+              },
+              {
+                "title": "Delivery & Payment Policies",
+                "subtitle": "Fast and reliable delivery across Myanmar",
+                "id": "delivery_payment",
+                "enabled": true
+              },
+              {
+                "id": "featured_products",
+                "subtitle": "Explore all available items",
+                "title": "Our Catalog",
+                "enabled": true
+              }
+            ]
+          },
+          "buttons": {
+            "buttonPrimaryBg": "#C9A227",
+            "buttonRadius": "full",
+            "buttonPrimaryText": "#0B0B09"
+          },
+          "updatedAt": "2026-11-06T07:53:14.523Z",
+          "brand": {
+            "description": "Premium fashion apparel in Yangon with instant AI customer service.",
+            "secondaryColor": "#393426",
+            "storeName": "Yangon Style Premium Boutique",
+            "surfaceColor": "#181810",
+            "faviconUrl": "",
+            "logoUrl": "",
+            "accentColor": "#E0BD55",
+            "headingTextColor": "#FFFFFF",
+            "primaryColor": "#8B5CF6",
+            "tagline": "Luxury Streetwear Myanmar",
+            "surfaceBorderColor": "rgba(255, 255, 255, 0.08)",
+            "bodyTextColor": "#B9B5A7"
+          },
+          "publishedAt": "2026-11-06T07:53:14.523Z",
+          "footer": {
+            "copyrightText": "Official Verified Storefront. All rights reserved.",
+            "showSocial": true,
+            "footerTextColor": "#8C887B",
+            "showContact": true,
+            "socialLinks": {
+              "viber": "",
+              "telegram": "",
+              "tiktok": "",
+              "facebook": "",
+              "phone": ""
+            },
+            "footerBgColor": "#0B0B09"
+          },
+          "background": {
+            "storeBgImage": "",
+            "bannerBgImage": "",
+            "storeBgColor": "#0B0B09",
+            "bgPosition": "center",
+            "heroBgImage": "",
+            "overlayColor": "#0B0B09",
+            "bgSize": "cover",
+            "bgRepeat": "no-repeat",
+            "overlayOpacity": 40
+          },
+          "productDisplay": {
+            "cardRadius": "3xl",
+            "imageAspectRatio": "square",
+            "showDiscountBadge": true,
+            "buttonStyle": "solid",
+            "showStockBadge": true,
+            "cardShadow": "lg",
+            "gridColumns": 4,
+            "imageFit": "cover"
+          },
+          "version": 1,
+          "header": {
+            "headerTextColor": "#FFFFFF",
+            "logoPosition": "left",
+            "showNavigation": true,
+            "stickyHeader": true,
+            "headerBgColor": "rgba(11, 11, 9, 0.85)",
+            "showCart": true,
+            "showSearch": true
+          }
+        },
+        "themeConfig": {
+          "brand": {
+            "bodyTextColor": "#B9B5A7",
+            "accentColor": "#E0BD55",
+            "storeName": "Yangon Style Premium Boutique",
+            "primaryColor": "#8B5CF6",
+            "tagline": "Luxury Streetwear Myanmar",
+            "headingTextColor": "#FFFFFF",
+            "faviconUrl": "",
+            "description": "Premium fashion apparel in Yangon with instant AI customer service.",
+            "secondaryColor": "#393426",
+            "surfaceColor": "#181810",
+            "surfaceBorderColor": "rgba(255, 255, 255, 0.08)",
+            "logoUrl": ""
+          },
+          "publishedAt": "2026-11-06T07:53:14.523Z",
+          "buttons": {
+            "buttonPrimaryText": "#0B0B09",
+            "buttonPrimaryBg": "#C9A227",
+            "buttonRadius": "full"
+          },
+          "typography": {
+            "headingFont": "Outfit",
+            "bodyScale": "normal",
+            "bodyFont": "Plus Jakarta Sans",
+            "textAlignment": "left",
+            "headingScale": "normal"
+          },
+          "footer": {
+            "footerTextColor": "#8C887B",
+            "copyrightText": "Official Verified Storefront. All rights reserved.",
+            "showSocial": true,
+            "footerBgColor": "#0B0B09",
+            "socialLinks": {
+              "facebook": "",
+              "phone": "",
+              "viber": "",
+              "tiktok": "",
+              "telegram": ""
+            },
+            "showContact": true
+          },
+          "productDisplay": {
+            "showStockBadge": true,
+            "buttonStyle": "solid",
+            "cardRadius": "3xl",
+            "imageFit": "cover",
+            "cardShadow": "lg",
+            "gridColumns": 4,
+            "imageAspectRatio": "square",
+            "showDiscountBadge": true
+          },
+          "homepage": {
+            "sections": [
+              {
+                "subtitle": "Curated premium collection",
+                "id": "hero",
+                "enabled": true,
+                "title": "Welcome to our Official Storefront"
+              },
+              {
+                "enabled": true,
+                "subtitle": "Track your order status with your support code",
+                "id": "customer_lookup",
+                "title": "Order & Support Lookup"
+              },
+              {
+                "id": "delivery_payment",
+                "enabled": true,
+                "title": "Delivery & Payment Policies",
+                "subtitle": "Fast and reliable delivery across Myanmar"
+              },
+              {
+                "title": "Our Catalog",
+                "id": "featured_products",
+                "enabled": true,
+                "subtitle": "Explore all available items"
+              }
+            ]
+          },
+          "version": 1,
+          "updatedAt": "2026-11-06T07:53:14.523Z",
+          "background": {
+            "heroBgImage": "",
+            "overlayColor": "#0B0B09",
+            "bgRepeat": "no-repeat",
+            "bgPosition": "center",
+            "storeBgImage": "",
+            "bgSize": "cover",
+            "overlayOpacity": 40,
+            "storeBgColor": "#0B0B09",
+            "bannerBgImage": ""
+          },
+          "header": {
+            "showSearch": true,
+            "headerTextColor": "#FFFFFF",
+            "stickyHeader": true,
+            "showNavigation": true,
+            "showCart": true,
+            "headerBgColor": "rgba(11, 11, 9, 0.85)",
+            "logoPosition": "left"
+          }
+        },
+        "updatedAt": "2026-11-06T07:53:14.535Z",
+        "slug": "yangon-style",
+        "storeName": "Yangon Style Premium Boutique",
+        "themeHistory": [],
+        "isPublished": true,
+        "coverUrl": "",
+        "logoUrl": "",
+        "deliveryInfo": "Yangon city-wide delivery within 2-3 days. Delivery fee 2,500 MMK.",
+        "paymentSettings": {
+          "kpayPhone": "09123456789",
+          "kpayAccountName": "Daw Thida Win",
+          "updatedAt": "2026-10-27T09:51:29.146Z",
+          "paymentRules": "၁။ ငွေမလွှဲမီ အကောင့်အမည်ကို သေချာစစ်ဆေးပါ။\n၂။ စလစ်အပြည့်အစုံတင်ပေးပါ။",
+          "kpayQrUrl": "https://images.unsplash.com/photo-1595079672139-545c0255a18a?auto=format&fit=crop&q=80&w=600",
+          "customInstructions": "မနက် ၉ နာရီမှ ည ၆ နာရီအတွင်း စစ်ဆေးပေးပါမည်။"
+        },
+        "paymentInstructions": "KBZPay: 09-912345678 (Ko Aung)\nWavePay: 09-912345678",
+        "description": "Premium fashion apparel in Yangon with instant AI customer service."
+      },
+      "shopName": "Yangon Style Fashion & Apparel",
+      "paymentSettings": {
+        "kpayAccountName": "Daw Thida Win",
+        "customInstructions": "မနက် ၉ နာရီမှ ည ၆ နာရီအတွင်း စစ်ဆေးပေးပါမည်။",
+        "kpayPhone": "09123456789",
+        "paymentRules": "၁။ ငွေမလွှဲမီ အကောင့်အမည်ကို သေချာစစ်ဆေးပါ။\n၂။ စလစ်အပြည့်အစုံတင်ပေးပါ။",
+        "updatedAt": "2026-10-27T09:51:29.146Z",
+        "kpayQrUrl": "https://images.unsplash.com/photo-1595079672139-545c0255a18a?auto=format&fit=crop&q=80&w=600"
+      },
+      "email": "aung@yangonstyle.mm",
+      "aiConfig": {
+        "humanHandoff": {
+          "notificationChannel": "telegram_staff",
+          "enabled": true,
+          "triggerOnComplaint": true,
+          "triggerOnUncertain": true,
+          "triggerOnHumanRequest": true
+        },
+        "customInstructions": "Customer များကို ယဉ်ကျေးပြီး ဖော်ရွေစွာ ပြန်ဖြေပါ။ မေးခွန်းကို တိုက်ရိုက်ဖြေပြီး လိုအပ်ပါက Product ရဲ့ အားသာချက်ကို အတိုချုံးရှင်းပြပါ။ စျေးနှုန်း၊ Variant နဲ့ Stock ကို သက်ဆိုင်ရာ Database မှာ စစ်ဆေးပြီးမှ ဖြေပါ။ Customer က ဝယ်ယူရန် စိတ်ဝင်စားပါက အော်ဒါတင်နိုင်ရန် ရှင်းလင်းစွာ လမ်းညွှန်ပါ။ မသေချာသောအချက်များကို မခန့်မှန်းပါနှင့်။ လိုအပ်ပါက လူထံ လွှဲပြောင်းပါ။",
+        "replyStyle": "friendly",
+        "enabled": true,
+        "preferredLanguage": "myanmar",
+        "salesBehavior": {
+          "greeting": "greet_new",
+          "productRecommendation": "answer_first",
+          "salesApproach": "helpful_recommendations",
+          "emojiPreference": "moderate",
+          "uncertainPolicy": "escalate_to_human",
+          "followUp": "needed_only",
+          "discountBehavior": "verified_only",
+          "responseLength": "balanced"
+        },
+        "schemaVersion": 1,
+        "updatedAt": "2026-10-15T11:29:45.556Z"
+      }
+    },
+    "merchant_1792927191739_ce04": {
+      "email": "htetthiri965@gmail.com",
+      "ownerName": "Htet Thiri",
+      "phone": "09785538971",
+      "shopName": "Htet Htet",
+      "store": {
+        "storeName": "Htet Htet",
+        "updatedAt": "2026-11-06T09:24:06.958Z",
+        "description": "Good",
+        "deliveryInfo": "ရန်ကုန်မြို့တွင်း ပို့ခ 2,500 ကျပ်၊ ၂-၃ ရက်အတွင်း ပို့ဆောင်ပေးပါသည်။",
+        "coverUrl": "",
+        "themeHistory": [],
+        "isPublished": true,
+        "draftThemeConfig": {
+          "header": {
+            "headerTextColor": "#FFFFFF",
+            "stickyHeader": true,
+            "showSearch": true,
+            "logoPosition": "left",
+            "showNavigation": true,
+            "headerBgColor": "rgba(11, 11, 9, 0.85)",
+            "showCart": true
+          },
+          "publishedAt": "2026-11-06T09:24:05.679Z",
+          "buttons": {
+            "buttonPrimaryText": "#0B0B09",
+            "buttonPrimaryBg": "#C9A227",
+            "buttonRadius": "full"
+          },
+          "productDisplay": {
+            "buttonStyle": "gradient",
+            "cardShadow": "lg",
+            "showDiscountBadge": true,
+            "imageAspectRatio": "square",
+            "gridColumns": 3,
+            "cardRadius": "2xl",
+            "imageFit": "cover",
+            "showStockBadge": true
+          },
+          "homepage": {
+            "sections": [
+              {
+                "id": "hero",
+                "enabled": true,
+                "title": "Welcome to our Official Storefront",
+                "subtitle": "Curated premium collection"
+              },
+              {
+                "enabled": true,
+                "id": "customer_lookup",
+                "subtitle": "Track your order status with your support code",
+                "title": "Order & Support Lookup"
+              },
+              {
+                "subtitle": "Fast and reliable delivery across Myanmar",
+                "id": "delivery_payment",
+                "title": "Delivery & Payment Policies",
+                "enabled": true
+              },
+              {
+                "enabled": true,
+                "id": "featured_products",
+                "title": "Our Catalog",
+                "subtitle": "Explore all available items"
+              }
+            ]
+          },
+          "background": {
+            "bgRepeat": "no-repeat",
+            "overlayOpacity": 40,
+            "overlayColor": "#0B0B09",
+            "bgPosition": "center",
+            "heroBgImage": "",
+            "storeBgColor": "#0B0B09",
+            "bannerBgImage": "",
+            "storeBgImage": "",
+            "bgSize": "cover"
+          },
+          "footer": {
+            "footerTextColor": "#8C887B",
+            "showSocial": true,
+            "copyrightText": "Official Verified Storefront. All rights reserved.",
+            "footerBgColor": "#0B0B09",
+            "showContact": true,
+            "socialLinks": {
+              "telegram": "",
+              "phone": "",
+              "viber": "",
+              "facebook": "",
+              "tiktok": ""
+            }
+          },
+          "updatedAt": "2026-11-06T09:24:05.679Z",
+          "version": 1,
+          "typography": {
+            "bodyFont": "Plus Jakarta Sans",
+            "headingFont": "Plus Jakarta Sans",
+            "bodyScale": "normal",
+            "headingScale": "normal",
+            "textAlignment": "left"
+          },
+          "brand": {
+            "surfaceBorderColor": "rgba(255, 255, 255, 0.08)",
+            "secondaryColor": "#393426",
+            "tagline": "Premium Commerce & Fashion",
+            "description": "Good",
+            "faviconUrl": "",
+            "surfaceColor": "#181810",
+            "primaryColor": "#C9A227",
+            "headingTextColor": "#FFFFFF",
+            "storeName": "Htet Htet",
+            "accentColor": "#E0BD55",
+            "bodyTextColor": "#B9B5A7",
+            "logoUrl": ""
+          }
+        },
+        "paymentInstructions": "KBZPay: 09-785538971\nWavePay: 09-XXXXXXXXX",
+        "slug": "htet-htet",
+        "themeConfig": {
+          "updatedAt": "2026-11-06T09:24:05.679Z",
+          "homepage": {
+            "sections": [
+              {
+                "subtitle": "Curated premium collection",
+                "title": "Welcome to our Official Storefront",
+                "enabled": true,
+                "id": "hero"
+              },
+              {
+                "id": "customer_lookup",
+                "title": "Order & Support Lookup",
+                "enabled": true,
+                "subtitle": "Track your order status with your support code"
+              },
+              {
+                "title": "Delivery & Payment Policies",
+                "subtitle": "Fast and reliable delivery across Myanmar",
+                "id": "delivery_payment",
+                "enabled": true
+              },
+              {
+                "id": "featured_products",
+                "title": "Our Catalog",
+                "enabled": true,
+                "subtitle": "Explore all available items"
+              }
+            ]
+          },
+          "buttons": {
+            "buttonPrimaryBg": "#C9A227",
+            "buttonRadius": "full",
+            "buttonPrimaryText": "#0B0B09"
+          },
+          "footer": {
+            "copyrightText": "Official Verified Storefront. All rights reserved.",
+            "showSocial": true,
+            "socialLinks": {
+              "phone": "",
+              "facebook": "",
+              "tiktok": "",
+              "viber": "",
+              "telegram": ""
+            },
+            "footerTextColor": "#8C887B",
+            "footerBgColor": "#0B0B09",
+            "showContact": true
+          },
+          "typography": {
+            "headingFont": "Plus Jakarta Sans",
+            "bodyFont": "Plus Jakarta Sans",
+            "bodyScale": "normal",
+            "headingScale": "normal",
+            "textAlignment": "left"
+          },
+          "publishedAt": "2026-11-06T09:24:05.679Z",
+          "header": {
+            "showNavigation": true,
+            "headerBgColor": "rgba(11, 11, 9, 0.85)",
+            "logoPosition": "left",
+            "headerTextColor": "#FFFFFF",
+            "showCart": true,
+            "stickyHeader": true,
+            "showSearch": true
+          },
+          "background": {
+            "bgRepeat": "no-repeat",
+            "storeBgColor": "#0B0B09",
+            "bgSize": "cover",
+            "overlayOpacity": 40,
+            "storeBgImage": "",
+            "bgPosition": "center",
+            "bannerBgImage": "",
+            "overlayColor": "#0B0B09",
+            "heroBgImage": ""
+          },
+          "productDisplay": {
+            "imageFit": "cover",
+            "cardRadius": "2xl",
+            "gridColumns": 3,
+            "showStockBadge": true,
+            "imageAspectRatio": "square",
+            "showDiscountBadge": true,
+            "cardShadow": "lg",
+            "buttonStyle": "gradient"
+          },
+          "brand": {
+            "description": "Good",
+            "surfaceColor": "#181810",
+            "bodyTextColor": "#B9B5A7",
+            "logoUrl": "",
+            "headingTextColor": "#FFFFFF",
+            "accentColor": "#E0BD55",
+            "surfaceBorderColor": "rgba(255, 255, 255, 0.08)",
+            "primaryColor": "#C9A227",
+            "secondaryColor": "#393426",
+            "storeName": "Htet Htet",
+            "tagline": "Premium Commerce & Fashion",
+            "faviconUrl": ""
+          },
+          "version": 1
+        },
+        "brandName": "Htet Htet",
+        "logoUrl": ""
+      },
+      "aiConfig": {
+        "replyStyle": "friendly",
+        "salesBehavior": {
+          "productRecommendation": "answer_first",
+          "greeting": "greet_new",
+          "responseLength": "balanced",
+          "discountBehavior": "verified_only",
+          "salesApproach": "helpful_recommendations",
+          "followUp": "needed_only",
+          "emojiPreference": "moderate",
+          "uncertainPolicy": "escalate_to_human"
+        },
+        "schemaVersion": 1,
+        "enabled": true,
+        "preferredLanguage": "myanmar",
+        "updatedAt": "2026-10-25T11:19:51.739Z",
+        "humanHandoff": {
+          "triggerOnHumanRequest": true,
+          "triggerOnUncertain": true,
+          "triggerOnComplaint": true,
+          "notificationChannel": "telegram_staff",
+          "enabled": true
+        },
+        "customInstructions": "Customer များကို ယဉ်ကျေးပြီး ဖော်ရွေစွာ ပြန်ဖြေပါ။"
+      },
+      "id": "merchant_1792927191739_ce04"
+    },
+    "test_merchant_A": {
+      "store": {
+        "slug": "merchant-a-shop",
+        "isPublished": true,
+        "storeName": "Merchant A Fashion Store"
+      },
+      "shopName": "Merchant A Fashion Store",
+      "id": "test_merchant_A",
+      "ownerName": "Merchant A Owner",
+      "email": "merchantA@test.mm",
+      "aiConfig": {
+        "enabled": true
+      }
+    },
+    "test_merchant_B": {
+      "aiConfig": {
+        "enabled": true
+      },
+      "store": {
+        "slug": "merchant-b-shop",
+        "isPublished": true,
+        "storeName": "Merchant B Electronics"
+      },
+      "id": "test_merchant_B",
+      "ownerName": "Merchant B Owner",
+      "email": "merchantB@test.mm",
+      "shopName": "Merchant B Electronics"
+    },
+    "merchant_002": {
+      "email": "merchant_002@shop.mm",
+      "aiConfig": {
+        "enabled": true
+      },
+      "ownerName": "Owner merchant_002",
+      "id": "merchant_002",
+      "store": {
+        "storeName": "Store merchant_002",
+        "slug": "store-merchant_002",
+        "isPublished": true
+      },
+      "shopName": "Shop merchant_002"
+    }
+  },
+  "products": [
+    {
+      "name": "n",
+      "merchantId": "m1",
+      "id": "p0",
+      "variants": []
+    },
+    {
+      "variants": [],
+      "name": "n",
+      "id": "p1",
+      "merchantId": "m1"
+    },
+    {
+      "variants": [],
+      "id": "p2",
+      "name": "n",
+      "merchantId": "m1"
+    },
+    {
+      "variants": [],
+      "name": "n",
+      "merchantId": "m1",
+      "id": "p3"
+    },
+    {
+      "name": "n",
+      "merchantId": "m1",
+      "variants": [],
+      "id": "p4"
+    },
+    {
+      "status": "active",
+      "id": "prod_1",
+      "merchantId": "merchant_001",
+      "description": "100% Cotton premium breathable fabric. Oversized casual fit.",
+      "variants": [
+        {
+          "sku": "TS-COTTON-BLK-M",
+          "id": "v1",
+          "color": "Black",
+          "stock": 0,
+          "size": "M"
+        },
+        {
+          "id": "v2",
+          "color": "Black",
+          "size": "L",
+          "sku": "TS-COTTON-BLK-L",
+          "stock": 0
+        },
+        {
+          "size": "M",
+          "color": "White",
+          "id": "v3",
+          "sku": "TS-COTTON-WHT-M",
+          "stock": 10
+        },
+        {
+          "id": "v4",
+          "sku": "TS-COTTON-WHT-L",
+          "color": "White",
+          "stock": 0,
+          "size": "L"
+        }
+      ],
+      "currency": "MMK",
+      "discount": "10% OFF during weekend promo",
+      "name": "Premium Cotton Oversized T-Shirt",
+      "sku": "TS-COTTON-BLK-M",
+      "price": 18500
+    },
+    {
+      "name": "Automated Test Silk Scarf",
+      "sku": "SKU-TEST-1792262639000",
+      "price": 25000,
+      "imageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
+      "variants": [
+        {
+          "color": "Red",
+          "sku": "SKU-TEST-RED-1792262639000",
+          "id": "v_1792262639020_0_y8",
+          "stock": 14,
+          "size": "Standard"
+        }
+      ],
+      "status": "active",
+      "description": "Premium Burmese handmade silk scarf",
+      "merchantId": "merchant_001",
+      "id": "prod_1792262639020_d396",
+      "currency": "MMK",
+      "discount": null
+    },
+    {
+      "discount": null,
+      "currency": "MMK",
+      "price": 25000,
+      "variants": [
+        {
+          "id": "v_1792262776578_0_3m",
+          "sku": "SKU-TEST-RED-1792262776561",
+          "stock": 15,
+          "color": "Red",
+          "size": "Standard"
+        }
+      ],
+      "imageUrl": null,
+      "merchantId": "merchant_001",
+      "id": "prod_1792262776578_j20d",
+      "name": "Automated Test Silk Scarf",
+      "description": "Premium Burmese handmade silk scarf",
+      "status": "active",
+      "sku": "SKU-TEST-1792262776561"
+    },
+    {
+      "name": "စကပ်ရှည်",
+      "sku": "SKU-444759",
+      "price": 15000,
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_1792927191739_ce04/products/1793011470944_qiqq5i.jpg",
+      "variants": [
+        {
+          "color": "Standard",
+          "sku": "SKU-444759-V1",
+          "stock": 9,
+          "id": "v_1793011488304_0_82",
+          "size": "Free Size"
+        }
+      ],
+      "costPrice": null,
+      "status": "active",
+      "description": "",
+      "merchantId": "merchant_1792927191739_ce04",
+      "id": "prod_1793011488304_nouh",
+      "currency": "MMK",
+      "discount": null
+    },
+    {
+      "costPrice": null,
+      "currency": "MMK",
+      "discount": null,
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_1792927191739_ce04/products/1793083632809_bl17em.jpg",
+      "description": "",
+      "variants": [
+        {
+          "size": "Free Size",
+          "id": "v_1793083710739_0_wd",
+          "stock": 10,
+          "sku": "SKU-616959-V1",
+          "color": "Standard"
+        }
+      ],
+      "sku": "SKU-616959",
+      "merchantId": "merchant_1792927191739_ce04",
+      "id": "prod_1793083710739_vg28",
+      "name": "Flare jeans",
+      "status": "active",
+      "price": 108000
+    },
+    {
+      "currency": "MMK",
+      "discount": null,
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_1792927191739_ce04/products/1793083820897_89tvck.jpg",
+      "name": "Dress",
+      "variants": [
+        {
+          "color": "Standard",
+          "id": "v_1793083824379_0_p5",
+          "sku": "SKU-774203-V1",
+          "size": "Free Size",
+          "stock": 10
+        }
+      ],
+      "sku": "SKU-774203",
+      "id": "prod_1793083824379_hxxx",
+      "price": 68000,
+      "merchantId": "merchant_1792927191739_ce04",
+      "status": "active",
+      "costPrice": null,
+      "description": ""
+    },
+    {
+      "sku": "SKU-836828",
+      "price": 107000,
+      "costPrice": null,
+      "name": "Longskirt",
+      "discount": null,
+      "description": "",
+      "currency": "MMK",
+      "status": "active",
+      "merchantId": "merchant_1792927191739_ce04",
+      "id": "prod_1793083877364_dbwx",
+      "variants": [
+        {
+          "color": "Standard",
+          "stock": 10,
+          "size": "Free Size",
+          "sku": "SKU-836828-V1",
+          "id": "v_1793083877365_0_3g"
+        }
+      ],
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_1792927191739_ce04/products/1793083874332_47cneb.jpg"
+    },
+    {
+      "currency": "MMK",
+      "price": 107000,
+      "discount": "",
+      "merchantId": "merchant_1792927191739_ce04",
+      "name": "Longskirt",
+      "costPrice": null,
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_1792927191739_ce04/products/1793093323247_9pazpf.jpg",
+      "description": "",
+      "variants": [
+        {
+          "stock": 1,
+          "size": "Free Size",
+          "sku": "SKU-910245-V1",
+          "color": "Standard"
+        }
+      ],
+      "status": "active",
+      "sku": "SKU-910245",
+      "id": "prod_1793083957329_6h47"
+    },
+    {
+      "description": "",
+      "merchantId": "merchant_1792927191739_ce04",
+      "status": "active",
+      "id": "prod_1793084000329_1674",
+      "costPrice": null,
+      "variants": [
+        {
+          "size": "Free Size",
+          "stock": 6,
+          "sku": "SKU-976896-V1",
+          "color": "Standard"
+        }
+      ],
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_1792927191739_ce04/products/1793093353938_qprymd.jpg",
+      "discount": "",
+      "sku": "SKU-976896",
+      "name": "Red dress",
+      "currency": "MMK",
+      "price": 85000
+    },
+    {
+      "costPrice": null,
+      "id": "prod_1793093581066_ch35",
+      "merchantId": "merchant_001",
+      "sku": "SKU-200 KB-1-1062",
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093580723_gqas1a.jpg",
+      "variants": [
+        {
+          "stock": 50,
+          "size": "Free",
+          "sku": "VAR-1",
+          "id": "v_1793093581066_0_vk",
+          "color": "Standard"
+        }
+      ],
+      "description": "Performance benchmark product for 200 KB image upload.",
+      "name": "Perf Test 200 KB #1 (1793093581062)",
+      "status": "active",
+      "price": 35000,
+      "currency": "MMK",
+      "discount": null
+    },
+    {
+      "currency": "MMK",
+      "discount": null,
+      "status": "active",
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093582615_c101wz.jpg",
+      "name": "Perf Test 200 KB #2 (1793093582912)",
+      "description": "Performance benchmark product for 200 KB image upload.",
+      "merchantId": "merchant_001",
+      "variants": [
+        {
+          "stock": 50,
+          "sku": "VAR-2",
+          "color": "Standard",
+          "size": "Free",
+          "id": "v_1793093582914_0_mr"
+        }
+      ],
+      "sku": "SKU-200 KB-2-2912",
+      "price": 35000,
+      "id": "prod_1793093582914_tjby",
+      "costPrice": null
+    },
+    {
+      "currency": "MMK",
+      "discount": null,
+      "costPrice": null,
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093584153_0bqeft.jpg",
+      "variants": [
+        {
+          "id": "v_1793093584623_0_84",
+          "sku": "VAR-3",
+          "stock": 50,
+          "size": "Free",
+          "color": "Standard"
+        }
+      ],
+      "status": "active",
+      "sku": "SKU-200 KB-3-4620",
+      "name": "Perf Test 200 KB #3 (1793093584620)",
+      "description": "Performance benchmark product for 200 KB image upload.",
+      "merchantId": "merchant_001",
+      "id": "prod_1793093584623_pyv2",
+      "price": 35000
+    },
+    {
+      "description": "Performance benchmark product for 200 KB image upload.",
+      "merchantId": "merchant_001",
+      "currency": "MMK",
+      "sku": "SKU-200 KB-4-6337",
+      "discount": null,
+      "name": "Perf Test 200 KB #4 (1793093586337)",
+      "id": "prod_1793093586339_8ocb",
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093586098_rbxlam.jpg",
+      "status": "active",
+      "price": 35000,
+      "costPrice": null,
+      "variants": [
+        {
+          "color": "Standard",
+          "sku": "VAR-4",
+          "size": "Free",
+          "id": "v_1793093586339_0_8k",
+          "stock": 50
+        }
+      ]
+    },
+    {
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093587587_e8o3v1.jpg",
+      "name": "Perf Test 200 KB #5 (1793093588151)",
+      "variants": [
+        {
+          "size": "Free",
+          "stock": 50,
+          "color": "Standard",
+          "id": "v_1793093588153_0_gu",
+          "sku": "VAR-5"
+        }
+      ],
+      "merchantId": "merchant_001",
+      "currency": "MMK",
+      "id": "prod_1793093588153_co77",
+      "sku": "SKU-200 KB-5-8151",
+      "description": "Performance benchmark product for 200 KB image upload.",
+      "discount": null,
+      "costPrice": null,
+      "price": 35000,
+      "status": "active"
+    },
+    {
+      "status": "active",
+      "id": "prod_1793093590059_yjwd",
+      "name": "Perf Test 1 MB #1 (1793093590056)",
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093589440_tfdbb3.jpg",
+      "description": "Performance benchmark product for 1 MB image upload.",
+      "variants": [
+        {
+          "stock": 50,
+          "size": "Free",
+          "id": "v_1793093590059_0_4l",
+          "sku": "VAR-1",
+          "color": "Standard"
+        }
+      ],
+      "price": 35000,
+      "currency": "MMK",
+      "discount": null,
+      "merchantId": "merchant_001",
+      "costPrice": null,
+      "sku": "SKU-1 MB-1-0056"
+    },
+    {
+      "id": "prod_1793093592131_wvhp",
+      "variants": [
+        {
+          "stock": 50,
+          "sku": "VAR-2",
+          "color": "Standard",
+          "size": "Free",
+          "id": "v_1793093592131_0_92"
+        }
+      ],
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093591338_7ff2vb.jpg",
+      "merchantId": "merchant_001",
+      "description": "Performance benchmark product for 1 MB image upload.",
+      "discount": null,
+      "price": 35000,
+      "currency": "MMK",
+      "costPrice": null,
+      "status": "active",
+      "sku": "SKU-1 MB-2-2128",
+      "name": "Perf Test 1 MB #2 (1793093592128)"
+    },
+    {
+      "costPrice": null,
+      "id": "prod_1793093593859_uv66",
+      "sku": "SKU-1 MB-3-3857",
+      "status": "active",
+      "merchantId": "merchant_001",
+      "variants": [
+        {
+          "color": "Standard",
+          "size": "Free",
+          "stock": 50,
+          "sku": "VAR-3",
+          "id": "v_1793093593859_0_21"
+        }
+      ],
+      "name": "Perf Test 1 MB #3 (1793093593857)",
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093593416_dyaul3.jpg",
+      "price": 35000,
+      "discount": null,
+      "description": "Performance benchmark product for 1 MB image upload.",
+      "currency": "MMK"
+    },
+    {
+      "name": "Perf Test 1 MB #4 (1793093595566)",
+      "price": 35000,
+      "variants": [
+        {
+          "color": "Standard",
+          "size": "Free",
+          "sku": "VAR-4",
+          "id": "v_1793093595568_0_ii",
+          "stock": 50
+        }
+      ],
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093595223_eshtws.jpg",
+      "sku": "SKU-1 MB-4-5566",
+      "description": "Performance benchmark product for 1 MB image upload.",
+      "discount": null,
+      "currency": "MMK",
+      "merchantId": "merchant_001",
+      "status": "active",
+      "costPrice": null,
+      "id": "prod_1793093595568_g5v2"
+    },
+    {
+      "status": "active",
+      "price": 35000,
+      "name": "Perf Test 1 MB #5 (1793093597451)",
+      "id": "prod_1793093597454_hcvh",
+      "merchantId": "merchant_001",
+      "discount": null,
+      "costPrice": null,
+      "currency": "MMK",
+      "sku": "SKU-1 MB-5-7451",
+      "variants": [
+        {
+          "color": "Standard",
+          "stock": 50,
+          "size": "Free",
+          "id": "v_1793093597454_0_r7",
+          "sku": "VAR-5"
+        }
+      ],
+      "description": "Performance benchmark product for 1 MB image upload.",
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093596981_ovn1fm.jpg"
+    },
+    {
+      "currency": "MMK",
+      "discount": null,
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093598757_pt95j0.jpg",
+      "status": "active",
+      "variants": [
+        {
+          "stock": 50,
+          "sku": "VAR-1",
+          "id": "v_1793093599765_0_k4",
+          "color": "Standard",
+          "size": "Free"
+        }
+      ],
+      "name": "Perf Test 4 MB #1 (1793093599763)",
+      "merchantId": "merchant_001",
+      "sku": "SKU-4 MB-1-9763",
+      "description": "Performance benchmark product for 4 MB image upload.",
+      "id": "prod_1793093599765_gxub",
+      "price": 35000,
+      "costPrice": null
+    },
+    {
+      "variants": [
+        {
+          "color": "Standard",
+          "sku": "VAR-2",
+          "id": "v_1793093601879_0_rq",
+          "stock": 50,
+          "size": "Free"
+        }
+      ],
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093601101_q8v5zx.jpg",
+      "id": "prod_1793093601879_dy3f",
+      "price": 35000,
+      "discount": null,
+      "currency": "MMK",
+      "name": "Perf Test 4 MB #2 (1793093601878)",
+      "status": "active",
+      "description": "Performance benchmark product for 4 MB image upload.",
+      "costPrice": null,
+      "sku": "SKU-4 MB-2-1878",
+      "merchantId": "merchant_001"
+    },
+    {
+      "status": "active",
+      "price": 35000,
+      "id": "prod_1793093604168_x67e",
+      "name": "Perf Test 4 MB #3 (1793093604165)",
+      "currency": "MMK",
+      "discount": null,
+      "description": "Performance benchmark product for 4 MB image upload.",
+      "costPrice": null,
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093603342_utlpu3.jpg",
+      "variants": [
+        {
+          "size": "Free",
+          "id": "v_1793093604168_0_9x",
+          "stock": 50,
+          "color": "Standard",
+          "sku": "VAR-3"
+        }
+      ],
+      "merchantId": "merchant_001",
+      "sku": "SKU-4 MB-3-4165"
+    },
+    {
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093605752_2zxtbl.jpg",
+      "variants": [
+        {
+          "sku": "VAR-4",
+          "color": "Standard",
+          "stock": 50,
+          "size": "Free",
+          "id": "v_1793093606514_0_rt"
+        }
+      ],
+      "sku": "SKU-4 MB-4-6513",
+      "status": "active",
+      "currency": "MMK",
+      "price": 35000,
+      "discount": null,
+      "costPrice": null,
+      "description": "Performance benchmark product for 4 MB image upload.",
+      "name": "Perf Test 4 MB #4 (1793093606513)",
+      "merchantId": "merchant_001",
+      "id": "prod_1793093606514_2pig"
+    },
+    {
+      "variants": [
+        {
+          "size": "Free",
+          "color": "Standard",
+          "id": "v_1793093608859_0_y8",
+          "stock": 50,
+          "sku": "VAR-5"
+        }
+      ],
+      "imageUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/products/1793093608015_eb9pbo.jpg",
+      "id": "prod_1793093608859_srt2",
+      "description": "Performance benchmark product for 4 MB image upload.",
+      "sku": "SKU-4 MB-5-8857",
+      "discount": null,
+      "currency": "MMK",
+      "status": "active",
+      "name": "Perf Test 4 MB #5 (1793093608857)",
+      "costPrice": null,
+      "price": 35000,
+      "merchantId": "merchant_001"
+    },
+    {
+      "merchantId": "merchant_001",
+      "id": "prod_2",
+      "price": 35000,
+      "variants": [
+        {
+          "sku": "JKT-DENIM-BLU-F",
+          "color": "Dark Blue",
+          "id": "v5",
+          "stock": 5,
+          "size": "Free Size"
+        }
+      ],
+      "status": "active",
+      "discount": null,
+      "currency": "MMK",
+      "description": "High quality durable denim jacket for all seasons.",
+      "name": "Classic Denim Casual Jacket",
+      "sku": "JKT-DENIM-BLU"
+    },
+    {
+      "status": "active",
+      "id": "prod_test_A_1",
+      "costPrice": 12000,
+      "description": "Handcrafted premium polo shirt",
+      "price": 25000,
+      "variants": [
+        {
+          "id": "v1",
+          "color": "Navy",
+          "stock": 20,
+          "sku": "POLO-NAVY-L",
+          "size": "L"
+        }
+      ],
+      "sku": "POLO-COTTON-001",
+      "merchantId": "test_merchant_A",
+      "currency": "MMK",
+      "name": "Organic Cotton Polo"
+    },
+    {
+      "id": "prod_test_B_1",
+      "name": "Wireless Bluetooth Headphones",
+      "sku": "HEADPHONE-BT-001",
+      "costPrice": 35000,
+      "description": "Active noise cancelling headphones",
+      "variants": [
+        {
+          "color": "Black",
+          "id": "v2",
+          "stock": 10,
+          "sku": "HEADPHONE-BLK",
+          "size": "One Size"
+        }
+      ],
+      "price": 65000,
+      "merchantId": "test_merchant_B",
+      "currency": "MMK",
+      "status": "active"
+    },
+    {
+      "description": "Profiling test",
+      "sku": "PROF-SKU",
+      "price": 10000,
+      "name": "Profiling Test Product",
+      "merchantId": "merchant_001",
+      "variants": [
+        {
+          "sku": "PROF-V1",
+          "color": "Std",
+          "id": "v1",
+          "stock": 10,
+          "size": "Free"
+        }
+      ],
+      "status": "active",
+      "id": "prof_1793093789074",
+      "currency": "MMK"
+    },
+    {
+      "price": 25000,
+      "currency": "MMK",
+      "name": "Silk Scarf Test",
+      "id": "test_prod_1792925158576",
+      "merchantId": "merchant_001",
+      "status": "active"
+    }
+  ],
+  "orders": [
+    {
+      "shippingAddress": "အမှတ်",
+      "status": "confirmed",
+      "confirmedAt": "2026-10-26T12:40:29.070Z",
+      "items": [
+        {
+          "qty": 1,
+          "productId": "prod_1793011488304_nouh",
+          "price": 15000,
+          "variant": "Standard / Free Size",
+          "name": "စကပ်ရှည်"
+        }
+      ],
+      "id": "ord_1793018206261_n8zg",
+      "customerPhone": "09420643239",
+      "paymentMethod": "KBZPay",
+      "confirmedBy": "google_108762646682109667430",
+      "totalAmount": 15000,
+      "createdAt": "2026-10-26T12:36:46.261Z",
+      "supportConversationId": "chat_1793018206261_byp4",
+      "merchantId": "merchant_1792927191739_ce04",
+      "customerName": "Zin phyo",
+      "paymentStatus": "CONFIRMED",
+      "supportCodeHash": "071865d8e3f13109476ab429acdf802a0250b0cde9af5f563bde4550dc576aa8"
+    },
+    {
+      "paymentStatus": "SLIP_SUBMITTED",
+      "items": [
+        {
+          "price": 18500,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "qty": 1,
+          "productId": "prod_1",
+          "variant": "Black / M"
+        }
+      ],
+      "createdAt": "2026-10-26T13:30:52.552Z",
+      "status": "processing",
+      "id": "ord_1793021452552_hwk3",
+      "customerName": "Ko Kyaw Zin",
+      "paymentSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793021452552_hwk3_1793021453514_mgasu6.jpg",
+      "paymentSlipUploadedAt": "2026-10-26T13:30:54.333Z",
+      "supportConversationId": "chat_1793021452552_hn2b",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "confirmedBy": null,
+      "totalAmount": 18500,
+      "paymentMethod": "KBZPay",
+      "customerPhone": "09798765432",
+      "transactionRef": "KBZ-9824719284",
+      "supportCodeHash": "b7927fd9549e2e7455b4ecbb5923cc1b3dc3cfeaeec0fa7ecc3c860afe7edda4",
+      "merchantId": "merchant_001",
+      "confirmedAt": null,
+      "paymentHistory": [],
+      "rejectionReason": null,
+      "rejectedBy": null,
+      "rejectedAt": null
+    },
+    {
+      "paymentSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793021529758_l4j8_1793021532706_o7nybw.jpg",
+      "createdAt": "2026-10-26T13:32:09.758Z",
+      "paymentStatus": "CONFIRMED",
+      "merchantId": "merchant_001",
+      "supportCodeHash": "992a97b9a1f4afd7d42d208921529c54049be354d34c5fee13fc8de41ade482a",
+      "totalAmount": 18500,
+      "paymentMethod": "KBZPay",
+      "confirmedBy": "user_owner_001",
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "items": [
+        {
+          "qty": 1,
+          "variant": "Black / M",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "productId": "prod_1",
+          "price": 18500
+        }
+      ],
+      "rejectionReason": null,
+      "status": "confirmed",
+      "customerName": "Ko Kyaw Zin",
+      "supportConversationId": "chat_1793021529758_repr",
+      "paymentSlipUploadedAt": "2026-10-26T13:32:12.879Z",
+      "customerPhone": "09798765432",
+      "paymentHistory": [
+        {
+          "transactionRef": "KBZ-9824719284",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-26T13:32:12.110Z",
+          "previousStatus": "SLIP_SUBMITTED",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793021529758_l4j8_1793021531293_le2vlv.jpg",
+          "uploadedAt": "2026-10-26T13:32:11.540Z"
+        },
+        {
+          "transactionRef": "KBZ-9824719284",
+          "slipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793021529758_l4j8_1793021531293_le2vlv.jpg",
+          "previousStatus": "REJECTED",
+          "uploadedAt": "2026-10-26T13:32:11.540Z",
+          "rejectedAt": "2026-10-26T13:32:12.110Z",
+          "rejectedBy": "user_owner_001",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။"
+        }
+      ],
+      "id": "ord_1793021529758_l4j8",
+      "transactionRef": "KBZ-CORRECTED-999",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "confirmedAt": "2026-10-26T13:32:13.415Z"
+    },
+    {
+      "createdAt": "2026-10-26T13:32:33.866Z",
+      "customerName": "Ko Kyaw Zin",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "paymentSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793021553866_1jk5_1793021555846_arffhs.jpg",
+      "id": "ord_1793021553866_1jk5",
+      "confirmedAt": "2026-10-26T13:32:36.525Z",
+      "customerPhone": "09798765432",
+      "transactionRef": "KBZ-CORRECTED-999",
+      "paymentMethod": "KBZPay",
+      "supportConversationId": "chat_1793021553866_ud07",
+      "paymentSlipUploadedAt": "2026-10-26T13:32:36.011Z",
+      "merchantId": "merchant_001",
+      "rejectionReason": null,
+      "totalAmount": 18500,
+      "items": [
+        {
+          "qty": 1,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "productId": "prod_1",
+          "price": 18500,
+          "variant": "Black / M"
+        }
+      ],
+      "status": "confirmed",
+      "confirmedBy": "user_owner_001",
+      "supportCodeHash": "38371127a9744980e31251d4bbe74fd3ee362828a93dd53fc256e988d35d6d81",
+      "paymentStatus": "CONFIRMED",
+      "rejectedAt": null,
+      "rejectedBy": null,
+      "paymentHistory": [
+        {
+          "transactionRef": "KBZ-9824719284",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "uploadedAt": "2026-10-26T13:32:34.784Z",
+          "previousStatus": "SLIP_SUBMITTED",
+          "slipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793021553866_1jk5_1793021554585_hrnt4z.jpg",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-26T13:32:35.329Z"
+        },
+        {
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793021553866_1jk5_1793021554585_hrnt4z.jpg",
+          "uploadedAt": "2026-10-26T13:32:34.784Z",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-26T13:32:35.329Z",
+          "transactionRef": "KBZ-9824719284",
+          "previousStatus": "REJECTED"
+        }
+      ]
+    },
+    {
+      "status": "processing",
+      "customerPhone": "9966669",
+      "confirmedAt": null,
+      "supportConversationId": "chat_1793022051350_jlb9",
+      "paymentSlipUploadedAt": null,
+      "paymentSlipUrl": null,
+      "shippingAddress": "ဲကငင​ြ့",
+      "transactionRef": null,
+      "id": "ord_1793022051349_afay",
+      "paymentStatus": "PENDING",
+      "createdAt": "2026-10-26T13:40:51.350Z",
+      "confirmedBy": null,
+      "supportCodeHash": "a66461d41e1d558ee01c0f1eccc441d6e20eed65a80c2935856b4211aa8047c1",
+      "totalAmount": 25000,
+      "merchantId": "merchant_001",
+      "customerName": "ညုုုုု",
+      "paymentHistory": [],
+      "paymentMethod": "KBZPay",
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "rejectionReason": null,
+      "items": [
+        {
+          "price": 25000,
+          "name": "Automated Test Silk Scarf",
+          "variant": "Red / Standard",
+          "qty": 1,
+          "productId": "prod_1792262639020_d396"
+        }
+      ]
+    },
+    {
+      "paymentHistory": [
+        {
+          "uploadedAt": "2026-10-27T08:23:54.297Z",
+          "transactionRef": "KBZ-9824719284",
+          "previousStatus": "SLIP_SUBMITTED",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793089432988_ojwi_1793089433849_4cn347.jpg",
+          "rejectedAt": "2026-10-27T08:23:55.109Z",
+          "rejectedBy": "user_owner_001"
+        },
+        {
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T08:23:55.109Z",
+          "transactionRef": "KBZ-9824719284",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793089432988_ojwi_1793089433849_4cn347.jpg",
+          "uploadedAt": "2026-10-27T08:23:54.297Z",
+          "previousStatus": "REJECTED"
+        }
+      ],
+      "confirmedBy": "user_owner_001",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "transactionRef": "KBZ-CORRECTED-999",
+      "totalAmount": 18500,
+      "paymentSlipUploadedAt": "2026-10-27T08:23:55.989Z",
+      "customerPhone": "09798765432",
+      "supportConversationId": "chat_1793089432988_26om",
+      "status": "confirmed",
+      "paymentMethod": "KBZPay",
+      "supportCodeHash": "6f623ba172a6e5c8bbc784d1799ce1d2ff2e7a25fda76b83041c210252142b2d",
+      "id": "ord_1793089432988_ojwi",
+      "merchantId": "merchant_001",
+      "paymentSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793089432988_ojwi_1793089435817_be8hwj.jpg",
+      "rejectionReason": null,
+      "customerName": "Ko Kyaw Zin",
+      "confirmedAt": "2026-10-27T08:23:56.796Z",
+      "items": [
+        {
+          "productId": "prod_1",
+          "qty": 1,
+          "price": 18500,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M"
+        }
+      ],
+      "paymentStatus": "CONFIRMED",
+      "createdAt": "2026-10-27T08:23:52.988Z",
+      "rejectedBy": null,
+      "rejectedAt": null
+    },
+    {
+      "rejectionReason": null,
+      "confirmedAt": "2026-10-27T08:30:36.982Z",
+      "paymentHistory": [
+        {
+          "rejectedAt": "2026-10-27T08:30:35.144Z",
+          "rejectedBy": "user_owner_001",
+          "previousStatus": "SLIP_SUBMITTED",
+          "transactionRef": "KBZ-9824719284",
+          "uploadedAt": "2026-10-27T08:30:34.392Z",
+          "slipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793089832676_4w7l_1793089833789_ptzvc7.jpg",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။"
+        },
+        {
+          "previousStatus": "REJECTED",
+          "rejectedBy": "user_owner_001",
+          "slipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793089832676_4w7l_1793089833789_ptzvc7.jpg",
+          "rejectedAt": "2026-10-27T08:30:35.144Z",
+          "transactionRef": "KBZ-9824719284",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "uploadedAt": "2026-10-27T08:30:34.392Z"
+        }
+      ],
+      "customerPhone": "09798765432",
+      "id": "ord_1793089832676_4w7l",
+      "supportCodeHash": "de2698bbe7de94cec87ad2e404377c4753223941a4cbec5b787e8e298bde5825",
+      "transactionRef": "KBZ-CORRECTED-999",
+      "supportConversationId": "chat_1793089832676_8ds0",
+      "confirmedBy": "user_owner_001",
+      "paymentSlipUploadedAt": "2026-10-27T08:30:36.122Z",
+      "customerName": "Ko Kyaw Zin",
+      "totalAmount": 18500,
+      "createdAt": "2026-10-27T08:30:32.676Z",
+      "paymentSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793089832676_4w7l_1793089835885_755c12.jpg",
+      "items": [
+        {
+          "qty": 1,
+          "productId": "prod_1",
+          "price": 18500,
+          "variant": "Black / M",
+          "name": "Premium Cotton Oversized T-Shirt"
+        }
+      ],
+      "paymentStatus": "CONFIRMED",
+      "merchantId": "merchant_001",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "paymentMethod": "KBZPay",
+      "status": "confirmed",
+      "rejectedBy": null,
+      "rejectedAt": null
+    },
+    {
+      "rejectionReason": null,
+      "transactionRef": "KPAY9876543210",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "confirmedBy": null,
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "totalAmount": 18500,
+      "status": "processing",
+      "paymentMethod": "KBZPay",
+      "paymentHistory": [],
+      "supportCodeHash": "44d85091a302b4273f7d529fbf848b76c7f9203c2c705a886e241bf35e89677d",
+      "items": [
+        {
+          "qty": 1,
+          "productId": "prod_1",
+          "variant": "Black / M",
+          "price": 18500,
+          "name": "Premium Cotton Oversized T-Shirt"
+        }
+      ],
+      "merchantId": "merchant_001",
+      "confirmedAt": null,
+      "id": "ord_1793089928974_dxo3",
+      "shippingAddress": "No. 54, Inya Road, Kamayut, Yangon",
+      "customerPhone": "09777123456",
+      "paymentSlipUploadedAt": "2026-10-27T08:32:10.304Z",
+      "customerName": "Ma Hnin Nwe",
+      "supportConversationId": "chat_1793089928974_n0ly",
+      "localSlipFilename": "ord_1793089928974_dxo3_1793089930075_n6bht.jpg",
+      "createdAt": "2026-10-27T08:32:08.974Z",
+      "paymentSlipUrl": "/api/public/orders/ord_1793089928974_dxo3/slip-image?code=a09f638429da06e0cbb8b990",
+      "supabaseSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793089928974_dxo3_1793089930075_mk2kcw.jpg"
+    },
+    {
+      "localSlipFilename": "ord_1793089960874_5ib0_1793089964013_7knnu.jpg",
+      "transactionRef": "KBZ-CORRECTED-999",
+      "paymentMethod": "KBZPay",
+      "status": "confirmed",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "id": "ord_1793089960874_5ib0",
+      "supabaseSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793089960874_5ib0_1793089964014_x3gv90.jpg",
+      "totalAmount": 18500,
+      "paymentStatus": "CONFIRMED",
+      "paymentSlipUploadedAt": "2026-10-27T08:32:44.181Z",
+      "confirmedBy": "user_owner_001",
+      "supportConversationId": "chat_1793089960874_l6hl",
+      "paymentHistory": [
+        {
+          "uploadedAt": "2026-10-27T08:32:42.502Z",
+          "slipUrl": "/api/public/orders/ord_1793089960874_5ib0/slip-image?code=e1274d0ef916a475ab99767f",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T08:32:43.291Z",
+          "transactionRef": "KBZ-9824719284",
+          "previousStatus": "SLIP_SUBMITTED"
+        },
+        {
+          "previousStatus": "REJECTED",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T08:32:43.291Z",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "transactionRef": "KBZ-9824719284",
+          "slipUrl": "/api/public/orders/ord_1793089960874_5ib0/slip-image?code=e1274d0ef916a475ab99767f",
+          "uploadedAt": "2026-10-27T08:32:42.502Z"
+        }
+      ],
+      "customerName": "Ko Kyaw Zin",
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "rejectionReason": null,
+      "createdAt": "2026-10-27T08:32:40.874Z",
+      "paymentSlipUrl": "/api/public/orders/ord_1793089960874_5ib0/slip-image?code=e1274d0ef916a475ab99767f",
+      "confirmedAt": "2026-10-27T08:32:44.828Z",
+      "items": [
+        {
+          "variant": "Black / M",
+          "price": 18500,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "qty": 1,
+          "productId": "prod_1"
+        }
+      ],
+      "merchantId": "merchant_001",
+      "supportCodeHash": "fe7fcb532c1124c8a394ba072d0f74f2769fe2834d269581153f3289de58e199",
+      "customerPhone": "09798765432"
+    },
+    {
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "paymentMethod": "KBZPay",
+      "localSlipFilename": "ord_1793090533595_ebmv_1793090535201_h68n4.jpg",
+      "items": [
+        {
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1,
+          "productId": "prod_1"
+        }
+      ],
+      "shippingAddress": "No. 54, Inya Road, Kamayut, Yangon",
+      "confirmedAt": null,
+      "paymentSlipUploadedAt": "2026-10-27T08:42:15.863Z",
+      "supportConversationId": "chat_1793090533595_0xmb",
+      "merchantId": "merchant_001",
+      "customerName": "Ma Hnin Nwe",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "supabaseSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793090533595_ebmv_1793090535202_qok3mj.jpg",
+      "paymentSlipUrl": "/api/public/orders/ord_1793090533595_ebmv/slip-image?code=c73595fe8a4619185d50240a",
+      "confirmedBy": null,
+      "rejectionReason": null,
+      "totalAmount": 18500,
+      "transactionRef": "KPAY9876543210",
+      "status": "processing",
+      "paymentHistory": [],
+      "supportCodeHash": "b6490cb6f9e9dae5380a265cffba7291ee438bb6a879de437f38766402ffc319",
+      "createdAt": "2026-10-27T08:42:13.595Z",
+      "id": "ord_1793090533595_ebmv",
+      "customerPhone": "09777123456"
+    },
+    {
+      "createdAt": "2026-10-27T08:42:24.770Z",
+      "status": "confirmed",
+      "supportCodeHash": "dae77329f5e62b66c7c2d67969eb1c729ac3e328ec19e57148cf352742a57eb7",
+      "items": [
+        {
+          "variant": "Black / M",
+          "qty": 1,
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "price": 18500
+        }
+      ],
+      "paymentSlipUrl": "/api/public/orders/ord_1793090544770_niew/slip-image?code=ec0ee046737530e89e7a1062",
+      "customerPhone": "09798765432",
+      "paymentSlipUploadedAt": "2026-10-27T08:42:27.898Z",
+      "supportConversationId": "chat_1793090544770_gky1",
+      "totalAmount": 18500,
+      "id": "ord_1793090544770_niew",
+      "confirmedBy": "user_owner_001",
+      "rejectionReason": null,
+      "supabaseSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793090544770_niew_1793090547703_msan00.jpg",
+      "transactionRef": "KBZ-CORRECTED-999",
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "localSlipFilename": "ord_1793090544770_niew_1793090547703_romfu.jpg",
+      "paymentMethod": "KBZPay",
+      "customerName": "Ko Kyaw Zin",
+      "paymentStatus": "CONFIRMED",
+      "merchantId": "merchant_001",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "confirmedAt": "2026-10-27T08:42:28.707Z",
+      "paymentHistory": [
+        {
+          "rejectedAt": "2026-10-27T08:42:26.766Z",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "rejectedBy": "user_owner_001",
+          "slipUrl": "/api/public/orders/ord_1793090544770_niew/slip-image?code=ec0ee046737530e89e7a1062",
+          "transactionRef": "KBZ-9824719284",
+          "previousStatus": "SLIP_SUBMITTED",
+          "uploadedAt": "2026-10-27T08:42:25.865Z"
+        },
+        {
+          "rejectedAt": "2026-10-27T08:42:26.766Z",
+          "rejectedBy": "user_owner_001",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "/api/public/orders/ord_1793090544770_niew/slip-image?code=ec0ee046737530e89e7a1062",
+          "previousStatus": "REJECTED",
+          "transactionRef": "KBZ-9824719284",
+          "uploadedAt": "2026-10-27T08:42:25.865Z"
+        }
+      ]
+    },
+    {
+      "transactionRef": "KBZ-CORRECTED-999",
+      "createdAt": "2026-10-27T08:42:58.345Z",
+      "customerPhone": "09798765432",
+      "id": "ord_1793090578345_dvsu",
+      "status": "confirmed",
+      "customerName": "Ko Kyaw Zin",
+      "confirmedBy": "user_owner_001",
+      "items": [
+        {
+          "qty": 1,
+          "price": 18500,
+          "variant": "Black / M",
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt"
+        }
+      ],
+      "supportCodeHash": "0302c670d11b50a48671fea3eac8df68d04317e3730d0abd0e9e9cf6d1d7d9a6",
+      "paymentStatus": "CONFIRMED",
+      "rejectedBy": null,
+      "paymentMethod": "KBZPay",
+      "paymentSlipUrl": "/api/public/orders/ord_1793090578345_dvsu/slip-image",
+      "rejectionReason": null,
+      "supabaseSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793090578345_dvsu_1793090581826_drljpr.jpg",
+      "confirmedAt": "2026-10-27T08:43:03.019Z",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "supportConversationId": "chat_1793090578345_qpuz",
+      "paymentSlipUploadedAt": "2026-10-27T08:43:02.010Z",
+      "localSlipFilename": "ord_1793090578345_dvsu_1793090581826_dzx9m.jpg",
+      "paymentHistory": [
+        {
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "rejectedAt": "2026-10-27T08:43:00.705Z",
+          "rejectedBy": "user_owner_001",
+          "slipUrl": "/api/public/orders/ord_1793090578345_dvsu/slip-image",
+          "transactionRef": "KBZ-9824719284",
+          "uploadedAt": "2026-10-27T08:42:59.603Z",
+          "previousStatus": "SLIP_SUBMITTED"
+        },
+        {
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "/api/public/orders/ord_1793090578345_dvsu/slip-image",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T08:43:00.705Z",
+          "uploadedAt": "2026-10-27T08:42:59.603Z",
+          "transactionRef": "KBZ-9824719284",
+          "previousStatus": "REJECTED"
+        }
+      ],
+      "totalAmount": 18500,
+      "supabaseSyncStatus": "SYNCED",
+      "rejectedAt": null,
+      "merchantId": "merchant_001"
+    },
+    {
+      "createdAt": "2026-10-27T08:43:09.052Z",
+      "status": "processing",
+      "merchantId": "merchant_001",
+      "paymentMethod": "KBZPay",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "id": "ord_1793090589052_6ii3",
+      "paymentSlipUrl": "/api/public/orders/ord_1793090589052_6ii3/slip-image",
+      "rejectedAt": null,
+      "supabaseSyncStatus": "SYNCED",
+      "shippingAddress": "No. 54, Inya Road, Kamayut, Yangon",
+      "transactionRef": "KPAY9876543210",
+      "confirmedBy": null,
+      "customerPhone": "09777123456",
+      "supabaseSlipUrl": "https://ruuzseqcwrbapgnqulhg.supabase.co/storage/v1/object/public/product-images/merchant_001/payment-slips/ord_1793090589052_6ii3_1793090590169_ynz692.jpg",
+      "rejectionReason": null,
+      "customerName": "Ma Hnin Nwe",
+      "supportCodeHash": "724ac86a2e5bc72237e0a852ccbf0dda2c0780df3d5c8d7718e70328b36b3214",
+      "items": [
+        {
+          "qty": 1,
+          "variant": "Black / M",
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "price": 18500
+        }
+      ],
+      "paymentSlipUploadedAt": "2026-10-27T08:43:10.352Z",
+      "localSlipFilename": "ord_1793090589052_6ii3_1793090590168_jlfyc.jpg",
+      "confirmedAt": null,
+      "supportConversationId": "chat_1793090589052_9k88",
+      "rejectedBy": null,
+      "paymentHistory": [],
+      "totalAmount": 18500
+    },
+    {
+      "supportCodeHash": "042346dfdfca4d4f6c4c71b27be25910c605b0a11af793314ed900f6e8f4dbe3",
+      "rejectionReason": null,
+      "confirmedBy": "user_owner_001",
+      "id": "ord_1793091283836_5r3q",
+      "items": [
+        {
+          "productId": "prod_1",
+          "variant": "Black / M",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "qty": 1,
+          "price": 18500
+        }
+      ],
+      "createdAt": "2026-10-27T08:54:43.836Z",
+      "slipStorageBucket": "payment-slips",
+      "paymentHistory": [
+        {
+          "uploadedAt": "2026-10-27T08:54:46.804Z",
+          "transactionRef": true,
+          "previousStatus": "SLIP_SUBMITTED",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T08:54:47.625Z",
+          "slipUrl": "/api/public/orders/ord_1793091283836_5r3q/slip-image"
+        },
+        {
+          "uploadedAt": "2026-10-27T08:54:46.804Z",
+          "transactionRef": true,
+          "slipStorageBucket": "payment-slips",
+          "previousStatus": "REJECTED",
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793091283836_5r3q_1793091284790_534iwe.jpg",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T08:54:47.625Z",
+          "slipUrl": "/api/public/orders/ord_1793091283836_5r3q/slip-image",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။"
+        }
+      ],
+      "rejectedBy": null,
+      "customerPhone": "09798765432",
+      "customerName": "Ko Kyaw Zin",
+      "status": "confirmed",
+      "paymentSlipUrl": "/api/public/orders/ord_1793091283836_5r3q/slip-image",
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "totalAmount": 18500,
+      "transactionRef": true,
+      "paymentStatus": "CONFIRMED",
+      "merchantId": "merchant_001",
+      "confirmedAt": "2026-10-27T08:54:50.465Z",
+      "paymentSlipUploadedAt": "2026-10-27T08:54:49.685Z",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793091283836_5r3q_1793091288503_tn5xvs.jpg",
+      "supportConversationId": "chat_1793091283837_2zz4",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "paymentMethod": "KBZPay",
+      "rejectedAt": null
+    },
+    {
+      "paymentHistory": [
+        {
+          "uploadedAt": "2026-10-27T08:55:23.197Z",
+          "slipUrl": "/api/public/orders/ord_1793091320250_8r2k/slip-image",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "transactionRef": "KBZ-9824719284",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T08:55:24.896Z",
+          "previousStatus": "SLIP_SUBMITTED"
+        },
+        {
+          "transactionRef": "KBZ-9824719284",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T08:55:24.896Z",
+          "slipUrl": "/api/public/orders/ord_1793091320250_8r2k/slip-image",
+          "slipStorageBucket": "payment-slips",
+          "uploadedAt": "2026-10-27T08:55:23.197Z",
+          "previousStatus": "REJECTED",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793091320250_8r2k_1793091321935_c1i6i0.jpg"
+        }
+      ],
+      "confirmedBy": "user_owner_001",
+      "customerPhone": "09798765432",
+      "rejectionReason": null,
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "supportCodeHash": "b2215fc2dbca24612408f614c96a9a77dd9160d701b76bfd35b2c81e11fa8f37",
+      "rejectedBy": null,
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "slipStorageBucket": "payment-slips",
+      "paymentSlipUploadedAt": "2026-10-27T08:55:26.629Z",
+      "supportConversationId": "chat_1793091320250_978h",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793091320250_8r2k_1793091325910_y33wh9.jpg",
+      "merchantId": "merchant_001",
+      "totalAmount": 18500,
+      "createdAt": "2026-10-27T08:55:20.250Z",
+      "customerName": "Ko Kyaw Zin",
+      "rejectedAt": null,
+      "transactionRef": "KBZ-CORRECTED-999",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "confirmedAt": "2026-10-27T08:55:27.575Z",
+      "status": "confirmed",
+      "id": "ord_1793091320250_8r2k",
+      "paymentSlipUrl": "/api/public/orders/ord_1793091320250_8r2k/slip-image",
+      "items": [
+        {
+          "variant": "Black / M",
+          "qty": 1,
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "price": 18500
+        }
+      ]
+    },
+    {
+      "transactionRef": "KPAY9876543210",
+      "status": "processing",
+      "confirmedBy": null,
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793091335290_kagg_1793091336965_oqamd1.jpg",
+      "merchantId": "merchant_001",
+      "slipStorageBucket": "payment-slips",
+      "supportCodeHash": "47b664f827aadf35985cc0a6a08bbcdd1559d4dcaa59674161320d1b6cd7f06e",
+      "createdAt": "2026-10-27T08:55:35.290Z",
+      "rejectedAt": null,
+      "paymentSlipUrl": "/api/public/orders/ord_1793091335290_kagg/slip-image",
+      "rejectionReason": null,
+      "id": "ord_1793091335290_kagg",
+      "paymentMethod": "KBZPay",
+      "totalAmount": 18500,
+      "paymentHistory": [],
+      "shippingAddress": "No. 54, Inya Road, Kamayut, Yangon",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "supportConversationId": "chat_1793091335290_sblz",
+      "paymentSlipUploadedAt": "2026-10-27T08:55:38.260Z",
+      "customerPhone": "09777123456",
+      "rejectedBy": null,
+      "customerName": "Ma Hnin Nwe",
+      "items": [
+        {
+          "variant": "Black / M",
+          "price": 18500,
+          "qty": 1,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "productId": "prod_1"
+        }
+      ],
+      "confirmedAt": null
+    },
+    {
+      "shippingAddress": "42 University Avenue, Bahan, Yangon",
+      "confirmedBy": null,
+      "transactionRef": "KPAY-RETRY-999",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793091392344_ey49_1793091396627_2k0cpm.jpg",
+      "items": [
+        {
+          "qty": 1,
+          "price": 18500,
+          "variant": "Black / M",
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt"
+        }
+      ],
+      "supportConversationId": "chat_1793091392344_oeyx",
+      "merchantId": "merchant_001",
+      "paymentSlipUploadedAt": "2026-10-27T08:56:37.364Z",
+      "createdAt": "2026-10-27T08:56:32.344Z",
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "paymentSlipUrl": "/api/public/orders/ord_1793091392344_ey49/slip-image",
+      "rejectedAt": null,
+      "status": "processing",
+      "slipStorageBucket": "payment-slips",
+      "totalAmount": 18500,
+      "customerPhone": "09781234567",
+      "paymentHistory": [
+        {
+          "uploadedAt": "2026-10-27T08:56:34.937Z",
+          "rejectionReason": null,
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793091392344_ey49_1793091393862_nqu5mk.jpg",
+          "slipStorageBucket": "payment-slips",
+          "previousStatus": "SLIP_SUBMITTED",
+          "slipUrl": "/api/public/orders/ord_1793091392344_ey49/slip-image",
+          "transactionRef": "KPAY-SUPA-PRIMARY-001",
+          "rejectedAt": null,
+          "rejectedBy": null
+        }
+      ],
+      "customerName": "Ko Lin Htut",
+      "id": "ord_1793091392344_ey49",
+      "confirmedAt": null,
+      "rejectionReason": null,
+      "paymentStatus": "SLIP_SUBMITTED",
+      "supportCodeHash": "a6c3237dece380086f10fd7735ac58f41ca57599193703813faac5928140c519",
+      "paymentMethod": "KBZPay",
+      "rejectedBy": null
+    },
+    {
+      "createdAt": "2026-10-27T08:57:50.969Z",
+      "status": "processing",
+      "merchantId": "merchant_001",
+      "paymentMethod": "KBZPay",
+      "id": "ord_1793091470969_vxjn",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "paymentSlipUrl": "/api/public/orders/ord_1793091470969_vxjn/slip-image",
+      "rejectedAt": null,
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "shippingAddress": "42 University Avenue, Bahan, Yangon",
+      "slipStorageBucket": "payment-slips",
+      "transactionRef": "KPAY-RETRY-999",
+      "confirmedBy": null,
+      "customerPhone": "09781234567",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793091470969_vxjn_1793091475801_b6dgt6.jpg",
+      "rejectionReason": null,
+      "customerName": "Ko Lin Htut",
+      "items": [
+        {
+          "variant": "Black / L",
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "qty": 1,
+          "price": 18500
+        }
+      ],
+      "supportCodeHash": "471eb574616a964b923d08078fefb644de2f913c4c1304f63b585faa28790963",
+      "paymentSlipUploadedAt": "2026-10-27T08:57:56.710Z",
+      "confirmedAt": null,
+      "supportConversationId": "chat_1793091470969_ma92",
+      "rejectedBy": null,
+      "paymentHistory": [
+        {
+          "rejectedAt": null,
+          "rejectedBy": null,
+          "previousStatus": "SLIP_SUBMITTED",
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793091470969_vxjn_1793091472428_xh3b8d.jpg",
+          "rejectionReason": null,
+          "slipUrl": "/api/public/orders/ord_1793091470969_vxjn/slip-image",
+          "slipStorageBucket": "payment-slips",
+          "uploadedAt": "2026-10-27T08:57:53.360Z",
+          "transactionRef": "KPAY-SUPA-PRIMARY-001"
+        }
+      ],
+      "totalAmount": 18500
+    },
+    {
+      "merchantId": "merchant_001",
+      "slipStorageBucket": "payment-slips",
+      "id": "ord_1793091485944_hwmq",
+      "customerPhone": "09798765432",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "rejectedAt": null,
+      "createdAt": "2026-10-27T08:58:05.944Z",
+      "paymentStatus": "CONFIRMED",
+      "paymentMethod": "KBZPay",
+      "paymentHistory": [
+        {
+          "rejectedAt": "2026-10-27T08:58:08.667Z",
+          "rejectedBy": "user_owner_001",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "previousStatus": "SLIP_SUBMITTED",
+          "slipUrl": "/api/public/orders/ord_1793091485944_hwmq/slip-image",
+          "transactionRef": "KBZ-9824719284",
+          "uploadedAt": "2026-10-27T08:58:07.806Z"
+        },
+        {
+          "rejectedAt": "2026-10-27T08:58:08.667Z",
+          "rejectedBy": "user_owner_001",
+          "transactionRef": "KBZ-9824719284",
+          "slipUrl": "/api/public/orders/ord_1793091485944_hwmq/slip-image",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793091485944_hwmq_1793091486809_ysnt3a.jpg",
+          "slipStorageBucket": "payment-slips",
+          "uploadedAt": "2026-10-27T08:58:07.806Z",
+          "previousStatus": "REJECTED"
+        }
+      ],
+      "confirmedBy": "user_owner_001",
+      "items": [
+        {
+          "variant": "Black / L",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "productId": "prod_1",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "customerName": "Ko Kyaw Zin",
+      "status": "confirmed",
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "rejectedBy": null,
+      "confirmedAt": "2026-10-27T08:58:11.292Z",
+      "paymentSlipUrl": "/api/public/orders/ord_1793091485944_hwmq/slip-image",
+      "rejectionReason": null,
+      "transactionRef": "KBZ-CORRECTED-999",
+      "supportConversationId": "chat_1793091485944_qhje",
+      "paymentSlipUploadedAt": "2026-10-27T08:58:10.412Z",
+      "totalAmount": 18500,
+      "supportCodeHash": "35e85166f9117c45eb0994dfe3003ddddf8a72198622c5bb011b697478634fbe",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793091485944_hwmq_1793091489518_mqjtvr.jpg"
+    },
+    {
+      "confirmedBy": null,
+      "merchantId": "merchant_001",
+      "paymentHistory": [
+        {
+          "slipStorageBucket": "payment-slips",
+          "previousStatus": "SLIP_SUBMITTED",
+          "rejectionReason": null,
+          "uploadedAt": "2026-10-27T09:06:54.083Z",
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793092010584_vxpy_1793092012898_v09qnl.jpg",
+          "slipUrl": "/api/public/orders/ord_1793092010584_vxpy/slip-image",
+          "transactionRef": "KPAY-SUPA-PRIMARY-001",
+          "rejectedBy": null,
+          "rejectedAt": null
+        }
+      ],
+      "customerPhone": "09781234567",
+      "id": "ord_1793092010584_vxpy",
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "status": "processing",
+      "rejectedAt": null,
+      "items": [
+        {
+          "qty": 1,
+          "variant": "Black / L",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "productId": "prod_1",
+          "price": 18500
+        }
+      ],
+      "rejectionReason": null,
+      "supportConversationId": "chat_1793092010584_w39p",
+      "createdAt": "2026-10-27T09:06:50.584Z",
+      "paymentSlipUploadedAt": "2026-10-27T09:06:56.821Z",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "paymentMethod": "KBZPay",
+      "supportCodeHash": "7ec2e61b4692ee6143560a1c4e6afe669050dcf94d612bc45efd226f01ad7331",
+      "totalAmount": 18500,
+      "shippingAddress": "42 University Avenue, Bahan, Yangon",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793092010584_vxpy_1793092016121_xuc9fu.jpg",
+      "rejectedBy": null,
+      "slipStorageBucket": "payment-slips",
+      "transactionRef": "KPAY-RETRY-999",
+      "customerName": "Ko Lin Htut",
+      "paymentSlipUrl": "/api/public/orders/ord_1793092010584_vxpy/slip-image",
+      "confirmedAt": null
+    },
+    {
+      "paymentMethod": "KBZPay",
+      "confirmedBy": "user_owner_001",
+      "paymentStatus": "CONFIRMED",
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "merchantId": "merchant_001",
+      "slipStorageBucket": "payment-slips",
+      "items": [
+        {
+          "productId": "prod_1",
+          "qty": 1,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / L",
+          "price": 18500
+        }
+      ],
+      "rejectedAt": null,
+      "paymentHistory": [
+        {
+          "uploadedAt": "2026-10-27T09:07:02.368Z",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "/api/public/orders/ord_1793092020285_9mqp/slip-image",
+          "transactionRef": "KBZ-9824719284",
+          "previousStatus": "SLIP_SUBMITTED",
+          "rejectedAt": "2026-10-27T09:07:03.517Z",
+          "rejectedBy": "user_owner_001"
+        },
+        {
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "/api/public/orders/ord_1793092020285_9mqp/slip-image",
+          "uploadedAt": "2026-10-27T09:07:02.368Z",
+          "slipStorageBucket": "payment-slips",
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793092020285_9mqp_1793092021560_6zv4s2.jpg",
+          "previousStatus": "REJECTED",
+          "transactionRef": "KBZ-9824719284",
+          "rejectedAt": "2026-10-27T09:07:03.517Z",
+          "rejectedBy": "user_owner_001"
+        }
+      ],
+      "status": "confirmed",
+      "createdAt": "2026-10-27T09:07:00.285Z",
+      "customerPhone": "09798765432",
+      "rejectionReason": null,
+      "supportConversationId": "chat_1793092020285_firn",
+      "paymentSlipUploadedAt": "2026-10-27T09:07:05.871Z",
+      "totalAmount": 18500,
+      "id": "ord_1793092020285_9mqp",
+      "supportCodeHash": "78816153fae54b5bfbde15d4f7c95e6959e7b208198b4b476bf7a34cce4ee60d",
+      "paymentSlipUrl": "/api/public/orders/ord_1793092020285_9mqp/slip-image",
+      "customerName": "Ko Kyaw Zin",
+      "transactionRef": "KBZ-CORRECTED-999",
+      "rejectedBy": null,
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793092020285_9mqp_1793092024975_dbnl4j.jpg",
+      "confirmedAt": "2026-10-27T09:07:06.952Z"
+    },
+    {
+      "paymentSlipUploadedAt": "2026-10-27T09:51:27.947Z",
+      "supportConversationId": "chat_1793094685324_3cpd",
+      "paymentSlipUrl": "/api/public/orders/ord_1793094685324_jttp/slip-image",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "paymentMethod": "KBZPay",
+      "totalAmount": 18500,
+      "customerName": "Ko Lin Htut",
+      "rejectionReason": null,
+      "customerPhone": "09781234567",
+      "items": [
+        {
+          "variant": "Black / L",
+          "productId": "prod_1",
+          "qty": 1,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "price": 18500
+        }
+      ],
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793094685324_jttp_1793094687192_6wyetm.jpg",
+      "merchantId": "merchant_001",
+      "supportCodeHash": "a341e0851a73c73ecba6ab51c44469aa31a859ed0fd4dd6147d2b684a127c215",
+      "transactionRef": "KPAY-RETRY-999",
+      "status": "processing",
+      "confirmedAt": null,
+      "rejectedAt": null,
+      "shippingAddress": "42 University Avenue, Bahan, Yangon",
+      "confirmedBy": null,
+      "paymentHistory": [
+        {
+          "slipStorageBucket": "payment-slips",
+          "previousStatus": "SLIP_SUBMITTED",
+          "uploadedAt": "2026-10-27T09:51:26.328Z",
+          "rejectionReason": null,
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793094685324_jttp_1793094685334_p7c441.jpg",
+          "slipUrl": "/api/public/orders/ord_1793094685324_jttp/slip-image",
+          "transactionRef": "KPAY-SUPA-PRIMARY-001",
+          "rejectedBy": null,
+          "rejectedAt": null
+        }
+      ],
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "slipStorageBucket": "payment-slips",
+      "createdAt": "2026-10-27T09:51:25.324Z",
+      "id": "ord_1793094685324_jttp",
+      "rejectedBy": null
+    },
+    {
+      "rejectedAt": null,
+      "paymentHistory": [
+        {
+          "uploadedAt": "2026-10-27T09:51:30.498Z",
+          "slipUrl": "/api/public/orders/ord_1793094689158_8vvg/slip-image",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "transactionRef": "KBZ-9824719284",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T09:51:30.508Z",
+          "previousStatus": "SLIP_SUBMITTED"
+        },
+        {
+          "uploadedAt": "2026-10-27T09:51:30.498Z",
+          "previousStatus": "REJECTED",
+          "slipObjectPath": "merchant_001/payment-slips/ord_1793094689158_8vvg_1793094689194_7lp7bd.jpg",
+          "rejectedBy": "user_owner_001",
+          "rejectedAt": "2026-10-27T09:51:30.508Z",
+          "transactionRef": "KBZ-9824719284",
+          "rejectionReason": "ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။",
+          "slipUrl": "/api/public/orders/ord_1793094689158_8vvg/slip-image",
+          "slipStorageBucket": "payment-slips"
+        }
+      ],
+      "paymentStatus": "CONFIRMED",
+      "supportConversationId": "chat_1793094689158_89jo",
+      "paymentMethod": "KBZPay",
+      "paymentSlipUploadedAt": "2026-10-27T09:51:31.545Z",
+      "merchantId": "merchant_001",
+      "confirmedAt": "2026-10-27T09:51:31.550Z",
+      "customerPhone": "09798765432",
+      "status": "confirmed",
+      "totalAmount": 18500,
+      "shippingAddress": "No 45, Bogyoke Road, Pabedan, Yangon",
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793094689158_8vvg_1793094690514_hu3zvp.jpg",
+      "supportCodeHash": "642e1ae6dc01c1b27af5b9fc652e6e2e8248094c51d41fb453c2508c5d14b229",
+      "rejectedBy": null,
+      "customerName": "Ko Kyaw Zin",
+      "transactionRef": "KBZ-CORRECTED-999",
+      "rejectionReason": null,
+      "createdAt": "2026-10-27T09:51:29.158Z",
+      "items": [
+        {
+          "variant": "Black / L",
+          "productId": "prod_1",
+          "qty": 1,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "price": 18500
+        }
+      ],
+      "id": "ord_1793094689158_8vvg",
+      "paymentSlipUrl": "/api/public/orders/ord_1793094689158_8vvg/slip-image",
+      "confirmedBy": "user_owner_001",
+      "slipStorageBucket": "payment-slips"
+    },
+    {
+      "paymentHistory": [],
+      "confirmedBy": null,
+      "shippingAddress": "123 Test Street, Yangon",
+      "transactionRef": null,
+      "paymentSlipUploadedAt": null,
+      "totalAmount": 18500,
+      "supportConversationId": "chat_1793097022474_c25o",
+      "customerPhone": "09123456789",
+      "status": "processing",
+      "paymentMethod": "KBZPay",
+      "supportCodeHash": "8c57b2a86cde415e77745476be2b4852197d5c65b860bb049bb1e36d4459e1c6",
+      "id": "ord_1793097022474_kxc4",
+      "merchantId": "merchant_001",
+      "paymentSlipUrl": null,
+      "customerName": "Test Customer",
+      "rejectionReason": null,
+      "confirmedAt": null,
+      "items": [
+        {
+          "price": 18500,
+          "qty": 1,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "variant": "Black / L",
+          "productId": "prod_1"
+        }
+      ],
+      "paymentStatus": "PENDING",
+      "createdAt": "2026-10-27T10:30:22.474Z",
+      "rejectedBy": null,
+      "rejectedAt": null
+    },
+    {
+      "status": "processing",
+      "totalAmount": 18500,
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "shippingAddress": "123 Test Street, Yangon",
+      "paymentMethod": "KBZPay",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "paymentSlipUrl": "/api/public/orders/ord_1793097036337_t4rp/slip-image",
+      "id": "ord_1793097036337_t4rp",
+      "slipStorageBucket": "payment-slips",
+      "customerName": "Test Customer",
+      "rejectedAt": null,
+      "confirmedAt": null,
+      "transactionRef": "REF123456",
+      "customerPhone": "09123456789",
+      "merchantId": "merchant_001",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793097036337_t4rp_1793097036344_fkgyer.png",
+      "confirmedBy": null,
+      "items": [
+        {
+          "variant": "Black / L",
+          "name": "Premium Cotton Oversized T-Shirt",
+          "productId": "prod_1",
+          "price": 18500,
+          "qty": 1
+        }
+      ],
+      "supportConversationId": "chat_1793097036337_e5zf",
+      "paymentSlipUploadedAt": "2026-10-27T10:30:38.211Z",
+      "rejectedBy": null,
+      "rejectionReason": null,
+      "createdAt": "2026-10-27T10:30:36.337Z",
+      "paymentHistory": [],
+      "supportCodeHash": "f6544e53e3db1ed96d8732b6ccdb9910aed22a31993146223748b548facdc191"
+    },
+    {
+      "confirmedBy": null,
+      "paymentMethod": "KBZPay",
+      "status": "processing",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "id": "ord_1793097045805_jlq5",
+      "rejectedAt": null,
+      "shippingAddress": "123 Test Street, Yangon",
+      "paymentHistory": [],
+      "merchantId": "merchant_001",
+      "customerPhone": "09123456789",
+      "totalAmount": 18500,
+      "items": [
+        {
+          "qty": 1,
+          "variant": "White / M",
+          "price": 18500,
+          "name": "Premium Cotton Oversized T-Shirt",
+          "productId": "prod_1"
+        }
+      ],
+      "rejectionReason": null,
+      "paymentSlipUrl": "/api/public/orders/ord_1793097045805_jlq5/slip-image",
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "supportCodeHash": "a9247a3a7ed6433a6fe432f5f75c9ebc1121a181c6e3756a9fff3c794147a700",
+      "supportConversationId": "chat_1793097045805_qrlh",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793097045805_jlq5_1793097045817_ul6s0t.png",
+      "paymentSlipUploadedAt": "2026-10-27T10:30:46.549Z",
+      "rejectedBy": null,
+      "slipStorageBucket": "payment-slips",
+      "confirmedAt": null,
+      "customerName": "Test Customer",
+      "transactionRef": "REF123456",
+      "createdAt": "2026-10-27T10:30:45.805Z"
+    },
+    {
+      "paymentSlipUrl": "/api/public/orders/ord_1793097119654_f3zz/slip-image",
+      "customerPhone": "09123456789",
+      "shippingAddress": "123 Test Street, Yangon",
+      "totalAmount": 18500,
+      "createdAt": "2026-10-27T10:31:59.654Z",
+      "items": [
+        {
+          "qty": 1,
+          "variant": "White / M",
+          "price": 18500,
+          "productId": "prod_1",
+          "name": "Premium Cotton Oversized T-Shirt"
+        }
+      ],
+      "status": "processing",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "slipObjectPath": "merchant_001/payment-slips/ord_1793097119654_f3zz_1793097119664_tuc7d4.png",
+      "paymentSlipUploadedAt": "2026-10-27T10:32:00.790Z",
+      "slipStorageBucket": "payment-slips",
+      "supportConversationId": "chat_1793097119654_e02e",
+      "merchantId": "merchant_001",
+      "transactionRef": "REF123456",
+      "confirmedAt": null,
+      "paymentMethod": "KBZPay",
+      "rejectedAt": null,
+      "supabaseSyncStatus": "SYNCED_DURABLE",
+      "confirmedBy": null,
+      "id": "ord_1793097119654_f3zz",
+      "rejectionReason": null,
+      "paymentHistory": [],
+      "supportCodeHash": "ca898b69ed2e259b929068e5c077b53e7f7eef21f05590d4eb3d92bbb2fc2929",
+      "customerName": "Test Customer",
+      "rejectedBy": null
+    },
+    {
+      "confirmedBy": null,
+      "shippingAddress": "Yangon",
+      "totalAmount": 85000,
+      "merchantId": "merchant_1792927191739_ce04",
+      "paymentSlipUrl": null,
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "id": "ord_1793097924003_95rm",
+      "customerPhone": "09420643239",
+      "createdAt": "2026-10-27T10:45:24.003Z",
+      "paymentSlipUploadedAt": null,
+      "supportConversationId": "chat_1793097924003_emzm",
+      "paymentHistory": [],
+      "customerName": "Zin Phyo Htike",
+      "confirmedAt": null,
+      "rejectionReason": null,
+      "paymentMethod": "KBZPay",
+      "paymentStatus": "PENDING",
+      "items": [
+        {
+          "name": "Red dress",
+          "productId": "prod_1793084000329_1674",
+          "price": 85000,
+          "variant": "Standard / Free Size",
+          "qty": 1
+        }
+      ],
+      "status": "processing",
+      "supportCodeHash": "153f17aa6bb6500078d87a872779dd761d0dc17c08476b4b456f22695c4e49e2",
+      "transactionRef": null
+    },
+    {
+      "customerName": "Zin Phyo Htike",
+      "status": "processing",
+      "paymentStatus": "PENDING",
+      "id": "ord_1793097952451_nkix",
+      "merchantId": "merchant_1792927191739_ce04",
+      "shippingAddress": "Gcgccuv",
+      "paymentHistory": [],
+      "transactionRef": null,
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "confirmedBy": null,
+      "totalAmount": 85000,
+      "paymentMethod": "KBZPay",
+      "rejectionReason": null,
+      "customerPhone": "09420643239",
+      "paymentSlipUrl": null,
+      "createdAt": "2026-10-27T10:45:52.451Z",
+      "confirmedAt": null,
+      "supportConversationId": "chat_1793097952451_ivsf",
+      "paymentSlipUploadedAt": null,
+      "supportCodeHash": "ccdb546143f5f0e95b331e10fb4987d7fcba4ebda495465b789a26425d2bfff1",
+      "items": [
+        {
+          "variant": "Standard / Free Size",
+          "productId": "prod_1793084000329_1674",
+          "name": "Red dress",
+          "price": 85000,
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "customerPhone": "09420643239",
+      "supportCodeHash": "7bd75c2406a327d423ef945364c368fb495007292b3a5d126503d4e80dc4b088",
+      "paymentSlipUrl": null,
+      "totalAmount": 85000,
+      "confirmedBy": null,
+      "rejectedBy": null,
+      "rejectedAt": null,
+      "rejectionReason": null,
+      "id": "ord_1793097990179_qsv7",
+      "paymentSlipUploadedAt": null,
+      "supportConversationId": "chat_1793097990179_2i9o",
+      "status": "processing",
+      "merchantId": "merchant_1792927191739_ce04",
+      "items": [
+        {
+          "price": 85000,
+          "name": "Red dress",
+          "productId": "prod_1793084000329_1674",
+          "qty": 1,
+          "variant": "Standard / Free Size"
+        }
+      ],
+      "paymentStatus": "PENDING",
+      "confirmedAt": null,
+      "createdAt": "2026-10-27T10:46:30.179Z",
+      "paymentHistory": [],
+      "customerName": "Ccvc",
+      "transactionRef": null,
+      "shippingAddress": "Ccddf",
+      "paymentMethod": "KBZPay"
+    },
+    {
+      "id": "ord_1793103468138_cr6w",
+      "paymentHistory": [],
+      "confirmedAt": null,
+      "rejectedAt": null,
+      "customerName": "Daw Hla",
+      "supportCodeHash": "fdbcf148ca0ae758fb046011e21e7b8659f5ff673c098f08887680424f24129d",
+      "status": "processing",
+      "totalAmount": 85000,
+      "merchantId": "merchant_1792927191739_ce04",
+      "rejectionReason": null,
+      "createdAt": "2026-10-27T12:17:48.138Z",
+      "slipObjectPath": "merchant_1792927191739_ce04/payment-slips/ord_1793103468138_cr6w_1793103484577_xx4p6t.jpg",
+      "paymentMethod": "KBZPay",
+      "transactionRef": null,
+      "shippingAddress": "Bxjdjjdidndkddk",
+      "paymentStatus": "SLIP_SUBMITTED",
+      "paymentSlipUploadedAt": "2026-10-27T12:18:09.534Z",
+      "supportConversationId": "chat_1793103468138_k7uw",
+      "rejectedBy": null,
+      "paymentSlipUrl": "/api/public/orders/ord_1793103468138_cr6w/slip-image",
+      "items": [
+        {
+          "variant": "Standard / Free Size",
+          "productId": "prod_1793084000329_1674",
+          "price": 85000,
+          "qty": 1,
+          "name": "Red dress"
+        }
+      ],
+      "customerPhone": "09785538971",
+      "slipStorageBucket": "payment-slips",
+      "confirmedBy": null,
+      "supabaseSyncStatus": "SYNCED_DURABLE"
+    },
+    {
+      "paymentStatus": "CONFIRMED",
+      "id": "ord_test_A_paid_1",
+      "merchantId": "test_merchant_A",
+      "customerPhone": "0912345678",
+      "totalAmount": 50000,
+      "customerName": "Daw Mya",
+      "status": "confirmed",
+      "createdAt": "2026-10-26T07:15:41.282Z",
+      "items": [
+        {
+          "name": "Organic Cotton Polo",
+          "qty": 2,
+          "productId": "prod_test_A_1",
+          "price": 25000
+        }
+      ]
+    },
+    {
+      "totalAmount": 25000,
+      "items": [
+        {
+          "name": "Organic Cotton Polo",
+          "productId": "prod_test_A_1",
+          "price": 25000,
+          "qty": 1
+        }
+      ],
+      "merchantId": "test_merchant_A",
+      "customerPhone": "0987654321",
+      "id": "ord_test_A_pending_2",
+      "paymentStatus": "PENDING",
+      "createdAt": "2026-10-26T07:15:41.282Z",
+      "status": "processing",
+      "customerName": "U Ba"
+    }
+  ],
+  "sampleReplies": [
+    {
+      "merchantId": "merchant_001",
+      "customerMessage": "ဒီအင်္ကျီ အနက်ရောင် M Size ရှိလား။",
+      "preferredReply": "မင်္ဂလာပါရှင့်။ အနက်ရောင် M Size လေးကို စစ်ဆေးပေးပါမယ်နော်။",
+      "id": "sample_1",
+      "updatedAt": "2026-10-15T11:29:45.556Z",
+      "category": "Stock and variants",
+      "createdAt": "2026-10-15T11:29:45.556Z"
+    },
+    {
+      "category": "Price",
+      "merchantId": "merchant_001",
+      "id": "sample_2",
+      "customerMessage": "စျေးနှုန်းဘယ်လောက်လဲ ပို့ခဘယ်လောက်ကျလဲ။",
+      "updatedAt": "2026-10-15T11:29:45.556Z",
+      "preferredReply": "မင်္ဂလာပါရှင်။ ကုန်ပစ္စည်းစျေးနှုန်းကတော့ Product description မှာ ကြည့်လို့ရပါတယ်ရှင်။ ရန်ကုန်မြို့တွင်း ပို့ခက 2,500 ကျပ် ဖြစ်ပါတယ်။",
+      "createdAt": "2026-10-15T11:29:45.556Z"
+    },
+    {
+      "createdAt": "2026-10-15T11:29:45.556Z",
+      "category": "Payment instructions",
+      "updatedAt": "2026-10-15T11:29:45.556Z",
+      "preferredReply": "ဟုတ်ကဲ့ရှင်၊ KBZPay (09-912345678) နဲ့ KBZ Bank Account တို့ဖြင့် ငွေပေးချေနိုင်ပါတယ်။ ငွေလွှဲပြီးပါက မျက်နှာပြင်ဖမ်းယူမှု (Screenshot) ပို့ပေးပါရန် မေတ္တာရပ်ခံပါတယ်ရှင်။",
+      "merchantId": "merchant_001",
+      "customerMessage": "ငွေဘယ်လိုလွှဲရမလဲ KBZPay နဲ့ရလား။",
+      "id": "sample_3"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "log_1793951594523",
+      "merchantId": "merchant_001",
+      "action": "PUBLISH_STOREFRONT_THEME",
+      "actor": "user_owner_001",
+      "details": "Published storefront theme v1.",
+      "timestamp": "2026-11-06T07:53:14.523Z"
+    },
+    {
+      "id": "log_1793951594501",
+      "merchantId": "merchant_001",
+      "action": "SAVE_STOREFRONT_THEME_DRAFT",
+      "actor": "user_owner_001",
+      "details": "Saved storefront appearance customization draft.",
+      "timestamp": "2026-11-06T07:53:14.501Z"
+    },
+    {
+      "id": "log_1793094691550",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793094689158_8vvg amount 18500 MMK.",
+      "timestamp": "2026-10-27T09:51:31.550Z"
+    },
+    {
+      "id": "log_1793094691545",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793094689158_8vvg (amount: 18500 MMK, ref: KBZ-CORRECTED-999, storage: payment-slips/merchant_001/payment-slips/ord_1793094689158_8vvg_1793094690514_hu3zvp.jpg).",
+      "timestamp": "2026-10-27T09:51:31.545Z"
+    },
+    {
+      "id": "log_1793094690508",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793094689158_8vvg amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T09:51:30.508Z"
+    },
+    {
+      "id": "log_1793094690498",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793094689158_8vvg (amount: 18500 MMK, ref: KBZ-9824719284, storage: payment-slips/merchant_001/payment-slips/ord_1793094689158_8vvg_1793094689194_7lp7bd.jpg).",
+      "timestamp": "2026-10-27T09:51:30.498Z"
+    },
+    {
+      "id": "log_1793094689146",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T09:51:29.146Z"
+    },
+    {
+      "id": "log_1793094687947",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793094685324_jttp (amount: 18500 MMK, ref: KPAY-RETRY-999, storage: payment-slips/merchant_001/payment-slips/ord_1793094685324_jttp_1793094687192_6wyetm.jpg).",
+      "timestamp": "2026-10-27T09:51:27.947Z"
+    },
+    {
+      "id": "log_1793094686328",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793094685324_jttp (amount: 18500 MMK, ref: KPAY-SUPA-PRIMARY-001, storage: payment-slips/merchant_001/payment-slips/ord_1793094685324_jttp_1793094685334_p7c441.jpg).",
+      "timestamp": "2026-10-27T09:51:26.328Z"
+    },
+    {
+      "id": "log_1793092026952",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793092020285_9mqp amount 18500 MMK.",
+      "timestamp": "2026-10-27T09:07:06.952Z"
+    },
+    {
+      "id": "log_1793092025871",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793092020285_9mqp (amount: 18500 MMK, ref: KBZ-CORRECTED-999, storage: payment-slips/merchant_001/payment-slips/ord_1793092020285_9mqp_1793092024975_dbnl4j.jpg).",
+      "timestamp": "2026-10-27T09:07:05.871Z"
+    },
+    {
+      "id": "log_1793092023517",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793092020285_9mqp amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T09:07:03.517Z"
+    },
+    {
+      "id": "log_1793092022368",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793092020285_9mqp (amount: 18500 MMK, ref: KBZ-9824719284, storage: payment-slips/merchant_001/payment-slips/ord_1793092020285_9mqp_1793092021560_6zv4s2.jpg).",
+      "timestamp": "2026-10-27T09:07:02.368Z"
+    },
+    {
+      "id": "log_1793092019166",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T09:06:59.166Z"
+    },
+    {
+      "id": "log_1793092016821",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793092010584_vxpy (amount: 18500 MMK, ref: KPAY-RETRY-999, storage: payment-slips/merchant_001/payment-slips/ord_1793092010584_vxpy_1793092016121_xuc9fu.jpg).",
+      "timestamp": "2026-10-27T09:06:56.821Z"
+    },
+    {
+      "id": "log_1793092014083",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793092010584_vxpy (amount: 18500 MMK, ref: KPAY-SUPA-PRIMARY-001, storage: payment-slips/merchant_001/payment-slips/ord_1793092010584_vxpy_1793092012898_v09qnl.jpg).",
+      "timestamp": "2026-10-27T09:06:54.083Z"
+    },
+    {
+      "id": "log_1793091491292",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793091485944_hwmq amount 18500 MMK.",
+      "timestamp": "2026-10-27T08:58:11.292Z"
+    },
+    {
+      "id": "log_1793091490412",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091485944_hwmq (amount: 18500 MMK, ref: KBZ-CORRECTED-999, storage: payment-slips/merchant_001/payment-slips/ord_1793091485944_hwmq_1793091489518_mqjtvr.jpg).",
+      "timestamp": "2026-10-27T08:58:10.412Z"
+    },
+    {
+      "id": "log_1793091488667",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793091485944_hwmq amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T08:58:08.667Z"
+    },
+    {
+      "id": "log_1793091487806",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091485944_hwmq (amount: 18500 MMK, ref: KBZ-9824719284, storage: payment-slips/merchant_001/payment-slips/ord_1793091485944_hwmq_1793091486809_ysnt3a.jpg).",
+      "timestamp": "2026-10-27T08:58:07.806Z"
+    },
+    {
+      "id": "log_1793091484893",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:58:04.893Z"
+    },
+    {
+      "id": "log_1793091476710",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091470969_vxjn (amount: 18500 MMK, ref: KPAY-RETRY-999, storage: payment-slips/merchant_001/payment-slips/ord_1793091470969_vxjn_1793091475801_b6dgt6.jpg).",
+      "timestamp": "2026-10-27T08:57:56.710Z"
+    },
+    {
+      "id": "log_1793091473360",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091470969_vxjn (amount: 18500 MMK, ref: KPAY-SUPA-PRIMARY-001, storage: payment-slips/merchant_001/payment-slips/ord_1793091470969_vxjn_1793091472428_xh3b8d.jpg).",
+      "timestamp": "2026-10-27T08:57:53.360Z"
+    },
+    {
+      "id": "log_1793091408455",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:56:48.455Z"
+    },
+    {
+      "id": "log_1793091397364",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091392344_ey49 (amount: 18500 MMK, ref: KPAY-RETRY-999, storage: payment-slips/merchant_001/payment-slips/ord_1793091392344_ey49_1793091396627_2k0cpm.jpg).",
+      "timestamp": "2026-10-27T08:56:37.364Z"
+    },
+    {
+      "id": "log_1793091394937",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091392344_ey49 (amount: 18500 MMK, ref: KPAY-SUPA-PRIMARY-001, storage: payment-slips/merchant_001/payment-slips/ord_1793091392344_ey49_1793091393862_nqu5mk.jpg).",
+      "timestamp": "2026-10-27T08:56:34.937Z"
+    },
+    {
+      "id": "log_1793091338260",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091335290_kagg (amount: 18500 MMK, ref: KPAY9876543210, storage: payment-slips/merchant_001/payment-slips/ord_1793091335290_kagg_1793091336965_oqamd1.jpg).",
+      "timestamp": "2026-10-27T08:55:38.260Z"
+    },
+    {
+      "id": "log_1793091327575",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793091320250_8r2k amount 18500 MMK.",
+      "timestamp": "2026-10-27T08:55:27.575Z"
+    },
+    {
+      "id": "log_1793091326629",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091320250_8r2k (amount: 18500 MMK, ref: KBZ-CORRECTED-999, storage: payment-slips/merchant_001/payment-slips/ord_1793091320250_8r2k_1793091325910_y33wh9.jpg).",
+      "timestamp": "2026-10-27T08:55:26.629Z"
+    },
+    {
+      "id": "log_1793091324896",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793091320250_8r2k amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T08:55:24.896Z"
+    },
+    {
+      "id": "log_1793091323197",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091320250_8r2k (amount: 18500 MMK, ref: KBZ-9824719284, storage: payment-slips/merchant_001/payment-slips/ord_1793091320250_8r2k_1793091321935_c1i6i0.jpg).",
+      "timestamp": "2026-10-27T08:55:23.197Z"
+    },
+    {
+      "id": "log_1793091316042",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:55:16.042Z"
+    },
+    {
+      "id": "log_1793091290465",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793091283836_5r3q amount 18500 MMK.",
+      "timestamp": "2026-10-27T08:54:50.465Z"
+    },
+    {
+      "id": "log_1793091289685",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091283836_5r3q (amount: 18500 MMK, ref: true, storage: payment-slips/merchant_001/payment-slips/ord_1793091283836_5r3q_1793091288503_tn5xvs.jpg).",
+      "timestamp": "2026-10-27T08:54:49.685Z"
+    },
+    {
+      "id": "log_1793091287625",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793091283836_5r3q amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T08:54:47.625Z"
+    },
+    {
+      "id": "log_1793091286804",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793091283836_5r3q (amount: 18500 MMK, ref: true, storage: payment-slips/merchant_001/payment-slips/ord_1793091283836_5r3q_1793091284790_534iwe.jpg).",
+      "timestamp": "2026-10-27T08:54:46.804Z"
+    },
+    {
+      "id": "log_1793091282481",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:54:42.481Z"
+    },
+    {
+      "id": "log_1793090590352",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793090589052_6ii3 (amount: 18500 MMK, ref: KPAY9876543210, cloudSync: SYNCED).",
+      "timestamp": "2026-10-27T08:43:10.352Z"
+    },
+    {
+      "id": "log_1793090583019",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793090578345_dvsu amount 18500 MMK.",
+      "timestamp": "2026-10-27T08:43:03.019Z"
+    },
+    {
+      "id": "log_1793090582010",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793090578345_dvsu (amount: 18500 MMK, ref: KBZ-CORRECTED-999, cloudSync: SYNCED).",
+      "timestamp": "2026-10-27T08:43:02.010Z"
+    },
+    {
+      "id": "log_1793090580705",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793090578345_dvsu amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T08:43:00.705Z"
+    },
+    {
+      "id": "log_1793090579603",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793090578345_dvsu (amount: 18500 MMK, ref: KBZ-9824719284, cloudSync: SYNCED).",
+      "timestamp": "2026-10-27T08:42:59.603Z"
+    },
+    {
+      "id": "log_1793090577126",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:42:57.126Z"
+    },
+    {
+      "id": "log_1793090548707",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793090544770_niew amount 18500 MMK.",
+      "timestamp": "2026-10-27T08:42:28.707Z"
+    },
+    {
+      "id": "log_1793090547898",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793090544770_niew (amount: 18500 MMK, ref: KBZ-CORRECTED-999).",
+      "timestamp": "2026-10-27T08:42:27.898Z"
+    },
+    {
+      "id": "log_1793090546766",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793090544770_niew amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T08:42:26.766Z"
+    },
+    {
+      "id": "log_1793090545865",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793090544770_niew (amount: 18500 MMK, ref: KBZ-9824719284).",
+      "timestamp": "2026-10-27T08:42:25.865Z"
+    },
+    {
+      "id": "log_1793090543802",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:42:23.802Z"
+    },
+    {
+      "id": "log_1793090535863",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793090533595_ebmv (amount: 18500 MMK, ref: KPAY9876543210).",
+      "timestamp": "2026-10-27T08:42:15.863Z"
+    },
+    {
+      "id": "log_1793089964828",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793089960874_5ib0 amount 18500 MMK.",
+      "timestamp": "2026-10-27T08:32:44.828Z"
+    },
+    {
+      "id": "log_1793089964182",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793089960874_5ib0 (amount: 18500 MMK, ref: KBZ-CORRECTED-999).",
+      "timestamp": "2026-10-27T08:32:44.182Z"
+    },
+    {
+      "id": "log_1793089963291",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793089960874_5ib0 amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T08:32:43.291Z"
+    },
+    {
+      "id": "log_1793089962502",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793089960874_5ib0 (amount: 18500 MMK, ref: KBZ-9824719284).",
+      "timestamp": "2026-10-27T08:32:42.502Z"
+    },
+    {
+      "id": "log_1793089959194",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:32:39.194Z"
+    },
+    {
+      "id": "log_1793089930304",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793089928974_dxo3 (amount: 18500 MMK, ref: KPAY9876543210).",
+      "timestamp": "2026-10-27T08:32:10.304Z"
+    },
+    {
+      "id": "log_1793089836982",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793089832676_4w7l amount 18500 MMK.",
+      "timestamp": "2026-10-27T08:30:36.982Z"
+    },
+    {
+      "id": "log_1793089836122",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793089832676_4w7l (amount: 18500 MMK, ref: KBZ-CORRECTED-999).",
+      "timestamp": "2026-10-27T08:30:36.122Z"
+    },
+    {
+      "id": "log_1793089835144",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793089832676_4w7l amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T08:30:35.144Z"
+    },
+    {
+      "id": "log_1793089834392",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793089832676_4w7l (amount: 18500 MMK, ref: KBZ-9824719284).",
+      "timestamp": "2026-10-27T08:30:34.392Z"
+    },
+    {
+      "id": "log_1793089831302",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:30:31.302Z"
+    },
+    {
+      "id": "log_1793089436796",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793089432988_ojwi amount 18500 MMK.",
+      "timestamp": "2026-10-27T08:23:56.796Z"
+    },
+    {
+      "id": "log_1793089435989",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793089432988_ojwi (amount: 18500 MMK, ref: KBZ-CORRECTED-999).",
+      "timestamp": "2026-10-27T08:23:55.989Z"
+    },
+    {
+      "id": "log_1793089435109",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793089432988_ojwi amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-27T08:23:55.109Z"
+    },
+    {
+      "id": "log_1793089434297",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793089432988_ojwi (amount: 18500 MMK, ref: KBZ-9824719284).",
+      "timestamp": "2026-10-27T08:23:54.297Z"
+    },
+    {
+      "id": "log_1793089431558",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-27T08:23:51.558Z"
+    },
+    {
+      "id": "log_1793021556525",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793021553866_1jk5 amount 18500 MMK.",
+      "timestamp": "2026-10-26T13:32:36.525Z"
+    },
+    {
+      "id": "log_1793021556011",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793021553866_1jk5 (amount: 18500 MMK, ref: KBZ-CORRECTED-999).",
+      "timestamp": "2026-10-26T13:32:36.011Z"
+    },
+    {
+      "id": "log_1793021555329",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793021553866_1jk5 amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-26T13:32:35.329Z"
+    },
+    {
+      "id": "log_1793021554784",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793021553866_1jk5 (amount: 18500 MMK, ref: KBZ-9824719284).",
+      "timestamp": "2026-10-26T13:32:34.784Z"
+    },
+    {
+      "id": "log_1793021552810",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-26T13:32:32.810Z"
+    },
+    {
+      "id": "log_1793021533415",
+      "merchantId": "merchant_001",
+      "action": "CONFIRM_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human confirmed payment for order ord_1793021529758_l4j8 amount 18500 MMK.",
+      "timestamp": "2026-10-26T13:32:13.415Z"
+    },
+    {
+      "id": "log_1793021532879",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793021529758_l4j8 (amount: 18500 MMK, ref: KBZ-CORRECTED-999).",
+      "timestamp": "2026-10-26T13:32:12.879Z"
+    },
+    {
+      "id": "log_1793021532110",
+      "merchantId": "merchant_001",
+      "action": "REJECT_PAYMENT_HUMAN",
+      "actor": "user_owner_001",
+      "details": "Authorized human rejected payment for order ord_1793021529758_l4j8 amount 18500 MMK. Reason: \"ငွေလက်ခံ မရရှိသေးပါ။ KBZPay အကောင့်ထဲသို့ ငွေမဝင်သေးပါရှင်။\".",
+      "timestamp": "2026-10-26T13:32:12.111Z"
+    },
+    {
+      "id": "log_1793021531540",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793021529758_l4j8 (amount: 18500 MMK, ref: KBZ-9824719284).",
+      "timestamp": "2026-10-26T13:32:11.540Z"
+    },
+    {
+      "id": "log_1793021528517",
+      "merchantId": "merchant_001",
+      "action": "UPDATE_PAYMENT_SETTINGS",
+      "actor": "user_owner_001",
+      "details": "Updated KPay payment settings: account \"Daw Thida Win\", phone \"09123456789\".",
+      "timestamp": "2026-10-26T13:32:08.517Z"
+    },
+    {
+      "id": "log_1793021454333",
+      "merchantId": "merchant_001",
+      "action": "SUBMIT_PAYMENT_SLIP",
+      "actor": "customer_guest",
+      "details": "Customer submitted payment slip for order ord_1793021452552_hwk3 (amount: 18500 MMK, ref: KBZ-9824719284).",
+      "timestamp": "2026-10-26T13:30:54.333Z"
+    },
+    {
+      "id": "log_1792169514703",
+      "merchantId": "merchant_eval_empty",
+      "action": "UPDATE_AI_CONFIG",
+      "actor": "user_eval_001",
+      "details": "Updated AI sales assistant configuration and instructions.",
+      "timestamp": "2026-10-16T16:51:54.703Z"
+    },
+    {
+      "id": "log_1",
+      "merchantId": "merchant_001",
+      "action": "INITIALIZE_SYSTEM",
+      "actor": "system",
+      "details": "System initialized with default merchant and secure storage.",
+      "timestamp": "2026-10-15T11:29:45.556Z"
+    }
+  ],
+  "conversations": [],
+  "accountingEntries": [
+    {
+      "category": "sales_revenue",
+      "id": "acc_entry_B_confidential",
+      "amount": 1500000,
+      "source": "manual",
+      "createdAt": "2026-10-26T07:15:40.424Z",
+      "description": "Confidential Merchant B bulk sale",
+      "merchantId": "test_merchant_B",
+      "type": "income",
+      "date": "2026-10-26",
+      "createdBy": "user_test_B",
+      "paymentMethod": "Bank Transfer",
+      "updatedAt": "2026-10-26T07:15:40.424Z"
+    },
+    {
+      "category": "delivery",
+      "updatedAt": "2026-10-26T07:15:41.282Z",
+      "merchantId": "test_merchant_A",
+      "amount": 10000,
+      "createdBy": "user_test_A",
+      "source": "manual",
+      "type": "expense",
+      "date": "2026-10-26",
+      "createdAt": "2026-10-26T07:15:41.282Z",
+      "description": "Deli fees to delivery guy",
+      "id": "acc_expense_deliv_1",
+      "paymentMethod": "Cash"
+    },
+    {
+      "paymentMethod": "KBZPay",
+      "date": "2026-10-26",
+      "createdBy": "system_reconciliation",
+      "createdAt": "2026-10-26T12:36:46.261Z",
+      "source": "order",
+      "amount": 15000,
+      "category": "sales_revenue",
+      "orderId": "ord_1793018206261_n8zg",
+      "updatedAt": "2026-11-06T07:43:04.400Z",
+      "id": "acc_ord_ord_1793018206261_n8zg",
+      "type": "income",
+      "merchantId": "merchant_1792927191739_ce04",
+      "description": "Auto-reconciled order #ord_1793018206261_n8zg from Zin phyo"
+    },
+    {
+      "orderId": "ord_1793097924003_95rm",
+      "id": "acc_ord_ord_1793097924003_95rm",
+      "date": "2026-10-27",
+      "updatedAt": "2026-11-06T07:43:04.400Z",
+      "category": "sales_revenue",
+      "merchantId": "merchant_1792927191739_ce04",
+      "paymentMethod": "KBZPay",
+      "source": "order",
+      "description": "Auto-reconciled order #ord_1793097924003_95rm from Zin Phyo Htike",
+      "amount": 85000,
+      "createdBy": "system_reconciliation",
+      "type": "income",
+      "createdAt": "2026-10-27T10:45:24.003Z"
+    },
+    {
+      "date": "2026-10-27",
+      "orderId": "ord_1793097952451_nkix",
+      "createdAt": "2026-10-27T10:45:52.451Z",
+      "source": "order",
+      "amount": 85000,
+      "createdBy": "system_reconciliation",
+      "id": "acc_ord_ord_1793097952451_nkix",
+      "merchantId": "merchant_1792927191739_ce04",
+      "paymentMethod": "KBZPay",
+      "type": "income",
+      "category": "sales_revenue",
+      "description": "Auto-reconciled order #ord_1793097952451_nkix from Zin Phyo Htike",
+      "updatedAt": "2026-11-06T07:43:04.400Z"
+    },
+    {
+      "createdBy": "system_reconciliation",
+      "date": "2026-10-27",
+      "createdAt": "2026-10-27T10:46:30.179Z",
+      "id": "acc_ord_ord_1793097990179_qsv7",
+      "paymentMethod": "KBZPay",
+      "amount": 85000,
+      "source": "order",
+      "updatedAt": "2026-11-06T07:43:04.400Z",
+      "merchantId": "merchant_1792927191739_ce04",
+      "orderId": "ord_1793097990179_qsv7",
+      "type": "income",
+      "category": "sales_revenue",
+      "description": "Auto-reconciled order #ord_1793097990179_qsv7 from Ccvc"
+    },
+    {
+      "source": "order",
+      "id": "acc_ord_ord_1793103468138_cr6w",
+      "amount": 85000,
+      "updatedAt": "2026-11-06T07:43:04.400Z",
+      "orderId": "ord_1793103468138_cr6w",
+      "type": "income",
+      "merchantId": "merchant_1792927191739_ce04",
+      "paymentMethod": "KBZPay",
+      "createdBy": "system_reconciliation",
+      "date": "2026-10-27",
+      "createdAt": "2026-10-27T12:17:48.138Z",
+      "category": "sales_revenue",
+      "description": "Auto-reconciled order #ord_1793103468138_cr6w from Daw Hla"
+    }
+  ],
+  "aiStudioGenerations": [
+    {
+      "status": "success",
+      "mode": "clean_background",
+      "id": "gen_1793011506445_m2dk",
+      "outputUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221024%22%20height%3D%221024%22%20viewBox%3D%220%200%201024%201024%22%3E%0A%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%3ClinearGradient%20id%3D%22bgGrad%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230F172A%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2250%25%22%20stop-color%3D%22%231E293B%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%230F172A%22%20%2F%3E%0A%20%20%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%20%20%3ClinearGradient%20id%3D%22podiumGrad%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%220%25%22%20y2%3D%22100%25%22%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%233B82F6%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%231D4ED8%22%20%2F%3E%0A%20%20%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%20%20%3ClinearGradient%20id%3D%22glow%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%2360A5FA%22%20stop-opacity%3D%220.4%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%232563EB%22%20stop-opacity%3D%220%22%20%2F%3E%0A%20%20%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%20%20%3Cfilter%20id%3D%22shadow%22%20x%3D%22-20%25%22%20y%3D%22-20%25%22%20width%3D%22140%25%22%20height%3D%22140%25%22%3E%0A%20%20%20%20%20%20%20%20%3CfeDropShadow%20dx%3D%220%22%20dy%3D%2224%22%20stdDeviation%3D%2232%22%20flood-color%3D%22%23000%22%20flood-opacity%3D%220.6%22%2F%3E%0A%20%20%20%20%20%20%3C%2Ffilter%3E%0A%20%20%20%20%3C%2Fdefs%3E%0A%20%20%20%20%3Crect%20width%3D%221024%22%20height%3D%221024%22%20fill%3D%22url(%23bgGrad)%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22512%22%20cy%3D%22480%22%20r%3D%22340%22%20fill%3D%22url(%23glow)%22%2F%3E%0A%20%20%20%20%0A%20%20%20%20%3C!--%20Studio%20Light%20Pedestal%20--%3E%0A%20%20%20%20%3Cellipse%20cx%3D%22512%22%20cy%3D%22680%22%20rx%3D%22320%22%20ry%3D%2280%22%20fill%3D%22%23090D16%22%20opacity%3D%220.8%22%20%2F%3E%0A%20%20%20%20%3Cellipse%20cx%3D%22512%22%20cy%3D%22660%22%20rx%3D%22280%22%20ry%3D%2270%22%20fill%3D%22url(%23podiumGrad)%22%20filter%3D%22url(%23shadow)%22%20%2F%3E%0A%20%20%20%20%0A%20%20%20%20%3C!--%20Product%20Showcase%20Box%20--%3E%0A%20%20%20%20%3Crect%20x%3D%22362%22%20y%3D%22320%22%20width%3D%22300%22%20height%3D%22300%22%20rx%3D%2240%22%20fill%3D%22%23FFFFFF%22%20filter%3D%22url(%23shadow)%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%22372%22%20y%3D%22330%22%20width%3D%22280%22%20height%3D%22280%22%20rx%3D%2232%22%20fill%3D%22%23F8FAFC%22%2F%3E%0A%20%20%20%20%0A%20%20%20%20%3C!--%20Emblem%20--%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22512%22%20cy%3D%22450%22%20r%3D%2250%22%20fill%3D%22%23EFF6FF%22%20stroke%3D%22%233B82F6%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M492%20450%20L506%20464%20L536%20434%22%20fill%3D%22none%22%20stroke%3D%22%232563EB%22%20stroke-width%3D%226%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%0A%20%20%20%20%3C!--%20Text%20Labels%20--%3E%0A%20%20%20%20%3Ctext%20x%3D%22512%22%20y%3D%22550%22%20text-anchor%3D%22middle%22%20font-family%3D%22system-ui%2C%20-apple-system%2C%20sans-serif%22%20font-size%3D%2222%22%20font-weight%3D%22bold%22%20fill%3D%22%230F172A%22%3E%E1%80%85%E1%80%80%E1%80%95%E1%80%BA%E1%80%9B%E1%80%BE%E1%80%8A%E1%80%BA%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22512%22%20y%3D%22580%22%20text-anchor%3D%22middle%22%20font-family%3D%22system-ui%2C%20-apple-system%2C%20sans-serif%22%20font-size%3D%2214%22%20font-weight%3D%22600%22%20fill%3D%22%233B82F6%22%3EClean%20Studio%20Photo%3C%2Ftext%3E%0A%20%20%20%20%0A%20%20%20%20%3C!--%20Studio%20Branding%20Badge%20--%3E%0A%20%20%20%20%3Crect%20x%3D%22382%22%20y%3D%22860%22%20width%3D%22260%22%20height%3D%2244%22%20rx%3D%2222%22%20fill%3D%22%231E293B%22%20stroke%3D%22%23334155%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22512%22%20y%3D%22888%22%20text-anchor%3D%22middle%22%20font-family%3D%22system-ui%2C%20-apple-system%2C%20sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22600%22%20fill%3D%22%2394A3B8%22%3EShopSone%20AI%20Studio%20Verified%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E",
+      "prompt": "Isolated product on pristine pure white e-commerce studio background, soft natural drop shadow, razor-sharp focus, commercial catalog quality. Product: စကပ်ရှည်. ",
+      "merchantId": "merchant_1792927191739_ce04",
+      "savedToProduct": false,
+      "productId": "prod_1793011488304_nouh",
+      "type": "image",
+      "provider": "studio_canvas_highres",
+      "productName": "စကပ်ရှည်",
+      "createdAt": "2026-10-26T10:45:06.445Z"
+    },
+    {
+      "outputText": "🌟 **စကပ်ရှည် လှပမှုကို ခံစားလိုက်ပါ!** 🌟  \n\n✅ **အကျယ်အဝန်း မပြတ်** – Standard/Free Size တို့ဖြင့် တစ်ဦးတည်းအတွက် အထူးသင့်တော်  \n✅ **ပေါ့ပါးပြီး လှပ** – အားလုံးကြိုက်နှစ်သက်နိုင်တဲ့ ဒီဇိုင်း  \n✅ **နေ့စဉ်အသုံးပြုရန် အဆင်ပြေ** – အလုပ်၊ အပန်းဖြေ၊ အထူးအခမ်းအနား မဆို လိုက်လျောညီထွေ  \n\n💰 **တစ်ခုလုံး 15,000 MMK** မှာပဲ!  \n\n📩 **အော်ဒါလုပ်လိုသူများ** – မက်ဆေ့ချ်ပို့၊ Comment လုပ်, သို့မဟုတ် ဖုန်းနံပါတ် (09XXXXXXXX) သို့ ဆက်သွယ်ပါ။  \n\n🚀 **အခုတင် အော်ဒါပေးပြီး မိမိအတွက် စကပ်ရှည်ကို ရယူလိုက်ပါ!** 🚀",
+      "id": "gen_1793950513426_kf2o",
+      "productId": "prod_1793011488304_nouh",
+      "merchantId": "merchant_1792927191739_ce04",
+      "type": "copy",
+      "productName": "စကပ်ရှည်",
+      "createdAt": "2026-11-06T07:35:13.427Z",
+      "mode": "facebook_promo",
+      "status": "success"
+    },
+    {
+      "productName": "စကပ်ရှည်",
+      "type": "copy",
+      "id": "gen_1793950535381_290x",
+      "status": "success",
+      "mode": "tiktok_script",
+      "createdAt": "2026-11-06T07:35:35.381Z",
+      "outputText": "**Hook (ပထမ ၃ စက္ကန့်)**  \n“အချစ်အတွက် အပေါ်တင်! စကပ်ရှည်နဲ့ သင့်စတိုင်ကို တစ်ချက်တည်းက ပြောင်းလိုက်ပါ—15000 MMK တည်း!”\n\n**Product Showcase**  \n- စကပ်ရှည်ကို အလှပဆုံး Standard/Free Size အရွယ်အစားနှစ်မျိုးရရှိနိုင်ပါတယ်။  \n- လှပတဲ့ ဒီဇိုင်း၊ အရည်အသွေးမြင့်၊ အားလုံးကို အဆင်ပြေစွာ တိုက်ရိုက်အဝတ်အထည်အဖြစ် သုံးနိုင်မယ်။  \n- 15000 MMK ဖြင့် အချစ်သဘောထားအပြည့်အဝ ထုတ်ဝေသလို၊ အခုပဲ လက်ဝယ်မှာယူနိုင်ပါတယ်။  \n\n**Call To Action**  \n“အခုတင် TikTok မှာ “စကပ်ရှည်” ကို အမှတ်တရအဖြစ် မှာယူလိုက်ပါ! ဈေးနှုန်း 15000 MMK၊ Standard/Free Size အရွယ်အစားရွေးချယ်နိုင်သေးတယ်။ အောက်က “Buy Now” ခလုတ်ကို နှိပ်ပြီး အခုပဲ လိုက်လျောညီထွေ အဝတ်အထည်ကို ပိုင်ဆိုင်လိုက်ပါ!”",
+      "merchantId": "merchant_1792927191739_ce04",
+      "productId": "prod_1793011488304_nouh"
+    }
+  ]
+}

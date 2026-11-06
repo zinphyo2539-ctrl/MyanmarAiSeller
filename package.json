@@ -12,6 +12,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@cloudflare/workers-types": "^5.20261106.1",
     "@google/genai": "^2.31.0",
     "@supabase/supabase-js": "^2.118.0",
     "@tailwindcss/vite": "^4.3.3",
@@ -21,6 +22,7 @@
     "express-session": "^1.19.0",
     "firebase": "^13.1.0",
     "firebase-admin": "^14.5.0",
+    "hono": "^4.13.16",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "multer": "^2.4.0",

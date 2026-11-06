@@ -28,12 +28,17 @@ import {
   initSupabaseStorageAdapter
 } from './server/supabaseStorage.ts';
 import { GoogleGenAI } from '@google/genai';
+import { checkoutEngine, CheckoutError } from './server/checkoutEngine.ts';
+import { ledgerService, LedgerError } from './server/accounting/ledger.ts';
+import { aiActionSecurity, AiAuthorizationError } from './server/aiActions/actionSecurity.ts';
+import { auditLogger } from './server/audit/auditLogger.ts';
 import {
   initPersistence,
   getDb,
   withDbTransaction,
   saveAuthToken,
   getUserByAuthToken,
+  getUserByAuthTokenAsync,
   deleteAuthToken,
   type UserRecord,
   type DbState,
@@ -367,15 +372,16 @@ export function readDb(): DbState {
 }
 
 // Base Authentication Middleware (verifies user token/session without requiring merchantId)
-function requireAuth(req: any, res: any, next: any) {
+async function requireAuth(req: any, res: any, next: any) {
   let user: any = null;
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7).trim();
-    user = getUserByToken(token);
+    user = getUserByToken(token) || (await getUserByAuthTokenAsync(token));
   }
   if (!user && req.query.token) {
-    user = getUserByToken(String(req.query.token).trim());
+    const token = String(req.query.token).trim();
+    user = getUserByToken(token) || (await getUserByAuthTokenAsync(token));
   }
   if (!user && req.isAuthenticated && req.isAuthenticated()) {
     user = req.user;
@@ -1567,7 +1573,7 @@ app.post('/api/merchant/support/chat/:orderId', authMiddleware, async (req: any,
   res.json({ success: true });
 });
 
-// Public Server-Validated Checkout & Order Creation
+// Public Server-Validated Checkout & Order Creation (BLK-02 Atomic Engine)
 app.post('/api/public/store/:slug/orders', async (req: any, res: any) => {
   try {
     const slug = req.params.slug;
@@ -1577,85 +1583,57 @@ app.post('/api/public/store/:slug/orders', async (req: any, res: any) => {
       return res.status(400).json({ error: 'Invalid checkout details or empty cart' });
     }
 
-    const newOrder = await withDbTransaction((db) => {
-      const merchantEntry = (Object.values(db.merchants) as any[]).find((m: any) => m.store && m.store.slug === slug);
-      if (!merchantEntry || !merchantEntry.store || !merchantEntry.store.isPublished) {
-        throw new Error('Store not found or unpublished');
-      }
+    const db = readDb();
+    const merchantEntry = (Object.values(db.merchants) as any[]).find((m: any) => m.store && m.store.slug === slug);
+    if (!merchantEntry || !merchantEntry.store || !merchantEntry.store.isPublished) {
+      return res.status(404).json({ error: 'Store not found or unpublished' });
+    }
 
-      let calculatedTotal = 0;
-      const verifiedItems = [];
+    // Map incoming items to checkout item format
+    const checkoutItems = items.map((i: any) => ({
+      productId: i.productId,
+      variantId: i.variantId,
+      quantity: i.qty || i.quantity || 1,
+    }));
 
-      for (const item of items) {
-        const product = db.products.find((p: any) => p.id === item.productId && p.merchantId === merchantEntry.id);
-        if (!product) {
-          throw new Error(`Product not found: ${item.productId}`);
-        }
+    const idempotencyKey = req.headers['x-idempotency-key'] || req.body.idempotencyKey;
 
-        const variant = product.variants.find((v: any) => v.id === item.variantId);
-        if (!variant) {
-          throw new Error('Product variant not found');
-        }
-
-        if (variant.stock < item.qty) {
-          throw new Error(`Insufficient stock for ${product.name} (${variant.color}/${variant.size}). Available: ${variant.stock}`);
-        }
-
-        // Decrement stock authoritatively
-        variant.stock -= item.qty;
-
-        calculatedTotal += product.price * item.qty;
-        verifiedItems.push({
-          productId: product.id,
-          name: product.name,
-          variant: `${variant.color} / ${variant.size}`,
-          price: product.price,
-          qty: item.qty
-        });
-      }
-
-      const order = {
-        id: `ord_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        merchantId: merchantEntry.id,
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
-        items: verifiedItems,
-        totalAmount: calculatedTotal,
-        paymentStatus: 'PENDING',
-        paymentMethod: paymentMethod || 'KBZPay',
-        shippingAddress: shippingAddress.trim(),
-        status: 'processing',
-        paymentSlipUrl: null,
-        paymentSlipUploadedAt: null,
-        transactionRef: null,
-        rejectionReason: null,
-        rejectedBy: null,
-        rejectedAt: null,
-        paymentHistory: [],
-        confirmedBy: null,
-        confirmedAt: null,
-        createdAt: new Date().toISOString()
-      };
-
-      const supportCode = crypto.randomBytes(12).toString('hex');
-      const orderWithSupport = {
-        ...order,
-        supportCodeHash: crypto.createHash('sha256').update(supportCode).digest('hex'),
-        supportConversationId: `chat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
-      };
-
-      db.orders.unshift(orderWithSupport);
-      return { ...orderWithSupport, supportCode };
+    const processedOrder = await checkoutEngine.processCheckout({
+      merchantId: merchantEntry.id,
+      slug,
+      items: checkoutItems,
+      customer: {
+        customerName: String(customerName).trim(),
+        customerPhone: String(customerPhone).trim(),
+        customerAddress: String(shippingAddress).trim(),
+      },
+      idempotencyKey: typeof idempotencyKey === 'string' ? idempotencyKey : undefined,
+      paymentMethod: paymentMethod || 'KBZPay',
     });
 
-    // Establish immediate authorized session for guest order support and slip upload
-    req.session.recentOrderId = newOrder.id;
-    req.session.supportOrder = { orderId: newOrder.id, merchantId: newOrder.merchantId };
-    req.session.save();
+    const supportCode = crypto.randomBytes(12).toString('hex');
+    const responseOrder = {
+      ...processedOrder,
+      shippingAddress: processedOrder.customerAddress,
+      paymentStatus: 'PENDING',
+      supportCode,
+      supportCodeHash: crypto.createHash('sha256').update(supportCode).digest('hex'),
+      supportConversationId: `chat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    };
 
-    res.status(201).json({ success: true, order: newOrder });
+    // Establish immediate authorized session for guest order support and slip upload
+    if (req.session) {
+      req.session.recentOrderId = responseOrder.id;
+      req.session.supportOrder = { orderId: responseOrder.id, merchantId: responseOrder.merchantId };
+      if (typeof req.session.save === 'function') req.session.save();
+    }
+
+    res.status(201).json({ success: true, order: responseOrder });
   } catch (err: any) {
-    const status = err.message.includes('Store not found') ? 404 : 400;
+    if (err instanceof CheckoutError) {
+      return res.status(err.status).json({ error: err.message, code: err.code });
+    }
+    const status = err.message && err.message.includes('Store not found') ? 404 : 400;
     res.status(status).json({ error: err.message || 'Checkout failed' });
   }
 });
@@ -2475,6 +2453,13 @@ app.post('/api/orders/:id/confirm-payment', authMiddleware, async (req: any, res
       return ord;
     });
 
+    // Recognize revenue via double-entry journal entry
+    try {
+      await ledgerService.postOrderPaymentRevenue(order, userId);
+    } catch (ledgerErr: any) {
+      console.warn('[Ledger] Order revenue recognition warning:', ledgerErr.message);
+    }
+
     res.json({ success: true, order });
   } catch (err: any) {
     const status = err.message.includes('not found') ? 404 : err.message.includes('already confirmed') ? 400 : 500;
@@ -3119,10 +3104,71 @@ app.post('/api/ai/suggestions', authMiddleware, async (req: any, res: any) => {
   }
 });
 
-// Audit Logs
-app.get('/api/audit-logs', authMiddleware, (req: any, res: any) => {
+// Human-in-the-Loop AI Action Endpoints (BLK-05)
+app.post('/api/merchant/ai-actions/propose', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { actionType, payload, reasoning, proposedByModel } = req.body;
+    if (!actionType || !payload) {
+      return res.status(400).json({ error: 'Action type and payload are required.' });
+    }
+
+    const signedToken = aiActionSecurity.createSignedProposalToken({
+      actionType,
+      merchantId: req.merchant.id,
+      proposedByModel: proposedByModel || 'gemini-2.5-flash',
+      payload,
+      reasoning: reasoning || 'AI suggested optimization',
+    });
+
+    res.json({
+      success: true,
+      actionToken: signedToken.actionToken,
+      expiresAt: signedToken.expiresAt,
+      payloadHash: signedToken.payloadHash,
+      preview: {
+        actionType,
+        payload,
+        reasoning,
+        merchantId: req.merchant.id,
+      },
+    });
+  } catch (err: any) {
+    const status = err instanceof AiAuthorizationError ? err.status : 400;
+    res.status(status).json({ error: err.message, code: err.code });
+  }
+});
+
+app.post('/api/merchant/ai-actions/execute', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { actionToken, payload } = req.body;
+    if (!actionToken || !payload) {
+      return res.status(400).json({ error: 'Action token and payload are required for execution.' });
+    }
+
+    const humanActor = {
+      userId: req.user.id || 'merchant_admin',
+      role: req.user.role || (req.user.provider ? 'merchant_admin' : 'staff'),
+      merchantId: req.merchant.id,
+    };
+
+    const result = await aiActionSecurity.executeApprovedAction(actionToken, payload, humanActor);
+    res.json(result);
+  } catch (err: any) {
+    const status = err instanceof AiAuthorizationError ? err.status : 400;
+    res.status(status).json({ error: err.message, code: err.code });
+  }
+});
+app.get('/api/audit-logs', authMiddleware, async (req: any, res: any) => {
+  try {
+    const firestoreLogs = await auditLogger.getAuditLogsByMerchant(req.merchant.id);
+    if (firestoreLogs && firestoreLogs.length > 0) {
+      return res.json(firestoreLogs);
+    }
+  } catch (e) {
+    // Graceful fallback to local cache
+  }
   const db = readDb();
-  const logs = db.auditLogs.filter((l: any) => l.merchantId === req.merchant.id);
+  const logs = (db.auditLogs || []).filter((l: any) => l.merchantId === req.merchant.id);
   res.json(logs);
 });
 
@@ -3363,83 +3409,47 @@ app.post('/api/accounting/entries', authMiddleware, async (req: any, res: any) =
   }
 });
 
-// 4. Update Accounting Entry
+// 4. Update Accounting Entry (IMMUTABLE - Method Not Allowed)
 app.put('/api/accounting/entries/:id', authMiddleware, async (req: any, res: any) => {
-  try {
-    const entryId = req.params.id;
-    const merchantId = req.merchant.id;
-    const { date, type, category, amount, paymentMethod, description } = req.body;
-
-    const updated = await withDbTransaction((db) => {
-      const idx = (db.accountingEntries || []).findIndex((e: any) => e.id === entryId && e.merchantId === merchantId);
-      if (idx === -1) {
-        throw new Error('Accounting entry not found or unauthorized');
-      }
-
-      const existing = db.accountingEntries[idx];
-      const numAmount = amount !== undefined ? Number(amount) : existing.amount;
-      if (isNaN(numAmount) || numAmount <= 0) {
-        throw new Error('Amount must be a positive number in MMK');
-      }
-
-      db.accountingEntries[idx] = {
-        ...existing,
-        date: date || existing.date,
-        type: type && ['income', 'expense'].includes(type) ? type : existing.type,
-        category: category !== undefined ? String(category).trim() : existing.category,
-        amount: numAmount,
-        paymentMethod: paymentMethod !== undefined ? String(paymentMethod).trim() : existing.paymentMethod,
-        description: description !== undefined ? String(description).trim() : existing.description,
-        updatedAt: new Date().toISOString()
-      };
-
-      db.auditLogs.unshift({
-        id: `log_${Date.now()}`,
-        merchantId,
-        action: 'UPDATE_ACCOUNTING_ENTRY',
-        actor: req.user.id || 'owner',
-        details: `Updated entry ${entryId}`,
-        timestamp: new Date().toISOString()
-      });
-
-      return db.accountingEntries[idx];
-    });
-
-    res.json({ success: true, entry: updated });
-  } catch (err: any) {
-    const status = err.message.includes('not found') ? 404 : 400;
-    res.status(status).json({ error: err.message || 'Failed to update entry' });
-  }
+  return res.status(405).json({
+    error: 'Posted accounting records are immutable and cannot be updated in place. Use the reversal endpoint to void and replace this entry.',
+    reversalEndpoint: `/api/accounting/entries/${req.params.id}/reverse`,
+  });
 });
 
-// 5. Delete Accounting Entry
+// 5. Delete Accounting Entry (IMMUTABLE - Method Not Allowed)
 app.delete('/api/accounting/entries/:id', authMiddleware, async (req: any, res: any) => {
+  return res.status(405).json({
+    error: 'Posted accounting records cannot be deleted. Use the reversal endpoint to void this transaction.',
+    reversalEndpoint: `/api/accounting/entries/${req.params.id}/reverse`,
+  });
+});
+
+// 5b. Reverse Accounting Entry
+app.post('/api/accounting/entries/:id/reverse', authMiddleware, async (req: any, res: any) => {
   try {
     const entryId = req.params.id;
     const merchantId = req.merchant.id;
+    const actorId = req.user?.id || 'merchant_admin';
+    const reason = req.body.reason || 'Merchant requested reversal adjustment';
+
+    const result = await ledgerService.reverseJournalEntry(entryId, merchantId, actorId, reason);
 
     await withDbTransaction((db) => {
-      const idx = (db.accountingEntries || []).findIndex((e: any) => e.id === entryId && e.merchantId === merchantId);
-      if (idx === -1) {
-        throw new Error('Accounting entry not found or unauthorized');
-      }
-
-      db.accountingEntries.splice(idx, 1);
-
       db.auditLogs.unshift({
         id: `log_${Date.now()}`,
         merchantId,
-        action: 'DELETE_ACCOUNTING_ENTRY',
-        actor: req.user.id || 'owner',
-        details: `Deleted entry ${entryId}`,
-        timestamp: new Date().toISOString()
+        action: 'REVERSE_ACCOUNTING_ENTRY',
+        actor: actorId,
+        details: `Reversed journal entry ${entryId}: ${reason}`,
+        timestamp: new Date().toISOString(),
       });
     });
 
-    res.json({ success: true, id: entryId });
+    res.json({ success: true, original: result.original, reversal: result.reversal });
   } catch (err: any) {
-    const status = err.message.includes('not found') ? 404 : 400;
-    res.status(status).json({ error: err.message || 'Failed to delete entry' });
+    const status = err instanceof LedgerError ? err.status : 400;
+    res.status(status).json({ error: err.message || 'Failed to reverse entry' });
   }
 });
 

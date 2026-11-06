@@ -1,0 +1,5 @@
+{
+  "summary": "SHOPSONE Gate 3.8 Production Readiness & Forensic Audit Report. Covers environment isolation, secrets readiness, database migration integrity, security audit, 80-route verification, infrastructure configuration, cost/quota assessment, blocking defects, recommendations, rollback readiness, and evidence references.",
+  "updatedAt": "2026-11-06T10:55:53.440456896Z",
+  "userFacing": true
+}

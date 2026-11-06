@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { initializeApp, getApps } from 'firebase/app';
 import {
   getFirestore,
@@ -447,51 +448,73 @@ export function withDbTransaction<T>(mutator: (db: DbState) => T | Promise<T>): 
         // 1. Write local disk backup
         writeLocalDbBackup(inMemoryDb);
 
-        // 2. Asynchronously sync updated entities to Cloud Firestore
+        // 2. Synchronously commit updated entities to Cloud Firestore
         const db = getFirestoreInstance();
         if (db) {
-          // Trigger sync in background without awaiting it to unblock mutation queue
-          (async () => {
-            try {
-                // Sync all users
-                for (const [id, user] of Object.entries(inMemoryDb.users)) {
-                  await setDoc(doc(db, 'users', id), user, { merge: true });
-                }
-                // Sync all merchants
-                for (const [id, merchant] of Object.entries(inMemoryDb.merchants)) {
-                  await setDoc(doc(db, 'merchants', id), merchant, { merge: true });
-                }
-                // Sync products
-                for (const prod of inMemoryDb.products) {
-                  await setDoc(doc(db, 'products', prod.id), prod, { merge: true });
-                }
-                // Sync orders
-                for (const order of inMemoryDb.orders) {
-                  await setDoc(doc(db, 'orders', order.id), order, { merge: true });
-                }
-                // Sync sample replies
-                for (const reply of inMemoryDb.sampleReplies) {
-                  await setDoc(doc(db, 'sampleReplies', reply.id), reply, { merge: true });
-                }
-                // Sync accounting entries
-                if (inMemoryDb.accountingEntries) {
-                  for (const entry of inMemoryDb.accountingEntries) {
-                    await setDoc(doc(db, 'accountingEntries', entry.id), entry, { merge: true });
-                  }
-                }
-                // Sync AI studio generations
-                if (inMemoryDb.aiStudioGenerations) {
-                  for (const gen of inMemoryDb.aiStudioGenerations) {
-                    await setDoc(doc(db, 'aiStudioGenerations', gen.id), gen, { merge: true });
-                  }
-                }
-            } catch (syncErr) {
-                console.error('[DbPersistence] Background Firestore sync warning:', syncErr);
+          try {
+            let batch = writeBatch(db);
+            let opCount = 0;
+
+            const commitBatchIfNeeded = async (force = false) => {
+              if (opCount >= 400 || (force && opCount > 0)) {
+                await batch.commit();
+                batch = writeBatch(db);
+                opCount = 0;
+              }
+            };
+
+            for (const [id, user] of Object.entries(inMemoryDb.users)) {
+              batch.set(doc(db, 'users', id), user, { merge: true });
+              opCount++;
+              await commitBatchIfNeeded();
             }
-          })();
+            for (const [id, merchant] of Object.entries(inMemoryDb.merchants)) {
+              batch.set(doc(db, 'merchants', id), merchant, { merge: true });
+              opCount++;
+              await commitBatchIfNeeded();
+            }
+            for (const prod of inMemoryDb.products) {
+              batch.set(doc(db, 'products', prod.id), prod, { merge: true });
+              opCount++;
+              await commitBatchIfNeeded();
+            }
+            for (const order of inMemoryDb.orders) {
+              batch.set(doc(db, 'orders', order.id), order, { merge: true });
+              opCount++;
+              await commitBatchIfNeeded();
+            }
+            for (const reply of inMemoryDb.sampleReplies) {
+              batch.set(doc(db, 'sampleReplies', reply.id), reply, { merge: true });
+              opCount++;
+              await commitBatchIfNeeded();
+            }
+            if (inMemoryDb.auditLogs) {
+              for (const log of inMemoryDb.auditLogs) {
+                batch.set(doc(db, 'auditLogs', log.id), log, { merge: true });
+                opCount++;
+                await commitBatchIfNeeded();
+              }
+            }
+            if (inMemoryDb.accountingEntries) {
+              for (const entry of inMemoryDb.accountingEntries) {
+                batch.set(doc(db, 'accountingEntries', entry.id), entry, { merge: true });
+                opCount++;
+                await commitBatchIfNeeded();
+              }
+            }
+            if (inMemoryDb.aiStudioGenerations) {
+              for (const gen of inMemoryDb.aiStudioGenerations) {
+                batch.set(doc(db, 'aiStudioGenerations', gen.id), gen, { merge: true });
+                opCount++;
+                await commitBatchIfNeeded();
+              }
+            }
+            await commitBatchIfNeeded(true);
+          } catch (syncErr) {
+            console.error('[DbPersistence] Firestore commit error:', syncErr);
+            throw syncErr;
+          }
         }
-
-
 
         resolve(result);
         return result;
@@ -515,7 +538,11 @@ export async function saveAuthToken(token: string, user: UserRecord): Promise<vo
   const db = getFirestoreInstance();
   if (db) {
     try {
-      await setDoc(doc(db, 'authTokens', token), tokenData);
+      const hashed = crypto.createHash('sha256').update(token).digest('hex');
+      await Promise.all([
+        setDoc(doc(db, 'authTokens', hashed), tokenData),
+        setDoc(doc(db, 'authTokens', token), tokenData),
+      ]);
     } catch (e) {
       console.warn('[DbPersistence] Failed to persist token to Firestore:', e);
     }
@@ -541,6 +568,33 @@ export function getUserByAuthToken(token: string | null | undefined): UserRecord
     return inMemoryDb.users[entry.user.id];
   }
   return entry.user;
+}
+
+export async function getUserByAuthTokenAsync(token: string | null | undefined): Promise<UserRecord | null> {
+  if (!token) return null;
+  const local = getUserByAuthToken(token);
+  if (local) return local;
+
+  const db = getFirestoreInstance();
+  if (db) {
+    try {
+      const hashed = crypto.createHash('sha256').update(token).digest('hex');
+      let snap = await getDoc(doc(db, 'authTokens', hashed));
+      if (!snap.exists()) {
+        snap = await getDoc(doc(db, 'authTokens', token));
+      }
+      if (snap.exists()) {
+        const data = snap.data() as any;
+        if (data && data.user) {
+          activeTokensCache[token] = { user: data.user, createdAt: data.createdAt || Date.now() };
+          return data.user;
+        }
+      }
+    } catch (e) {
+      console.warn('[DbPersistence] Firestore token lookup error:', e);
+    }
+  }
+  return null;
 }
 
 export async function deleteAuthToken(token: string): Promise<void> {

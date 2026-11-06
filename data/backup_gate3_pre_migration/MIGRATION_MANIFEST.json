@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-11-06T10:17:44.631Z",
+  "sourceFiles": {
+    "data/db.json": {
+      "size": 141501,
+      "sha256": "07970d3397871ff829357620d20f57ee364760d6340e27e0f6b59977787771fb",
+      "entityCounts": {
+        "users": 7,
+        "merchants": 5,
+        "products": 34,
+        "orders": 33,
+        "sampleReplies": 3,
+        "auditLogs": 78,
+        "accountingEntries": 7,
+        "aiStudioGenerations": 3
+      }
+    },
+    "data/active-tokens.json": {
+      "size": 51425,
+      "sha256": "07ab503d2611836354c4a6fcc4f4e91bf614cd26f863f3ae9c16bcfa8abfcbdb",
+      "tokenCount": 136
+    }
+  },
+  "backupLocation": "data/backup_gate3_pre_migration",
+  "verification": {
+    "dbParseValid": true,
+    "tokensParseValid": true,
+    "sha256Verified": true
+  }
+}
