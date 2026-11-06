@@ -66,12 +66,16 @@ export interface MerchantRecord {
     brandName?: string;
     description?: string;
     logoUrl?: string;
+    faviconUrl?: string;
     coverUrl?: string;
     deliveryInfo?: string;
     paymentInstructions?: string;
     paymentSettings?: any;
     isPublished?: boolean;
     updatedAt?: string;
+    themeConfig?: any;
+    draftThemeConfig?: any;
+    themeHistory?: any[];
   };
   aiConfig: any;
   aiPhotoUsage?: any;
@@ -565,4 +569,179 @@ export async function linkUserToMerchant(userId: string, merchantId: string): Pr
     user.updatedAt = new Date().toISOString();
     return user;
   });
+}
+
+export function getDefaultThemeConfig(storeName: string = 'My Store', description: string = ''): any {
+  return {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString(),
+    brand: {
+      logoUrl: '',
+      faviconUrl: '',
+      storeName: storeName || 'My Store',
+      tagline: 'Premium Commerce & Fashion',
+      description: description || 'Welcome to our official branded storefront.',
+      primaryColor: '#C9A227',
+      secondaryColor: '#393426',
+      accentColor: '#E0BD55',
+      headingTextColor: '#FFFFFF',
+      bodyTextColor: '#B9B5A7',
+      surfaceColor: '#181810',
+      surfaceBorderColor: 'rgba(255, 255, 255, 0.08)'
+    },
+    background: {
+      storeBgImage: '',
+      storeBgColor: '#0B0B09',
+      heroBgImage: '',
+      bannerBgImage: '',
+      bgPosition: 'center',
+      bgSize: 'cover',
+      bgRepeat: 'no-repeat',
+      overlayColor: '#0B0B09',
+      overlayOpacity: 40
+    },
+    typography: {
+      headingFont: 'Plus Jakarta Sans',
+      bodyFont: 'Plus Jakarta Sans',
+      headingScale: 'normal',
+      bodyScale: 'normal',
+      textAlignment: 'left'
+    },
+    header: {
+      logoPosition: 'left',
+      headerBgColor: 'rgba(11, 11, 9, 0.85)',
+      headerTextColor: '#FFFFFF',
+      showNavigation: true,
+      showSearch: true,
+      showCart: true,
+      stickyHeader: true
+    },
+    homepage: {
+      sections: [
+        { id: 'hero', enabled: true, title: 'Welcome to our Official Storefront', subtitle: 'Curated premium collection' },
+        { id: 'customer_lookup', enabled: true, title: 'Order & Support Lookup', subtitle: 'Track your order status with your support code' },
+        { id: 'delivery_payment', enabled: true, title: 'Delivery & Payment Policies', subtitle: 'Fast and reliable delivery across Myanmar' },
+        { id: 'featured_products', enabled: true, title: 'Our Catalog', subtitle: 'Explore all available items' }
+      ]
+    },
+    productDisplay: {
+      gridColumns: 3,
+      cardRadius: '2xl',
+      cardShadow: 'lg',
+      imageAspectRatio: 'square',
+      imageFit: 'cover',
+      showDiscountBadge: true,
+      showStockBadge: true,
+      buttonStyle: 'gradient'
+    },
+    buttons: {
+      buttonPrimaryBg: '#C9A227',
+      buttonPrimaryText: '#0B0B09',
+      buttonRadius: 'full'
+    },
+    footer: {
+      footerBgColor: '#0B0B09',
+      footerTextColor: '#8C887B',
+      showContact: true,
+      showSocial: true,
+      socialLinks: {
+        facebook: '',
+        viber: '',
+        telegram: '',
+        tiktok: '',
+        phone: ''
+      },
+      copyrightText: 'Official Verified Storefront. All rights reserved.'
+    }
+  };
+}
+
+export function sanitizeThemeConfig(input: any, baseStoreName: string = 'My Store'): any {
+  const defaults = getDefaultThemeConfig(baseStoreName);
+  if (!input || typeof input !== 'object') return defaults;
+
+  return {
+    version: typeof input.version === 'number' ? input.version : defaults.version,
+    updatedAt: new Date().toISOString(),
+    publishedAt: input.publishedAt || defaults.publishedAt,
+    brand: {
+      logoUrl: typeof input.brand?.logoUrl === 'string' ? input.brand.logoUrl : defaults.brand.logoUrl,
+      faviconUrl: typeof input.brand?.faviconUrl === 'string' ? input.brand.faviconUrl : defaults.brand.faviconUrl,
+      storeName: typeof input.brand?.storeName === 'string' && input.brand.storeName.trim() ? input.brand.storeName.trim() : defaults.brand.storeName,
+      tagline: typeof input.brand?.tagline === 'string' ? input.brand.tagline : defaults.brand.tagline,
+      description: typeof input.brand?.description === 'string' ? input.brand.description : defaults.brand.description,
+      primaryColor: typeof input.brand?.primaryColor === 'string' && input.brand.primaryColor.startsWith('#') ? input.brand.primaryColor : defaults.brand.primaryColor,
+      secondaryColor: typeof input.brand?.secondaryColor === 'string' ? input.brand.secondaryColor : defaults.brand.secondaryColor,
+      accentColor: typeof input.brand?.accentColor === 'string' ? input.brand.accentColor : defaults.brand.accentColor,
+      headingTextColor: typeof input.brand?.headingTextColor === 'string' ? input.brand.headingTextColor : defaults.brand.headingTextColor,
+      bodyTextColor: typeof input.brand?.bodyTextColor === 'string' ? input.brand.bodyTextColor : defaults.brand.bodyTextColor,
+      surfaceColor: typeof input.brand?.surfaceColor === 'string' ? input.brand.surfaceColor : defaults.brand.surfaceColor,
+      surfaceBorderColor: typeof input.brand?.surfaceBorderColor === 'string' ? input.brand.surfaceBorderColor : defaults.brand.surfaceBorderColor,
+    },
+    background: {
+      storeBgImage: typeof input.background?.storeBgImage === 'string' ? input.background.storeBgImage : defaults.background.storeBgImage,
+      storeBgColor: typeof input.background?.storeBgColor === 'string' ? input.background.storeBgColor : defaults.background.storeBgColor,
+      heroBgImage: typeof input.background?.heroBgImage === 'string' ? input.background.heroBgImage : defaults.background.heroBgImage,
+      bannerBgImage: typeof input.background?.bannerBgImage === 'string' ? input.background.bannerBgImage : defaults.background.bannerBgImage,
+      bgPosition: ['center', 'top', 'bottom', 'left', 'right'].includes(input.background?.bgPosition) ? input.background.bgPosition : defaults.background.bgPosition,
+      bgSize: ['cover', 'contain', 'auto'].includes(input.background?.bgSize) ? input.background.bgSize : defaults.background.bgSize,
+      bgRepeat: ['no-repeat', 'repeat', 'repeat-x', 'repeat-y'].includes(input.background?.bgRepeat) ? input.background.bgRepeat : defaults.background.bgRepeat,
+      overlayColor: typeof input.background?.overlayColor === 'string' ? input.background.overlayColor : defaults.background.overlayColor,
+      overlayOpacity: typeof input.background?.overlayOpacity === 'number' && input.background.overlayOpacity >= 0 && input.background.overlayOpacity <= 100 ? input.background.overlayOpacity : defaults.background.overlayOpacity,
+    },
+    typography: {
+      headingFont: ['Plus Jakarta Sans', 'Outfit', 'Playfair Display', 'DM Sans', 'Space Grotesk', 'Cinzel'].includes(input.typography?.headingFont) ? input.typography.headingFont : defaults.typography.headingFont,
+      bodyFont: ['Plus Jakarta Sans', 'DM Sans', 'Manrope', 'Source Serif 4', 'Public Sans'].includes(input.typography?.bodyFont) ? input.typography.bodyFont : defaults.typography.bodyFont,
+      headingScale: ['normal', 'large', 'compact'].includes(input.typography?.headingScale) ? input.typography.headingScale : defaults.typography.headingScale,
+      bodyScale: ['normal', 'large', 'compact'].includes(input.typography?.bodyScale) ? input.typography.bodyScale : defaults.typography.bodyScale,
+      textAlignment: ['left', 'center'].includes(input.typography?.textAlignment) ? input.typography.textAlignment : defaults.typography.textAlignment,
+    },
+    header: {
+      logoPosition: ['left', 'center'].includes(input.header?.logoPosition) ? input.header.logoPosition : defaults.header.logoPosition,
+      headerBgColor: typeof input.header?.headerBgColor === 'string' ? input.header.headerBgColor : defaults.header.headerBgColor,
+      headerTextColor: typeof input.header?.headerTextColor === 'string' ? input.header.headerTextColor : defaults.header.headerTextColor,
+      showNavigation: typeof input.header?.showNavigation === 'boolean' ? input.header.showNavigation : defaults.header.showNavigation,
+      showSearch: typeof input.header?.showSearch === 'boolean' ? input.header.showSearch : defaults.header.showSearch,
+      showCart: typeof input.header?.showCart === 'boolean' ? input.header.showCart : defaults.header.showCart,
+      stickyHeader: typeof input.header?.stickyHeader === 'boolean' ? input.header.stickyHeader : defaults.header.stickyHeader,
+    },
+    homepage: {
+      sections: Array.isArray(input.homepage?.sections) ? input.homepage.sections.map((sec: any) => ({
+        id: sec.id,
+        enabled: typeof sec.enabled === 'boolean' ? sec.enabled : true,
+        title: typeof sec.title === 'string' ? sec.title : undefined,
+        subtitle: typeof sec.subtitle === 'string' ? sec.subtitle : undefined
+      })) : defaults.homepage.sections
+    },
+    productDisplay: {
+      gridColumns: [2, 3, 4].includes(Number(input.productDisplay?.gridColumns)) ? Number(input.productDisplay.gridColumns) : defaults.productDisplay.gridColumns,
+      cardRadius: ['none', 'md', 'xl', '2xl', '3xl'].includes(input.productDisplay?.cardRadius) ? input.productDisplay.cardRadius : defaults.productDisplay.cardRadius,
+      cardShadow: ['none', 'sm', 'md', 'lg', 'glow'].includes(input.productDisplay?.cardShadow) ? input.productDisplay.cardShadow : defaults.productDisplay.cardShadow,
+      imageAspectRatio: ['square', 'portrait', 'landscape'].includes(input.productDisplay?.imageAspectRatio) ? input.productDisplay.imageAspectRatio : defaults.productDisplay.imageAspectRatio,
+      imageFit: ['cover', 'contain'].includes(input.productDisplay?.imageFit) ? input.productDisplay.imageFit : defaults.productDisplay.imageFit,
+      showDiscountBadge: typeof input.productDisplay?.showDiscountBadge === 'boolean' ? input.productDisplay.showDiscountBadge : defaults.productDisplay.showDiscountBadge,
+      showStockBadge: typeof input.productDisplay?.showStockBadge === 'boolean' ? input.productDisplay.showStockBadge : defaults.productDisplay.showStockBadge,
+      buttonStyle: ['gradient', 'solid', 'outline', 'pill'].includes(input.productDisplay?.buttonStyle) ? input.productDisplay.buttonStyle : defaults.productDisplay.buttonStyle,
+    },
+    buttons: {
+      buttonPrimaryBg: typeof input.buttons?.buttonPrimaryBg === 'string' ? input.buttons.buttonPrimaryBg : defaults.buttons.buttonPrimaryBg,
+      buttonPrimaryText: typeof input.buttons?.buttonPrimaryText === 'string' ? input.buttons.buttonPrimaryText : defaults.buttons.buttonPrimaryText,
+      buttonRadius: ['none', 'md', 'lg', 'full'].includes(input.buttons?.buttonRadius) ? input.buttons.buttonRadius : defaults.buttons.buttonRadius,
+    },
+    footer: {
+      footerBgColor: typeof input.footer?.footerBgColor === 'string' ? input.footer.footerBgColor : defaults.footer.footerBgColor,
+      footerTextColor: typeof input.footer?.footerTextColor === 'string' ? input.footer.footerTextColor : defaults.footer.footerTextColor,
+      showContact: typeof input.footer?.showContact === 'boolean' ? input.footer.showContact : defaults.footer.showContact,
+      showSocial: typeof input.footer?.showSocial === 'boolean' ? input.footer.showSocial : defaults.footer.showSocial,
+      socialLinks: {
+        facebook: input.footer?.socialLinks?.facebook || '',
+        viber: input.footer?.socialLinks?.viber || '',
+        telegram: input.footer?.socialLinks?.telegram || '',
+        tiktok: input.footer?.socialLinks?.tiktok || '',
+        phone: input.footer?.socialLinks?.phone || ''
+      },
+      copyrightText: typeof input.footer?.copyrightText === 'string' ? input.footer.copyrightText : defaults.footer.copyrightText
+    }
+  };
 }

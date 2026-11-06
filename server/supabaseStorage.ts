@@ -309,6 +309,57 @@ export async function uploadQrImageToSupabase(
   return publicUrlData.publicUrl;
 }
 
+export async function uploadStorefrontAssetToSupabase(
+  merchantId: string,
+  assetType: 'logo' | 'favicon' | 'background' | 'hero' | 'banner',
+  fileBuffer: Buffer,
+  mimetype: string,
+  originalName?: string
+): Promise<string> {
+  const client = getSupabaseClient();
+  const config = validateSupabaseConfig();
+  const bucket = config.bucketName;
+
+  const validation = validateImageBuffer(fileBuffer, mimetype);
+  if (!validation.isValid) {
+    throw new Error(validation.error || 'Invalid storefront image asset file.');
+  }
+
+  const cleanMerchantId = (merchantId || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+  if (!cleanMerchantId) {
+    throw new Error('Invalid merchant ID for storefront asset path.');
+  }
+
+  const ext = validation.detectedExtension || 'jpg';
+  const uniqueId = `${assetType}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  const objectPath = `${cleanMerchantId}/storefront/${uniqueId}.${ext}`;
+
+  const contentType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+
+  const { data, error } = await client.storage.from(bucket).upload(objectPath, fileBuffer, {
+    contentType,
+    upsert: false,
+    cacheControl: '3600',
+  });
+
+  if (error) {
+    const errorChain = getErrorChain(error);
+    console.error('[SupabaseStorage] Storefront asset upload failure:', {
+      bucket,
+      path: objectPath,
+      chain: errorChain,
+    });
+    throw new Error(`Storage upload failed: ${error.message}`);
+  }
+
+  const { data: publicUrlData } = client.storage.from(bucket).getPublicUrl(objectPath);
+  if (!publicUrlData || !publicUrlData.publicUrl) {
+    throw new Error('Failed to generate public URL for storefront asset.');
+  }
+
+  return publicUrlData.publicUrl;
+}
+
 export interface PaymentSlipUploadResult {
   bucket: string;
   objectPath: string;

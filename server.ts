@@ -18,6 +18,7 @@ import multer from 'multer';
 import {
   uploadProductImageToSupabase,
   uploadQrImageToSupabase,
+  uploadStorefrontAssetToSupabase,
   uploadPaymentSlipToSupabase,
   downloadPaymentSlipFromSupabase,
   ensurePaymentSlipsBucket,
@@ -38,6 +39,8 @@ import {
   type DbState,
   type AccountingEntryRecord,
   type AiStudioGenerationRecord,
+  getDefaultThemeConfig,
+  sanitizeThemeConfig,
   getFirestoreInstance,
   collection,
   query,
@@ -906,6 +909,189 @@ app.put('/api/merchant/store', authMiddleware, async (req: any, res: any) => {
   }
 });
 
+// Merchant Storefront Appearance & Theme Customization
+app.get('/api/merchant/storefront/theme', authMiddleware, (req: any, res: any) => {
+  try {
+    const store = req.merchant.store || {};
+    const defaults = getDefaultThemeConfig(store.storeName, store.description);
+    const published = store.themeConfig ? sanitizeThemeConfig(store.themeConfig, store.storeName) : defaults;
+    const draft = store.draftThemeConfig ? sanitizeThemeConfig(store.draftThemeConfig, store.storeName) : published;
+    
+    const hasUnpublishedChanges = JSON.stringify(published) !== JSON.stringify(draft);
+    
+    res.json({
+      published,
+      draft,
+      hasUnpublishedChanges,
+      publishedAt: published.publishedAt || null,
+      draftUpdatedAt: draft.updatedAt || null,
+      themeHistoryCount: Array.isArray(store.themeHistory) ? store.themeHistory.length : 0
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to retrieve storefront theme' });
+  }
+});
+
+app.put('/api/merchant/storefront/theme/draft', authMiddleware, async (req: any, res: any) => {
+  try {
+    const merchantId = req.merchant.id;
+    const draftInput = req.body;
+    if (!draftInput) {
+      return res.status(400).json({ error: 'Draft theme payload is required.' });
+    }
+    const baseStoreName = req.merchant.store?.storeName || 'My Store';
+    const validatedDraft = sanitizeThemeConfig(draftInput, baseStoreName);
+
+    const result = await withDbTransaction((db) => {
+      if (!db.merchants[merchantId].store) {
+        db.merchants[merchantId].store = {
+          slug: req.merchant.store?.slug || `shop-${merchantId}`,
+          storeName: baseStoreName,
+          description: '',
+          coverUrl: '',
+          deliveryInfo: '',
+          paymentInstructions: '',
+          isPublished: true
+        };
+      }
+      db.merchants[merchantId].store.draftThemeConfig = validatedDraft;
+      db.merchants[merchantId].store.updatedAt = new Date().toISOString();
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'SAVE_STOREFRONT_THEME_DRAFT',
+        actor: req.user.id,
+        details: 'Saved storefront appearance customization draft.',
+        timestamp: new Date().toISOString()
+      });
+
+      return db.merchants[merchantId].store.draftThemeConfig;
+    });
+
+    res.json({ success: true, draft: result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to save theme draft' });
+  }
+});
+
+app.post('/api/merchant/storefront/theme/publish', authMiddleware, async (req: any, res: any) => {
+  try {
+    const merchantId = req.merchant.id;
+    const baseStoreName = req.merchant.store?.storeName || 'My Store';
+
+    const result = await withDbTransaction((db) => {
+      const store = db.merchants[merchantId].store;
+      if (!store) {
+        throw new Error('Merchant store not initialized');
+      }
+
+      const themeToPublish = store.draftThemeConfig 
+        ? sanitizeThemeConfig(store.draftThemeConfig, baseStoreName)
+        : getDefaultThemeConfig(baseStoreName, store.description);
+
+      themeToPublish.publishedAt = new Date().toISOString();
+      themeToPublish.version = (store.themeConfig?.version || 0) + 1;
+
+      if (!Array.isArray(store.themeHistory)) {
+        store.themeHistory = [];
+      }
+      if (store.themeConfig) {
+        store.themeHistory.unshift(store.themeConfig);
+        if (store.themeHistory.length > 10) store.themeHistory.pop();
+      }
+
+      store.themeConfig = themeToPublish;
+      store.draftThemeConfig = JSON.parse(JSON.stringify(themeToPublish));
+      
+      // Keep store metadata in sync with brand profile
+      if (themeToPublish.brand?.logoUrl) store.logoUrl = themeToPublish.brand.logoUrl;
+      if (themeToPublish.brand?.faviconUrl) store.faviconUrl = themeToPublish.brand.faviconUrl;
+      if (themeToPublish.brand?.storeName) store.storeName = themeToPublish.brand.storeName;
+      if (themeToPublish.brand?.description) store.description = themeToPublish.brand.description;
+      store.updatedAt = new Date().toISOString();
+
+      db.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        merchantId,
+        action: 'PUBLISH_STOREFRONT_THEME',
+        actor: req.user.id,
+        details: `Published storefront theme v${themeToPublish.version}.`,
+        timestamp: new Date().toISOString()
+      });
+
+      return store.themeConfig;
+    });
+
+    res.json({ success: true, published: result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to publish storefront theme' });
+  }
+});
+
+app.post('/api/merchant/storefront/theme/revert', authMiddleware, async (req: any, res: any) => {
+  try {
+    const merchantId = req.merchant.id;
+    const baseStoreName = req.merchant.store?.storeName || 'My Store';
+
+    const result = await withDbTransaction((db) => {
+      const store = db.merchants[merchantId].store;
+      if (!store) throw new Error('Merchant store not found');
+
+      const restored = store.themeConfig 
+        ? JSON.parse(JSON.stringify(store.themeConfig))
+        : getDefaultThemeConfig(baseStoreName, store.description);
+
+      store.draftThemeConfig = restored;
+      store.updatedAt = new Date().toISOString();
+
+      return store.draftThemeConfig;
+    });
+
+    res.json({ success: true, draft: result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to revert draft' });
+  }
+});
+
+// Secure Storefront Media Asset Upload
+app.post('/api/merchant/upload-storefront-asset', authMiddleware, uploadSingleSafe('asset'), async (req: any, res: any) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image asset uploaded or file exceeds 5 MiB limit.' });
+    }
+    const merchantId = req.merchant?.id || req.user?.merchantId;
+    if (!merchantId) {
+      return res.status(401).json({ error: 'Unauthorized: Merchant identity not verified.' });
+    }
+
+    const rawType = req.body?.assetType || 'background';
+    const assetType = ['logo', 'favicon', 'background', 'hero', 'banner'].includes(rawType)
+      ? rawType
+      : 'background';
+
+    const publicUrl = await uploadStorefrontAssetToSupabase(
+      merchantId,
+      assetType as any,
+      req.file.buffer,
+      req.file.mimetype,
+      req.file.originalname
+    );
+
+    res.status(201).json({
+      success: true,
+      assetUrl: publicUrl,
+      assetType
+    });
+  } catch (err: any) {
+    console.error('[StorefrontAssetUpload] Error:', err);
+    const msg = err.message || 'Asset upload failed';
+    const isConfigError = msg.includes('unconfigured') || msg.includes('Missing required Supabase') || msg.includes('unavailable');
+    const status = isConfigError ? 503 : 400;
+    res.status(status).json({ error: msg });
+  }
+});
+
 // Merchant KPay Payment Settings (Authoritative Multi-Merchant Isolation)
 function isValidMyanmarPhone(phone: string): boolean {
   if (!phone || typeof phone !== 'string') return false;
@@ -1167,10 +1353,26 @@ app.get('/api/public/store/:slug', (req: any, res: any) => {
     return res.status(404).json({ error: 'Store not found or unpublished' });
   }
 
+  const rawStore = merchantEntry.store;
+  const { draftThemeConfig, themeHistory, ...safeStore } = rawStore;
+  
+  // Ensure public storefront always has fully populated published theme tokens
+  const publishedTheme = safeStore.themeConfig 
+    ? sanitizeThemeConfig(safeStore.themeConfig, safeStore.storeName)
+    : getDefaultThemeConfig(safeStore.storeName, safeStore.description);
+
+  if (!publishedTheme.brand.logoUrl && safeStore.logoUrl) {
+    publishedTheme.brand.logoUrl = safeStore.logoUrl;
+  }
+  if (!publishedTheme.brand.faviconUrl && safeStore.faviconUrl) {
+    publishedTheme.brand.faviconUrl = safeStore.faviconUrl;
+  }
+  safeStore.themeConfig = publishedTheme;
+
   const products = db.products.filter((p: any) => p.merchantId === merchantEntry.id && p.status === 'active');
 
   res.json({
-    store: merchantEntry.store,
+    store: safeStore,
     products
   });
 });

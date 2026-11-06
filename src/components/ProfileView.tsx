@@ -37,6 +37,7 @@ import {
   Check
 } from 'lucide-react';
 import { StoreSettings, Order, ProviderStatus, AiConfig, SampleReply, AiHealth, Product, PaymentSettings } from '../types';
+import { StorefrontAppearanceView } from './StorefrontAppearanceView';
 
 interface ProfileViewProps {
   store: StoreSettings | null;
@@ -88,8 +89,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onTestPreview,
   onOpenLab
 }) => {
-  const [activeSection, setActiveSection] = useState<'store' | 'payment_settings' | 'payments' | 'ai' | 'channels' | 'account'>(
-    initialTab === 'ai'
+  const [activeSection, setActiveSection] = useState<'store' | 'appearance' | 'payment_settings' | 'payments' | 'ai' | 'channels' | 'account'>(
+    initialTab === 'appearance'
+      ? 'appearance'
+      : initialTab === 'ai'
       ? 'ai'
       : initialTab === 'payments'
       ? 'payments'
@@ -454,6 +457,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </button>
         <button
           type="button"
+          onClick={() => setActiveSection('appearance')}
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeSection === 'appearance'
+              ? 'bg-[#C9A227] text-[#0B0B09]'
+              : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-[#C9A227]" />
+          <span>{lang === 'my' ? 'စတိုး ဒီဇိုင်း ပြင်ဆင်မှု' : 'Storefront Appearance'}</span>
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveSection('payment_settings')}
           className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
             activeSection === 'payment_settings'
@@ -522,6 +537,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </button>
       </div>
 
+      {/* Section: Storefront Appearance Studio */}
+      {activeSection === 'appearance' && (
+        <StorefrontAppearanceView
+          store={store}
+          products={products}
+          lang={lang}
+          onStoreUpdated={async (updated) => {
+            await onUpdateStore(updated);
+          }}
+          onOpenLiveStore={onOpenPublicStore}
+        />
+      )}
+
       {/* Section 1: Store Settings */}
       {activeSection === 'store' && (
         <section aria-label="Store Profile and Settings" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-4">
@@ -545,6 +573,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <Globe className="w-3.5 h-3.5" />
                 <span>{lang === 'my' ? 'Public စတိုး ဖွင့်မည်' : 'Open Storefront'}</span>
               </a>
+              <button
+                type="button"
+                onClick={() => setActiveSection('appearance')}
+                className="px-3.5 py-1.5 bg-[#C9A227] hover:brightness-110 text-[#0B0B09] text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-md"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{lang === 'my' ? 'ဒီဇိုင်း ပြင်ဆင်မည်' : 'Customize Appearance'}</span>
+              </button>
               <button
                 type="button"
                 onClick={onOpenPublicStore}

@@ -76,6 +76,106 @@ export interface Order {
   createdAt: string;
 }
 
+export interface StorefrontBrandConfig {
+  logoUrl?: string;
+  faviconUrl?: string;
+  storeName: string;
+  tagline?: string;
+  description: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  headingTextColor: string;
+  bodyTextColor: string;
+  surfaceColor: string;
+  surfaceBorderColor: string;
+}
+
+export interface StorefrontBackgroundConfig {
+  storeBgImage?: string;
+  storeBgColor: string;
+  heroBgImage?: string;
+  bannerBgImage?: string;
+  bgPosition: 'center' | 'top' | 'bottom' | 'left' | 'right';
+  bgSize: 'cover' | 'contain' | 'auto';
+  bgRepeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
+  overlayColor: string;
+  overlayOpacity: number;
+}
+
+export interface StorefrontTypographyConfig {
+  headingFont: 'Plus Jakarta Sans' | 'Outfit' | 'Playfair Display' | 'DM Sans' | 'Space Grotesk' | 'Cinzel';
+  bodyFont: 'Plus Jakarta Sans' | 'DM Sans' | 'Manrope' | 'Source Serif 4' | 'Public Sans';
+  headingScale: 'normal' | 'large' | 'compact';
+  bodyScale: 'normal' | 'large' | 'compact';
+  textAlignment: 'left' | 'center';
+}
+
+export interface StorefrontHeaderConfig {
+  logoPosition: 'left' | 'center';
+  headerBgColor: string;
+  headerTextColor: string;
+  showNavigation: boolean;
+  showSearch: boolean;
+  showCart: boolean;
+  stickyHeader: boolean;
+}
+
+export interface StorefrontHomepageSection {
+  id: 'hero' | 'intro' | 'featured_products' | 'categories' | 'delivery_payment' | 'customer_lookup' | 'contact';
+  enabled: boolean;
+  title?: string;
+  subtitle?: string;
+}
+
+export interface StorefrontProductDisplayConfig {
+  gridColumns: 2 | 3 | 4;
+  cardRadius: 'none' | 'md' | 'xl' | '2xl' | '3xl';
+  cardShadow: 'none' | 'sm' | 'md' | 'lg' | 'glow';
+  imageAspectRatio: 'square' | 'portrait' | 'landscape';
+  imageFit: 'cover' | 'contain';
+  showDiscountBadge: boolean;
+  showStockBadge: boolean;
+  buttonStyle: 'gradient' | 'solid' | 'outline' | 'pill';
+}
+
+export interface StorefrontButtonConfig {
+  buttonPrimaryBg: string;
+  buttonPrimaryText: string;
+  buttonRadius: 'none' | 'md' | 'lg' | 'full';
+}
+
+export interface StorefrontFooterConfig {
+  footerBgColor: string;
+  footerTextColor: string;
+  showContact: boolean;
+  showSocial: boolean;
+  socialLinks?: {
+    facebook?: string;
+    viber?: string;
+    telegram?: string;
+    tiktok?: string;
+    phone?: string;
+  };
+  copyrightText: string;
+}
+
+export interface StorefrontThemeConfig {
+  version: number;
+  updatedAt: string;
+  publishedAt?: string;
+  brand: StorefrontBrandConfig;
+  background: StorefrontBackgroundConfig;
+  typography: StorefrontTypographyConfig;
+  header: StorefrontHeaderConfig;
+  homepage: {
+    sections: StorefrontHomepageSection[];
+  };
+  productDisplay: StorefrontProductDisplayConfig;
+  buttons: StorefrontButtonConfig;
+  footer: StorefrontFooterConfig;
+}
+
 export interface StoreSettings {
   slug: string;
   storeName: string;
@@ -89,6 +189,8 @@ export interface StoreSettings {
   paymentInstructions: string;
   paymentSettings?: PaymentSettings;
   isPublished: boolean;
+  themeConfig?: StorefrontThemeConfig;
+  draftThemeConfig?: StorefrontThemeConfig;
 }
 
 export interface MarketplaceStore {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ShoppingCart,
   Package,
@@ -13,18 +13,25 @@ import {
   RefreshCw,
   Tag,
   Search,
-  Sparkles
+  Sparkles,
+  Phone,
+  MessageCircle,
+  ExternalLink
 } from 'lucide-react';
 import { OrderSupportModal } from './OrderSupportModal';
 import { CheckoutWorkflowModal } from './CheckoutWorkflowModal';
 import { CustomerCodeLookup } from './CustomerCodeLookup';
-import { Product, ProductVariant, StoreSettings } from '../types';
+import { Product, StoreSettings, StorefrontThemeConfig } from '../types';
 
 interface CustomerStorefrontViewProps {
   slug: string;
   onNavigateToMerchant?: () => void;
   onNavigateToMarketplace?: () => void;
   initialProductId?: string | null;
+  previewTheme?: StorefrontThemeConfig;
+  previewStore?: StoreSettings | null;
+  previewProducts?: Product[];
+  isPreviewMode?: boolean;
 }
 
 interface CartItem {
@@ -38,6 +45,90 @@ interface CartItem {
   imageUrl?: string | null;
 }
 
+const DEFAULT_THEME: StorefrontThemeConfig = {
+  version: 1,
+  updatedAt: new Date().toISOString(),
+  publishedAt: new Date().toISOString(),
+  brand: {
+    logoUrl: '',
+    faviconUrl: '',
+    storeName: 'Official Store',
+    tagline: 'Premium Commerce & Fashion',
+    description: 'Welcome to our official branded storefront.',
+    primaryColor: '#C9A227',
+    secondaryColor: '#393426',
+    accentColor: '#E0BD55',
+    headingTextColor: '#FFFFFF',
+    bodyTextColor: '#B9B5A7',
+    surfaceColor: '#181810',
+    surfaceBorderColor: 'rgba(255, 255, 255, 0.08)'
+  },
+  background: {
+    storeBgImage: '',
+    storeBgColor: '#0B0B09',
+    heroBgImage: '',
+    bannerBgImage: '',
+    bgPosition: 'center',
+    bgSize: 'cover',
+    bgRepeat: 'no-repeat',
+    overlayColor: '#0B0B09',
+    overlayOpacity: 40
+  },
+  typography: {
+    headingFont: 'Plus Jakarta Sans',
+    bodyFont: 'Plus Jakarta Sans',
+    headingScale: 'normal',
+    bodyScale: 'normal',
+    textAlignment: 'left'
+  },
+  header: {
+    logoPosition: 'left',
+    headerBgColor: 'rgba(11, 11, 9, 0.85)',
+    headerTextColor: '#FFFFFF',
+    showNavigation: true,
+    showSearch: true,
+    showCart: true,
+    stickyHeader: true
+  },
+  homepage: {
+    sections: [
+      { id: 'hero', enabled: true, title: 'Welcome to our Official Storefront', subtitle: 'Curated premium collection' },
+      { id: 'customer_lookup', enabled: true, title: 'Order & Support Lookup', subtitle: 'Track your order status with your support code' },
+      { id: 'delivery_payment', enabled: true, title: 'Delivery & Payment Policies', subtitle: 'Fast and reliable delivery across Myanmar' },
+      { id: 'featured_products', enabled: true, title: 'Our Catalog', subtitle: 'Explore all available items' }
+    ]
+  },
+  productDisplay: {
+    gridColumns: 3,
+    cardRadius: '2xl',
+    cardShadow: 'lg',
+    imageAspectRatio: 'square',
+    imageFit: 'cover',
+    showDiscountBadge: true,
+    showStockBadge: true,
+    buttonStyle: 'gradient'
+  },
+  buttons: {
+    buttonPrimaryBg: '#C9A227',
+    buttonPrimaryText: '#0B0B09',
+    buttonRadius: 'full'
+  },
+  footer: {
+    footerBgColor: '#0B0B09',
+    footerTextColor: '#8C887B',
+    showContact: true,
+    showSocial: true,
+    socialLinks: {
+      facebook: '',
+      viber: '',
+      telegram: '',
+      tiktok: '',
+      phone: ''
+    },
+    copyrightText: 'Official Verified Storefront. All rights reserved.'
+  }
+};
+
 const StorefrontProductCard: React.FC<{
   product: Product;
   isHighlighted: boolean;
@@ -45,7 +136,8 @@ const StorefrontProductCard: React.FC<{
   onSelectVariant: (variantId: string) => void;
   onAddToCart: () => void;
   lang: 'my' | 'en';
-}> = ({ product, isHighlighted, selectedVariantId, onSelectVariant, onAddToCart, lang }) => {
+  theme: StorefrontThemeConfig;
+}> = ({ product, isHighlighted, selectedVariantId, onSelectVariant, onAddToCart, lang, theme }) => {
   const [imgError, setImgError] = useState(false);
   const activeVariants = product.variants || [];
   const currentVariantId = selectedVariantId || activeVariants[0]?.id;
@@ -53,57 +145,91 @@ const StorefrontProductCard: React.FC<{
   const isOutOfStock = !currentVariant || currentVariant.stock <= 0;
   const totalStock = activeVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
 
+  const display = theme.productDisplay;
+  const brand = theme.brand;
+
+  // Aspect ratio class
+  const aspectClass =
+    display.imageAspectRatio === 'portrait'
+      ? 'aspect-[3/4]'
+      : display.imageAspectRatio === 'landscape'
+      ? 'aspect-video'
+      : 'aspect-square';
+
+  // Corner radius style
+  const radiusClass =
+    display.cardRadius === 'none'
+      ? 'rounded-none'
+      : display.cardRadius === 'md'
+      ? 'rounded-md'
+      : display.cardRadius === 'xl'
+      ? 'rounded-xl'
+      : display.cardRadius === '3xl'
+      ? 'rounded-3xl'
+      : 'rounded-2xl';
+
   return (
     <div
       id={`product-${product.id}`}
-      className={`bg-white/[0.03] backdrop-blur-xl border rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 group shadow-[0_10px_30px_rgba(0,0,0,0.5)] ${
+      style={{
+        backgroundColor: brand.surfaceColor || '#181810',
+        borderColor: isHighlighted ? brand.primaryColor : brand.surfaceBorderColor || 'rgba(255,255,255,0.08)'
+      }}
+      className={`border overflow-hidden flex flex-col justify-between transition-all duration-300 group shadow-xl ${radiusClass} ${
         isHighlighted
-          ? 'border-purple-500 ring-2 ring-purple-500/30 shadow-purple-500/20 scale-[1.01]'
-          : 'border-white/10 hover:border-purple-500/40 hover:bg-white/[0.06]'
+          ? 'ring-2 shadow-2xl scale-[1.01]'
+          : 'hover:border-opacity-60'
       }`}
     >
       {/* Product Image & Badges */}
-      <div className="relative aspect-square w-full bg-slate-900/60 overflow-hidden flex items-center justify-center border-b border-white/10">
+      <div className={`relative w-full overflow-hidden flex items-center justify-center border-b border-white/10 ${aspectClass}`}>
         {product.imageUrl && !imgError ? (
           <img
             src={product.imageUrl}
             alt={product.name}
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
+              display.imageFit === 'contain' ? 'object-contain p-2' : 'object-cover'
+            }`}
             loading="lazy"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 p-4 text-center bg-gradient-to-br from-slate-900 to-purple-950/30">
-            <Package className="w-10 h-10 text-purple-400/60 mb-1" />
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 p-4 text-center bg-black/40">
+            <Package className="w-10 h-10 text-slate-400 mb-1" />
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
               {product.sku || 'CATALOG ITEM'}
             </span>
           </div>
         )}
 
-        {/* Stock status pill - Emerald glass pill */}
-        <div className="absolute top-2.5 left-2.5 z-10">
-          {totalStock > 0 ? (
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-md font-bold text-[9px] uppercase tracking-wider shadow-xs">
-              {lang === 'my' ? 'ပစ္စည်းရှိ' : 'In Stock'}
-            </span>
-          ) : (
-            <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 backdrop-blur-md font-bold text-[9px] uppercase tracking-wider shadow-xs">
-              {lang === 'my' ? 'ပစ္စည်းပြတ်' : 'Sold Out'}
-            </span>
-          )}
-        </div>
+        {/* Stock status pill */}
+        {display.showStockBadge && (
+          <div className="absolute top-2.5 left-2.5 z-10">
+            {totalStock > 0 ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-md font-bold text-[9px] uppercase tracking-wider shadow-xs">
+                {lang === 'my' ? 'ပစ္စည်းရှိ' : 'In Stock'}
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 backdrop-blur-md font-bold text-[9px] uppercase tracking-wider shadow-xs">
+                {lang === 'my' ? 'ပစ္စည်းပြတ်' : 'Sold Out'}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Discount badge if present */}
-        {product.discount && (
-          <div className="absolute bottom-2.5 right-2.5 z-10 px-2 py-0.5 rounded-md bg-purple-600/90 text-white font-bold text-[10px] shadow-xs">
+        {display.showDiscountBadge && product.discount && (
+          <div
+            style={{ backgroundColor: brand.accentColor || '#C9A227' }}
+            className="absolute bottom-2.5 right-2.5 z-10 px-2 py-0.5 rounded-md text-neutral-950 font-bold text-[10px] shadow-sm"
+          >
             {product.discount}
           </div>
         )}
 
-        {totalStock > 0 && (
-          <div className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-emerald-400 font-mono text-[10px] shadow-xs tabular-nums">
+        {display.showStockBadge && totalStock > 0 && (
+          <div className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-emerald-400 font-mono text-[10px] shadow-xs tabular-nums">
             {totalStock} {lang === 'my' ? 'ခုကျန်' : 'in stock'}
           </div>
         )}
@@ -113,16 +239,28 @@ const StorefrontProductCard: React.FC<{
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3.5">
         <div>
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-bold text-white leading-snug group-hover:text-purple-300 transition-colors">
+            <h3
+              style={{
+                color: brand.headingTextColor || '#FFFFFF',
+                fontFamily: theme.typography.headingFont
+              }}
+              className="text-sm font-bold leading-snug transition-colors line-clamp-2"
+            >
               {product.name}
             </h3>
-            <span className="text-sm font-bold font-mono text-purple-300 shrink-0 tabular-nums">
+            <span
+              style={{ color: brand.primaryColor || '#C9A227' }}
+              className="text-sm font-bold font-mono shrink-0 tabular-nums"
+            >
               {product.price.toLocaleString()} MMK
             </span>
           </div>
 
           {product.description && (
-            <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+            <p
+              style={{ color: brand.bodyTextColor || '#B9B5A7' }}
+              className="text-xs mt-1 line-clamp-2 leading-relaxed"
+            >
               {product.description}
             </p>
           )}
@@ -136,7 +274,10 @@ const StorefrontProductCard: React.FC<{
                 {lang === 'my' ? 'အရွယ်အစား / အရောင်' : 'Select Option'}
               </span>
               {currentVariant && (
-                <span className="font-mono tabular-nums text-purple-300">
+                <span
+                  style={{ color: brand.primaryColor || '#C9A227' }}
+                  className="font-mono tabular-nums"
+                >
                   {currentVariant.stock > 0
                     ? `${currentVariant.stock} ${lang === 'my' ? 'ခုကျန်' : 'avail'}`
                     : lang === 'my'
@@ -156,9 +297,18 @@ const StorefrontProductCard: React.FC<{
                     type="button"
                     disabled={isZero}
                     onClick={() => onSelectVariant(v.id)}
+                    style={
+                      isSelected
+                        ? {
+                            backgroundColor: brand.primaryColor,
+                            color: '#0B0B09',
+                            borderColor: brand.primaryColor
+                          }
+                        : {}
+                    }
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-mono border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-transparent font-bold shadow-xs'
+                        ? 'font-bold shadow-sm'
                         : isZero
                         ? 'bg-white/[0.02] border-white/5 text-slate-600 opacity-40 cursor-not-allowed line-through'
                         : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-slate-300 hover:text-white'
@@ -177,10 +327,28 @@ const StorefrontProductCard: React.FC<{
           type="button"
           disabled={isOutOfStock}
           onClick={onAddToCart}
-          className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.98] ${
+          style={
+            !isOutOfStock
+              ? display.buttonStyle === 'solid'
+                ? { backgroundColor: brand.primaryColor, color: '#0B0B09' }
+                : display.buttonStyle === 'outline'
+                ? {
+                    border: `1.5px solid ${brand.primaryColor}`,
+                    color: brand.primaryColor,
+                    backgroundColor: 'transparent'
+                  }
+                : {
+                    background: `linear-gradient(135deg, ${brand.primaryColor}, ${brand.secondaryColor || brand.primaryColor})`,
+                    color: '#0B0B09'
+                  }
+              : {}
+          }
+          className={`w-full py-2.5 px-4 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.98] ${
+            display.buttonStyle === 'pill' ? 'rounded-full' : 'rounded-xl'
+          } ${
             isOutOfStock
               ? 'bg-white/[0.03] border border-white/10 text-slate-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-600/25 hover:shadow-purple-600/40'
+              : 'hover:brightness-110'
           }`}
         >
           <ShoppingCart className="w-4 h-4" />
@@ -203,13 +371,17 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   slug,
   onNavigateToMerchant,
   onNavigateToMarketplace,
-  initialProductId
+  initialProductId,
+  previewTheme,
+  previewStore,
+  previewProducts,
+  isPreviewMode = false
 }) => {
   const [lang, setLang] = useState<'my' | 'en'>('my');
   const [copiedStoreLink, setCopiedStoreLink] = useState(false);
-  const [store, setStore] = useState<StoreSettings | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [store, setStore] = useState<StoreSettings | null>(previewStore || null);
+  const [products, setProducts] = useState<Product[]>(previewProducts || []);
+  const [loading, setLoading] = useState(!previewStore);
   const [notFound, setNotFound] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -227,8 +399,15 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   const [initialSupportCode, setInitialSupportCode] = useState<string | undefined>(undefined);
   const [hasCreatedOrder, setHasCreatedOrder] = useState(false);
 
-  // Load public store data from authoritative API
+  // Load public store data from authoritative API if not in preview mode
   const fetchStoreData = useCallback(async () => {
+    if (previewStore) {
+      setStore(previewStore);
+      if (previewProducts) setProducts(previewProducts);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setNotFound(false);
     setFetchError(null);
@@ -263,36 +442,44 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [slug, previewStore, previewProducts]);
 
   useEffect(() => {
     fetchStoreData();
   }, [fetchStoreData]);
 
+  // Dynamic Theme resolution
+  const theme: StorefrontThemeConfig = useMemo(() => {
+    if (previewTheme) return previewTheme;
+    if (store?.themeConfig) return store.themeConfig;
+    return {
+      ...DEFAULT_THEME,
+      brand: {
+        ...DEFAULT_THEME.brand,
+        storeName: store?.storeName || 'Official Store',
+        description: store?.description || DEFAULT_THEME.brand.description,
+        logoUrl: store?.logoUrl || ''
+      }
+    };
+  }, [previewTheme, store]);
+
   // Copy Store Link to Clipboard
   const handleCopyStoreLink = () => {
     try {
       const url = window.location.href;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = url;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
+      navigator.clipboard.writeText(url);
       setCopiedStoreLink(true);
       setTimeout(() => setCopiedStoreLink(false), 2500);
-    } catch {}
+    } catch {
+      // Fallback
+    }
   };
 
-  // Add Item to Cart
+  // Cart Management
   const handleAddToCart = (product: Product) => {
     const activeVariants = product.variants || [];
-    const chosenVariantId = selectedVariants[product.id] || activeVariants[0]?.id;
-    const variant = activeVariants.find((v) => v.id === chosenVariantId) || activeVariants[0];
+    const variantId = selectedVariants[product.id] || activeVariants[0]?.id;
+    const variant = activeVariants.find((v) => v.id === variantId) || activeVariants[0];
 
     if (!variant || variant.stock <= 0) return;
 
@@ -331,7 +518,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   const totalCartCount = cart.reduce((sum, item) => sum + item.qty, 0);
   const totalCartAmount = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  const onOrderCreated = (order: any) => {
+  const onOrderCreated = () => {
     setHasCreatedOrder(true);
     fetchStoreData();
   };
@@ -355,8 +542,8 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   // Loading State
   if (loading && !store) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 space-y-4 font-sans">
-        <RefreshCw className="w-8 h-8 text-purple-400 animate-spin" />
+      <div className="min-h-screen bg-[#0B0B09] text-slate-100 flex flex-col items-center justify-center p-6 space-y-4 font-sans">
+        <RefreshCw className="w-8 h-8 text-[#C9A227] animate-spin" />
         <p className="text-sm text-slate-400 font-medium font-mono">
           {lang === 'my' ? 'စတိုးအချက်အလက်များ ဆွဲတင်နေသည်...' : 'Loading Storefront...'}
         </p>
@@ -365,9 +552,9 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   }
 
   // 404 / Unpublished State
-  if (notFound) {
+  if (notFound && !isPreviewMode) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 font-sans">
+      <div className="min-h-screen bg-[#0B0B09] text-slate-100 flex flex-col items-center justify-center p-6 font-sans">
         <div className="w-full max-w-md bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 text-center space-y-5 shadow-2xl">
           <div className="w-16 h-16 bg-white/[0.05] border border-rose-500/40 rounded-2xl flex items-center justify-center mx-auto text-rose-400">
             <Store className="w-8 h-8" />
@@ -378,7 +565,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
             </h1>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
               {lang === 'my'
-                ? `"${slug}" အမည်ရှိ စတိုးကို မတွေ့ရှိရပါ။ စတိုးလိပ်စာမှန်ကန်မှု ရှိမရှိ သို့မဟုတ် ကုန်သည်မှ ဖွင့်လှစ်ထားခြင်း ရှိမရှိ စစ်ဆေးပါ။`
+                ? `"${slug}" အမည်ရှိ စတိုးကို မတွေ့ရှိရပါ။ စတိုးလိပ်စာမှန်ကန်မှု ရှိမရှိ စစ်ဆေးပါ။`
                 : `The storefront for "${slug}" is either unavailable or has not been published yet by the merchant.`}
             </p>
           </div>
@@ -389,14 +576,14 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
               onClick={fetchStoreData}
               className="w-full py-2.5 px-4 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <RefreshCw className="w-4 h-4 text-purple-400" />
+              <RefreshCw className="w-4 h-4 text-[#C9A227]" />
               <span>{lang === 'my' ? 'ပြန်လည်စစ်ဆေးမည်' : 'Retry'}</span>
             </button>
             {onNavigateToMerchant && (
               <button
                 type="button"
                 onClick={onNavigateToMerchant}
-                className="w-full py-2 text-xs text-slate-400 hover:text-purple-300 transition-colors cursor-pointer"
+                className="w-full py-2 text-xs text-slate-400 hover:text-[#C9A227] transition-colors cursor-pointer"
               >
                 {lang === 'my' ? 'ကုန်သည် Dashboard သို့ သွားမည်' : 'Go to Merchant Workspace'}
               </button>
@@ -407,10 +594,10 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
     );
   }
 
-  // Network or API Error
-  if (fetchError) {
+  // Network Error State
+  if (fetchError && !isPreviewMode) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 font-sans">
+      <div className="min-h-screen bg-[#0B0B09] text-slate-100 flex flex-col items-center justify-center p-6 font-sans">
         <div className="w-full max-w-md bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 text-center space-y-4">
           <AlertCircle className="w-12 h-12 text-rose-400 mx-auto" />
           <h2 className="text-lg font-bold text-white">
@@ -420,7 +607,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
           <button
             type="button"
             onClick={fetchStoreData}
-            className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl cursor-pointer"
+            className="px-6 py-2.5 bg-gradient-to-r from-[#C9A227] to-[#E0BD55] text-neutral-950 font-bold text-xs rounded-xl cursor-pointer"
           >
             {lang === 'my' ? 'ပြန်လည်ကြိုးစားမည်' : 'Retry'}
           </button>
@@ -429,59 +616,125 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
     );
   }
 
+  // Resolve active section map
+  const sectionEnabled = (id: string) => {
+    const sec = theme.homepage.sections.find((s) => s.id === id);
+    return sec ? sec.enabled : true;
+  };
+
+  // Dynamic grid column class
+  const gridColClass =
+    theme.productDisplay.gridColumns === 2
+      ? 'grid-cols-1 sm:grid-cols-2'
+      : theme.productDisplay.gridColumns === 4
+      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+
+  const brand = theme.brand;
+  const background = theme.background;
+  const typography = theme.typography;
+  const header = theme.header;
+  const footer = theme.footer;
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-32 relative overflow-hidden selection:bg-purple-500 selection:text-white">
-      {/* Background Glowing Ambiance Orbs */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-tr from-purple-600/20 via-indigo-600/20 to-pink-500/10 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute top-10 left-10 w-80 h-80 bg-blue-600/15 blur-[120px] rounded-full pointer-events-none" />
+    <div
+      style={{
+        backgroundColor: background.storeBgColor || '#0B0B09',
+        backgroundImage: background.storeBgImage ? `url(${background.storeBgImage})` : undefined,
+        backgroundPosition: background.bgPosition || 'center',
+        backgroundSize: background.bgSize || 'cover',
+        backgroundRepeat: background.bgRepeat || 'no-repeat',
+        fontFamily: typography.bodyFont || 'Plus Jakarta Sans',
+        color: brand.bodyTextColor || '#B9B5A7'
+      }}
+      className="min-h-screen pb-32 relative overflow-hidden transition-colors selection:bg-[#C9A227] selection:text-neutral-950"
+    >
+      {/* Contrast Overlay Scrim */}
+      <div
+        style={{
+          backgroundColor: background.overlayColor || '#0B0B09',
+          opacity: (background.overlayOpacity ?? 40) / 100
+        }}
+        className="absolute inset-0 pointer-events-none z-0"
+      />
 
       {/* Top Banner / Store Header */}
-      <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-2xl border-b border-white/10 px-4 py-3.5 shadow-lg shadow-black/40">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            {store?.logoUrl ? (
+      <header
+        style={{
+          backgroundColor: header.headerBgColor || 'rgba(11, 11, 9, 0.85)',
+          color: header.headerTextColor || '#FFFFFF'
+        }}
+        className={`${
+          header.stickyHeader ? 'sticky top-0' : 'relative'
+        } z-30 backdrop-blur-2xl border-b border-white/10 px-4 py-3.5 shadow-lg shadow-black/40`}
+      >
+        <div
+          className={`max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 ${
+            header.logoPosition === 'center' ? 'flex-col sm:flex-row' : ''
+          }`}
+        >
+          {/* Logo & Store Title */}
+          <div
+            className={`flex items-center gap-3 min-w-0 ${
+              header.logoPosition === 'center' ? 'justify-center text-center' : ''
+            }`}
+          >
+            {brand.logoUrl || store?.logoUrl ? (
               <img
-                src={store.logoUrl}
-                alt={store.storeName}
+                src={brand.logoUrl || store?.logoUrl}
+                alt={brand.storeName}
                 referrerPolicy="no-referrer"
                 className="w-10 h-10 rounded-2xl object-cover border border-white/10 shrink-0"
               />
             ) : (
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md shadow-purple-500/20">
-                {store?.storeName?.substring(0, 2).toUpperCase() || 'YS'}
+              <div
+                style={{
+                  backgroundColor: brand.primaryColor || '#C9A227',
+                  color: '#0B0B09'
+                }}
+                className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 shadow-md"
+              >
+                {(brand.storeName || 'YS').substring(0, 2).toUpperCase()}
               </div>
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-base font-bold text-white truncate">
-                  {store?.storeName || 'Yangon Style Store'}
+                <h1
+                  style={{
+                    color: brand.headingTextColor || '#FFFFFF',
+                    fontFamily: typography.headingFont
+                  }}
+                  className="text-sm sm:text-base font-bold truncate"
+                >
+                  {brand.storeName || store?.storeName || 'Official Store'}
                 </h1>
                 <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold backdrop-blur-md">
                   <ShieldCheck className="w-3 h-3 text-emerald-400" />
                   <span>{lang === 'my' ? 'ဖွင့်လှစ်ပြီး' : 'Verified'}</span>
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 truncate max-w-xs sm:max-w-md">
-                {store?.description || (lang === 'my' ? 'အရည်အသွေးမြင့် ကုန်ပစ္စည်းများ စိတ်ချစွာ ဝယ်ယူနိုင်ပါသည်' : 'Premium Social Store in Myanmar')}
+              <p className="text-[11px] truncate max-w-xs sm:max-w-md opacity-80">
+                {brand.tagline || brand.description || store?.description || 'Premium Social Store'}
               </p>
             </div>
           </div>
 
+          {/* Right Header Navigation & Actions */}
           <div className="flex items-center gap-2 shrink-0">
             {/* Back to Marketplace */}
-            {onNavigateToMarketplace && (
+            {header.showNavigation && onNavigateToMarketplace && (
               <button
                 type="button"
                 onClick={onNavigateToMarketplace}
                 className="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
                 title={lang === 'my' ? 'ဆိုင်စုံ (ShopSone) သို့ သွားမည်' : 'ShopSone Marketplace'}
               >
-                <Store className="w-3.5 h-3.5 text-purple-400" />
+                <Store className="w-3.5 h-3.5 text-[#C9A227]" />
                 <span className="hidden sm:inline">{lang === 'my' ? 'ဆိုင်စုံ' : 'ShopSone'}</span>
               </button>
             )}
 
-            {/* Copy Direct Store Link */}
+            {/* Share / Copy Direct Link */}
             <button
               type="button"
               onClick={handleCopyStoreLink}
@@ -499,7 +752,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5 text-purple-400" />
+                  <Copy className="w-3.5 h-3.5 text-[#C9A227]" />
                   <span className="hidden sm:inline">{lang === 'my' ? 'လင့်ခ်ကူးရန်' : 'Share'}</span>
                 </>
               )}
@@ -514,154 +767,350 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
               {lang}
             </button>
 
-            {/* Header Cart Button */}
-            <button
-              type="button"
-              onClick={() => setIsCartOpen(true)}
-              className="relative p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
-              title={lang === 'my' ? 'ခြင်းတောင်း' : 'Cart'}
-            >
-              <ShoppingCart className="w-4 h-4 text-purple-400" />
-              {totalCartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold font-mono text-[10px] flex items-center justify-center shadow-lg shadow-purple-600/40 animate-pulse">
-                  {totalCartCount}
-                </span>
-              )}
-            </button>
+            {/* Cart Button */}
+            {header.showCart && (
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                title={lang === 'my' ? 'ခြင်းတောင်း' : 'Cart'}
+              >
+                <ShoppingCart className="w-4 h-4 text-[#C9A227]" />
+                {totalCartCount > 0 && (
+                  <span
+                    style={{ backgroundColor: brand.primaryColor, color: '#0B0B09' }}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full font-bold font-mono text-[10px] flex items-center justify-center shadow-lg animate-pulse"
+                  >
+                    {totalCartCount}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Customer Code Lookup Section */}
-      <CustomerCodeLookup 
-        lang={lang} 
-        onCheckStatus={(code) => {
-          setInitialSupportCode(code);
-          setIsSupportOpen(true);
-        }}
-        onContactSupport={() => setIsSupportOpen(true)}
-      />
+      {/* Main Content Sections (Rendered in Ordered Sequence) */}
+      <div className="relative z-10 space-y-6">
+        {theme.homepage.sections.map((section) => {
+          if (!section.enabled) return null;
 
-      {/* Hero Announcement & Store Badges */}
-      <section className="bg-white/[0.02] border-b border-white/10 px-4 py-5 backdrop-blur-xl">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            {/* Delivery Info */}
-            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-start gap-3 shadow-[0_10px_25px_rgba(0,0,0,0.4)]">
-              <span className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/25 text-purple-400 shrink-0">
-                <Truck className="w-4 h-4" />
-              </span>
-              <div>
-                <span className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider block">
-                  {lang === 'my' ? 'ပို့ဆောင်ရေး စည်းမျဉ်း' : 'Delivery Information'}
-                </span>
-                <p className="text-slate-200 mt-1 text-xs leading-relaxed">
-                  {store?.deliveryInfo || (lang === 'my' ? 'ရန်ကုန်မြို့တွင်း အိမ်အရောက်ငွေချေ စနစ်ရရှိနိုင်ပါသည်။ နယ်မြို့များ ဂိတ်ချပေးပါသည်။' : 'Door-to-door delivery in Yangon. Express bus delivery for other townships.')}
-                </p>
-              </div>
-            </div>
+          // 1. HERO SECTION
+          if (section.id === 'hero') {
+            return (
+              <section key="hero" className="border-b border-white/10 px-4 py-8 backdrop-blur-md">
+                <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
+                  <span
+                    style={{ color: brand.primaryColor }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-white/10 bg-white/[0.04] backdrop-blur-md"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{brand.tagline || 'Official Verified Storefront'}</span>
+                  </span>
+                  <h2
+                    style={{
+                      color: brand.headingTextColor,
+                      fontFamily: typography.headingFont
+                    }}
+                    className="text-2xl sm:text-3xl font-extrabold max-w-2xl mx-auto tracking-tight"
+                  >
+                    {section.title || brand.storeName || 'Welcome to our Official Storefront'}
+                  </h2>
+                  <p
+                    style={{ color: brand.bodyTextColor }}
+                    className="text-xs sm:text-sm max-w-xl mx-auto leading-relaxed"
+                  >
+                    {section.subtitle || brand.description || 'Discover our curated selection of verified fashion and products.'}
+                  </p>
+                </div>
+              </section>
+            );
+          }
 
-            {/* Payment Info */}
-            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-start gap-3 shadow-[0_10px_25px_rgba(0,0,0,0.4)]">
-              <span className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 shrink-0">
-                <CreditCard className="w-4 h-4" />
-              </span>
-              <div>
-                <span className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider block">
-                  {lang === 'my' ? 'ငွေပေးချေမှု နည်းလမ်းများ' : 'Accepted Payments'}
-                </span>
-                <p className="text-slate-200 mt-1 text-xs leading-relaxed">
-                  {store?.paymentInstructions || 'KBZPay, WavePay, AYA Pay, Cash on Delivery'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Catalog Section */}
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={lang === 'my' ? 'ပစ္စည်းရှာဖွေရန်...' : 'Search products in catalog...'}
-              className="w-full bg-white/[0.04] border border-white/10 rounded-2xl pl-11 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-purple-500/80 focus:bg-white/[0.08] focus:outline-none transition-all"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setStockOnly(!stockOnly)}
-              className={`px-4 py-2.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                stockOnly
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-transparent shadow-md shadow-purple-600/30'
-                  : 'bg-white/[0.04] text-slate-400 border-white/10 hover:text-white hover:bg-white/[0.08]'
-              }`}
-            >
-              {lang === 'my' ? 'လက်ကျန်ရှိသော ပစ္စည်းများသာ' : 'In Stock Only'}
-            </button>
-          </div>
-        </div>
-
-        {/* Catalog Grid */}
-        {filteredProducts.length === 0 ? (
-          <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-12 text-center space-y-3 shadow-2xl">
-            <Package className="w-12 h-12 text-slate-500 mx-auto" />
-            <h3 className="text-base font-bold text-white">
-              {lang === 'my' ? 'ရှာဖွေမှုနှင့် ကိုက်ညီသော ကုန်ပစ္စည်း မရှိပါ' : 'No matching products found'}
-            </h3>
-            <p className="text-xs text-slate-400">
-              {lang === 'my'
-                ? 'ရှာဖွေမှု စကားလုံးကို ပြောင်းလဲစစ်ဆေးကြည့်ပါ'
-                : 'Try adjusting your search criteria.'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredProducts.map((product) => {
-              const activeVariants = product.variants || [];
-              const selectedVariantId = selectedVariants[product.id] || activeVariants[0]?.id;
-
-              return (
-                <StorefrontProductCard
-                  key={product.id}
-                  product={product}
-                  isHighlighted={product.id === initialProductId}
-                  selectedVariantId={selectedVariantId}
-                  onSelectVariant={(variantId) =>
-                    setSelectedVariants((prev) => ({
-                      ...prev,
-                      [product.id]: variantId
-                    }))
-                  }
-                  onAddToCart={() => handleAddToCart(product)}
+          // 2. CUSTOMER SUPPORT CODE LOOKUP
+          if (section.id === 'customer_lookup') {
+            return (
+              <div key="customer_lookup">
+                <CustomerCodeLookup
                   lang={lang}
+                  onCheckStatus={(code) => {
+                    setInitialSupportCode(code);
+                    setIsSupportOpen(true);
+                  }}
+                  onContactSupport={() => setIsSupportOpen(true)}
                 />
-              );
-            })}
-          </div>
-        )}
-      </main>
+              </div>
+            );
+          }
 
-      {/* Floating Bottom Cart Bar (Glassmorphic) */}
+          // 3. DELIVERY & PAYMENT POLICIES
+          if (section.id === 'delivery_payment') {
+            return (
+              <section key="delivery_payment" className="px-4 py-2">
+                <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {/* Delivery Info */}
+                    <div
+                      style={{
+                        backgroundColor: brand.surfaceColor,
+                        borderColor: brand.surfaceBorderColor
+                      }}
+                      className="border rounded-2xl p-4 flex items-start gap-3 shadow-lg"
+                    >
+                      <span
+                        style={{ color: brand.primaryColor }}
+                        className="p-2 rounded-xl bg-white/[0.05] border border-white/10 shrink-0"
+                      >
+                        <Truck className="w-4 h-4" />
+                      </span>
+                      <div>
+                        <span className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider block">
+                          {lang === 'my' ? 'ပို့ဆောင်ရေး စည်းမျဉ်း' : 'Delivery Information'}
+                        </span>
+                        <p style={{ color: brand.bodyTextColor }} className="mt-1 text-xs leading-relaxed">
+                          {store?.deliveryInfo ||
+                            (lang === 'my'
+                              ? 'ရန်ကုန်မြို့တွင်း အိမ်အရောက်ငွေချေ စနစ်ရရှိနိုင်ပါသည်။ နယ်မြို့များ ဂိတ်ချပေးပါသည်။'
+                              : 'Door-to-door delivery in Yangon. Express bus delivery for other townships.')}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Payment Info */}
+                    <div
+                      style={{
+                        backgroundColor: brand.surfaceColor,
+                        borderColor: brand.surfaceBorderColor
+                      }}
+                      className="border rounded-2xl p-4 flex items-start gap-3 shadow-lg"
+                    >
+                      <span className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 shrink-0">
+                        <CreditCard className="w-4 h-4" />
+                      </span>
+                      <div>
+                        <span className="text-slate-400 font-semibold text-[10px] uppercase tracking-wider block">
+                          {lang === 'my' ? 'ငွေပေးချေမှု နည်းလမ်းများ' : 'Accepted Payments'}
+                        </span>
+                        <p style={{ color: brand.bodyTextColor }} className="mt-1 text-xs leading-relaxed">
+                          {store?.paymentInstructions || 'KBZPay, WavePay, AYA Pay, Cash on Delivery'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          // 4. FEATURED PRODUCTS CATALOG
+          if (section.id === 'featured_products') {
+            return (
+              <main key="featured_products" className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+                {/* Search & Filter Bar */}
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                  <div className="relative flex-1">
+                    <Search
+                      style={{ color: brand.primaryColor }}
+                      className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2"
+                    />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={lang === 'my' ? 'ပစ္စည်းရှာဖွေရန်...' : 'Search products in catalog...'}
+                      className="w-full bg-white/[0.04] border border-white/10 rounded-2xl pl-11 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStockOnly(!stockOnly)}
+                      style={
+                        stockOnly
+                          ? { backgroundColor: brand.primaryColor, color: '#0B0B09' }
+                          : {}
+                      }
+                      className={`px-4 py-2.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                        stockOnly
+                          ? 'border-transparent shadow-md font-bold'
+                          : 'bg-white/[0.04] text-slate-400 border-white/10 hover:text-white'
+                      }`}
+                    >
+                      {lang === 'my' ? 'လက်ကျန်ရှိသော ပစ္စည်းများသာ' : 'In Stock Only'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Catalog Grid */}
+                {filteredProducts.length === 0 ? (
+                  <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-12 text-center space-y-3 shadow-2xl">
+                    <Package className="w-12 h-12 text-slate-500 mx-auto" />
+                    <h3 className="text-base font-bold text-white">
+                      {lang === 'my' ? 'ရှာဖွေမှုနှင့် ကိုက်ညီသော ကုန်ပစ္စည်း မရှိပါ' : 'No matching products found'}
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      {lang === 'my'
+                        ? 'ရှာဖွေမှု စကားလုံးကို ပြောင်းလဲစစ်ဆေးကြည့်ပါ'
+                        : 'Try adjusting your search criteria.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className={`grid ${gridColClass} gap-5`}>
+                    {filteredProducts.map((product) => {
+                      const activeVariants = product.variants || [];
+                      const selectedVariantId = selectedVariants[product.id] || activeVariants[0]?.id;
+
+                      return (
+                        <StorefrontProductCard
+                          key={product.id}
+                          product={product}
+                          isHighlighted={product.id === initialProductId}
+                          selectedVariantId={selectedVariantId}
+                          onSelectVariant={(variantId) =>
+                            setSelectedVariants((prev) => ({
+                              ...prev,
+                              [product.id]: variantId
+                            }))
+                          }
+                          onAddToCart={() => handleAddToCart(product)}
+                          lang={lang}
+                          theme={theme}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </main>
+            );
+          }
+
+          // 5. INTRO & BRAND STORY
+          if (section.id === 'intro') {
+            return (
+              <section key="intro" className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div
+                  style={{
+                    backgroundColor: brand.surfaceColor,
+                    borderColor: brand.surfaceBorderColor
+                  }}
+                  className="border rounded-2xl p-6 shadow-lg text-center space-y-2"
+                >
+                  <h3
+                    style={{
+                      color: brand.headingTextColor,
+                      fontFamily: typography.headingFont
+                    }}
+                    className="text-base font-bold"
+                  >
+                    {section.title || `About ${brand.storeName}`}
+                  </h3>
+                  <p style={{ color: brand.bodyTextColor }} className="text-xs max-w-xl mx-auto leading-relaxed">
+                    {section.subtitle || brand.description}
+                  </p>
+                </div>
+              </section>
+            );
+          }
+
+          // 6. CONTACT & SOCIAL SECTION
+          if (section.id === 'contact') {
+            const links = footer.socialLinks || {};
+            return (
+              <section key="contact" className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div
+                  style={{
+                    backgroundColor: brand.surfaceColor,
+                    borderColor: brand.surfaceBorderColor
+                  }}
+                  className="border rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4"
+                >
+                  <div>
+                    <h4
+                      style={{
+                        color: brand.headingTextColor,
+                        fontFamily: typography.headingFont
+                      }}
+                      className="text-sm font-bold"
+                    >
+                      {lang === 'my' ? 'စတိုးနှင့် တိုက်ရိုက်ဆက်သွယ်ရန်' : 'Connect with Us'}
+                    </h4>
+                    <p style={{ color: brand.bodyTextColor }} className="text-xs">
+                      {lang === 'my' ? 'မေးမြန်းလိုသည်များရှိပါက ဆက်သွယ်နိုင်ပါသည်' : 'Have inquiries or need bulk purchase? Reach out anytime.'}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {links.facebook && (
+                      <a
+                        href={links.facebook}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-white font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-[#C9A227]" />
+                        <span>Facebook</span>
+                      </a>
+                    )}
+                    {links.viber && (
+                      <a
+                        href={links.viber}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-white font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Viber</span>
+                      </a>
+                    )}
+                    {links.telegram && (
+                      <a
+                        href={links.telegram}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-white font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Telegram</span>
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsSupportOpen(true)}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#C9A227] hover:brightness-110 text-neutral-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{lang === 'my' ? 'အကူအညီရယူမည်' : 'Order Support'}</span>
+                    </button>
+                  </div>
+                </div>
+              </section>
+            );
+          }
+
+          return null;
+        })}
+      </div>
+
+      {/* Floating Bottom Cart Bar */}
       {totalCartCount > 0 && (
         <aside aria-label="Cart Overview" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-2xl bg-slate-900/90 backdrop-blur-2xl border border-white/15 rounded-full p-3 sm:p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
           <div className="flex items-center justify-between gap-3 px-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-lg shadow-purple-600/30 font-mono">
+              <div
+                style={{ backgroundColor: brand.primaryColor, color: '#0B0B09' }}
+                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 shadow-lg font-mono"
+              >
                 {totalCartCount}
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase font-semibold block tracking-wider">
                   {lang === 'my' ? 'စုစုပေါင်း ကျသင့်ငွေ' : 'Total Amount'}
                 </span>
-                <span className="text-sm font-bold font-mono text-purple-300 tabular-nums">
+                <span
+                  style={{ color: brand.primaryColor }}
+                  className="text-sm font-bold font-mono tabular-nums"
+                >
                   {totalCartAmount.toLocaleString()} MMK
                 </span>
               </div>
@@ -670,7 +1119,11 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className="py-2.5 px-6 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-full flex items-center gap-2 shadow-lg shadow-purple-600/30 cursor-pointer active:scale-95 transition-all"
+              style={{
+                backgroundColor: brand.primaryColor,
+                color: '#0B0B09'
+              }}
+              className="py-2.5 px-6 font-bold text-xs rounded-full flex items-center gap-2 shadow-lg cursor-pointer hover:brightness-110 active:scale-95 transition-all"
             >
               <span>{lang === 'my' ? 'အော်ဒါတင်မည်' : 'Checkout'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -701,37 +1154,46 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
       />
 
       {/* Order Support Modal */}
-      <OrderSupportModal 
-        isOpen={isSupportOpen} 
+      <OrderSupportModal
+        isOpen={isSupportOpen}
         onClose={() => {
           setIsSupportOpen(false);
           setInitialSupportCode(undefined);
-        }} 
-        lang={lang} 
+        }}
+        lang={lang}
         initialCode={initialSupportCode}
       />
 
       {/* Storefront Footer */}
-      <footer className="mt-16 py-8 border-t border-white/10 text-center text-xs text-slate-500 space-y-2">
+      <footer
+        style={{
+          backgroundColor: footer.footerBgColor || '#0B0B09',
+          color: footer.footerTextColor || '#8C887B'
+        }}
+        className="mt-16 py-8 border-t border-white/10 text-center text-xs space-y-2 relative z-10"
+      >
         <p>
-          {store?.storeName} · {lang === 'my' ? 'တရားဝင် အတည်ပြုပြီး စတိုး' : 'Official Verified Storefront'}
+          {brand.storeName} · {footer.copyrightText || (lang === 'my' ? 'တရားဝင် အတည်ပြုပြီး စတိုး' : 'Official Verified Storefront')}
         </p>
         <div className="flex items-center justify-center gap-3 text-[11px]">
           <button
             type="button"
             onClick={() => setIsSupportOpen(true)}
-            className="text-purple-400 hover:text-purple-300 underline cursor-pointer"
+            style={{ color: brand.primaryColor }}
+            className="hover:underline cursor-pointer"
           >
             {lang === 'my' ? 'အော်ဒါ အကူအညီ' : 'Order Support'}
           </button>
           <span>·</span>
-          <button
-            type="button"
-            onClick={onNavigateToMerchant}
-            className="text-slate-400 hover:text-white underline cursor-pointer"
-          >
-            {lang === 'my' ? 'ကုန်သည် အကောင့်ဝင်ရန်' : 'Merchant Login'}
-          </button>
+          {onNavigateToMerchant && (
+            <button
+              type="button"
+              onClick={onNavigateToMerchant}
+              className="hover:text-white underline cursor-pointer"
+            >
+              {lang === 'my' ? 'ကုန်သည် အကောင့်ဝင်ရန်' : 'Merchant Login'}
+            </button>
+          )}
         </div>
       </footer>
     </div>
