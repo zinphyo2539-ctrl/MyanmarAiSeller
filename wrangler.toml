@@ -2,6 +2,7 @@ name = "myanmaraiseller"
 main = "server.ts"
 compatibility_date = "2026-11-06"
 compatibility_flags = ["nodejs_compat"]
+keep_vars = true
 
 [assets]
 directory = "./dist/"
@@ -18,6 +19,7 @@ FIRESTORE_DATABASE_ID = "ai-studio-myanmaraiseller-5ecdcad1-2fa1-4433-8ee7-fae75
 
 [env.staging]
 name = "myanmaraiseller-staging"
+keep_vars = true
 vars = { 
   FRONTEND_URL = "https://myanmaraiseller.pages.dev",
   GOOGLE_CALLBACK_URL = "https://myanmaraiseller.zentrymodernization.workers.dev/api/auth/google/callback",

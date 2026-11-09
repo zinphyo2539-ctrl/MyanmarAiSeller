@@ -4,6 +4,7 @@
   "main": "server.ts",
   "compatibility_date": "2026-11-06",
   "compatibility_flags": ["nodejs_compat"],
+  "keep_vars": true,
   "assets": {
     "directory": "./dist/",
     "not_found_handling": "single-page-application",
@@ -20,6 +21,7 @@
   "env": {
     "staging": {
       "name": "myanmaraiseller-staging",
+      "keep_vars": true,
       "vars": {
         "FRONTEND_URL": "https://myanmaraiseller.pages.dev",
         "GOOGLE_CALLBACK_URL": "https://myanmaraiseller.zentrymodernization.workers.dev/api/auth/google/callback",
