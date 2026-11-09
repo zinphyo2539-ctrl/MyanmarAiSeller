@@ -330,13 +330,44 @@ export default function App() {
     }
   }, [isAuthenticated, fetchAllData]);
 
+  // Extract token from URL query params (for OAuth redirects)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('auth_token') || params.get('token');
+      if (token) {
+        try {
+          localStorage.setItem('myanmar_seller_token', token);
+        } catch {}
+        setAuthToken(token);
+        checkAuth(token);
+        setAuthLoading(false);
+        // Clean URL query params
+        params.delete('auth_token');
+        params.delete('token');
+        const cleanQuery = params.toString() ? `?${params.toString()}` : '';
+        const cleanUrl = window.location.pathname + cleanQuery + (window.location.hash || '');
+        window.history.replaceState({}, '', cleanUrl);
+      }
+    } catch {}
+  }, [checkAuth]);
+
   // Listen for OAuth messages from popup window
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      const origin = event.origin;
-      if (!origin.endsWith('.run.app') && !origin.includes('localhost') && origin !== window.location.origin) {
+      const origin = event.origin || '';
+      const isAllowedOrigin =
+        origin === window.location.origin ||
+        origin.endsWith('.workers.dev') ||
+        origin.endsWith('.pages.dev') ||
+        origin.endsWith('.run.app') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1');
+
+      if (!isAllowedOrigin) {
         return;
       }
+
       if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
         setAuthLoading(false);
         setAuthError(null);
@@ -395,7 +426,27 @@ export default function App() {
 
       if (!popup || popup.closed) {
         window.location.href = url;
+        return;
       }
+
+      // Track popup closure as a safety net
+      const popupTimer = setInterval(() => {
+        try {
+          if (popup.closed) {
+            clearInterval(popupTimer);
+            setTimeout(() => {
+              const currentToken = localStorage.getItem('myanmar_seller_token');
+              if (currentToken) {
+                checkAuth(currentToken);
+              }
+              setAuthLoading(false);
+            }, 600);
+          }
+        } catch {
+          clearInterval(popupTimer);
+          setAuthLoading(false);
+        }
+      }, 800);
     } catch (err: any) {
       setAuthError(err.message || 'Failed to start Google Sign-In');
       setAuthLoading(false);

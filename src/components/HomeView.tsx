@@ -193,7 +193,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 {summary?.totalOrdersCount || 0}
               </div>
               <span className="text-xs text-slate-400 mt-1 block">
-                {summary?.ordersByStatus.confirmed || 0} {lang === 'my' ? 'အတည်ပြုပြီး' : 'confirmed'} · {summary?.ordersByStatus.pending || 0} {lang === 'my' ? 'စိစစ်ဆဲ' : 'pending'}
+                {summary?.ordersByStatus?.confirmed || 0} {lang === 'my' ? 'အတည်ပြုပြီး' : 'confirmed'} · {summary?.ordersByStatus?.pending || 0} {lang === 'my' ? 'စိစစ်ဆဲ' : 'pending'}
               </span>
             </div>
           </div>

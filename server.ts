@@ -271,10 +271,19 @@ app.get('/api/auth/google/callback', async (c) => {
               localStorage.setItem('myanmar_seller_token', ${JSON.stringify(rawToken)});
               localStorage.setItem('myanmar_seller_user', JSON.stringify(${JSON.stringify(user)}));
             } catch(e) {}
-            if (window.opener) {
-              window.opener.postMessage(payload, '*');
-              setTimeout(() => window.close(), 700);
-            } else {
+
+            let communicated = false;
+            try {
+              if (window.opener && !window.opener.closed) {
+                window.opener.postMessage(payload, '*');
+                communicated = true;
+                setTimeout(() => {
+                  try { window.close(); } catch(e) {}
+                }, 600);
+              }
+            } catch(e) {}
+
+            if (!communicated) {
               window.location.href = '${frontendUrl}/?auth_token=' + encodeURIComponent(${JSON.stringify(rawToken)});
             }
           </script>
