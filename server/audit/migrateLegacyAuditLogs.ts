@@ -5,13 +5,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { getFirestoreRestClient, toFirestoreDocument } from '../firestoreClient.ts';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../..');
+const ROOT_DIR = typeof process !== 'undefined' && typeof process.cwd === 'function' ? process.cwd() : '/';
 const BACKUP_DB_FILE = path.join(ROOT_DIR, 'data', 'backup_gate3_pre_migration', 'db.json');
 const LIVE_DB_FILE = path.join(ROOT_DIR, 'data', 'db.json');
 const DB_FILE = fs.existsSync(BACKUP_DB_FILE) ? BACKUP_DB_FILE : LIVE_DB_FILE;

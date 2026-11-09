@@ -16,8 +16,17 @@ import { merchantRepository } from './server/repositories/merchantRepository.ts'
 import { productRepository } from './server/repositories/productRepository.ts';
 import { orderRepository } from './server/repositories/orderRepository.ts';
 import { UserRecord, MerchantRecord, ProductRecord } from './server/db.ts';
+import {
+  uploadProductImageToSupabase,
+  uploadQrImageToSupabase,
+  uploadStorefrontAssetToSupabase,
+  uploadPaymentSlipToSupabase,
+  downloadPaymentSlipFromSupabase,
+  getSupabaseStorageStatus
+} from './server/supabaseStore.ts';
 
 export interface Bindings {
+  [key: string]: string | undefined;
   FIREBASE_PROJECT_ID?: string;
   FIREBASE_CLIENT_EMAIL?: string;
   FIREBASE_PRIVATE_KEY?: string;
@@ -866,6 +875,151 @@ app.post('/api/ai-studio/generate-copy', async (c) => {
 
 app.get('/api/ai-studio/history', (c) => {
   return c.json([]);
+});
+
+// ----------------------------------------------------
+// 12. Media & Storage Upload Endpoints (Pure Web)
+// ----------------------------------------------------
+app.get('/api/storage/status', async (c) => {
+  const status = getSupabaseStorageStatus(c.env);
+  return c.json(status);
+});
+
+app.post('/api/merchant/upload-image', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get('image') as File | null;
+    if (!file) {
+      return c.json({ error: 'No image uploaded' }, 400);
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
+    const publicUrl = await uploadProductImageToSupabase(
+      auth.user.merchantId || 'merchant_001',
+      buffer,
+      file.type,
+      file.name,
+      c.env
+    );
+    return c.json({ success: true, imageUrl: publicUrl }, 201);
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+app.post('/api/merchant/upload-qr', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get('qrImage') as File | null;
+    if (!file) {
+      return c.json({ error: 'No QR image uploaded' }, 400);
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
+    const publicUrl = await uploadQrImageToSupabase(
+      auth.user.merchantId || 'merchant_001',
+      buffer,
+      file.type,
+      file.name,
+      c.env
+    );
+    return c.json({ success: true, qrUrl: publicUrl }, 201);
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+app.post('/api/merchant/upload-storefront-asset', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get('asset') as File | null;
+    const assetType = (formData.get('assetType') as any) || 'background';
+    if (!file) {
+      return c.json({ error: 'No asset uploaded' }, 400);
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
+    const publicUrl = await uploadStorefrontAssetToSupabase(
+      auth.user.merchantId || 'merchant_001',
+      assetType,
+      buffer,
+      file.type,
+      file.name,
+      c.env
+    );
+    return c.json({ success: true, assetUrl: publicUrl, assetType }, 201);
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+app.post('/api/public/orders/:id/upload-slip', async (c) => {
+  const orderId = c.req.param('id');
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get('slip') as File | null;
+    if (!file) {
+      return c.json({ error: 'No payment slip uploaded' }, 400);
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
+    const order = await orderRepository.findById(orderId);
+    if (!order) {
+      return c.json({ error: 'Order not found' }, 404);
+    }
+    const uploadRes = await uploadPaymentSlipToSupabase(
+      order.merchantId || 'merchant_001',
+      orderId,
+      buffer,
+      file.type,
+      file.name,
+      c.env
+    );
+    await orderRepository.update(orderId, {
+      paymentStatus: 'SLIP_UPLOADED',
+      slipStorageBucket: uploadRes.bucket,
+      slipObjectPath: uploadRes.objectPath,
+      paymentSlipUrl: `/api/public/orders/${orderId}/slip-image`,
+      paymentSlipUploadedAt: new Date().toISOString()
+    });
+    return c.json({
+      success: true,
+      message: 'Payment slip uploaded successfully',
+      slipUrl: `/api/public/orders/${orderId}/slip-image`
+    }, 201);
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+app.get('/api/public/orders/:id/slip-image', async (c) => {
+  const orderId = c.req.param('id');
+  try {
+    const order = await orderRepository.findById(orderId);
+    if (!order || !order.slipObjectPath) {
+      return c.json({ error: 'Payment slip not found' }, 404);
+    }
+    const { buffer, contentType } = await downloadPaymentSlipFromSupabase(
+      order.slipStorageBucket || 'payment-slips',
+      order.slipObjectPath,
+      c.env
+    );
+    return new Response(buffer as any, { headers: { 'Content-Type': contentType } });
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
 });
 
 // ----------------------------------------------------

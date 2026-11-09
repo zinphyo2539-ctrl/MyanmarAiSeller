@@ -5,14 +5,10 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { ledgerService, JournalEntry } from './ledger.ts';
 import { getFirestoreRestClient } from '../firestoreClient.ts';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../..');
+const ROOT_DIR = typeof process !== 'undefined' && typeof process.cwd === 'function' ? process.cwd() : '/';
 const DB_FILE = path.join(ROOT_DIR, 'data', 'db.json');
 
 export interface MigrationResult {
