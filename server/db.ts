@@ -626,6 +626,7 @@ export function getDefaultThemeConfig(storeName: string = 'My Store', descriptio
     version: 1,
     updatedAt: new Date().toISOString(),
     publishedAt: new Date().toISOString(),
+    industryProfile: 'general',
     brand: {
       logoUrl: '',
       faviconUrl: '',
@@ -677,10 +678,12 @@ export function getDefaultThemeConfig(storeName: string = 'My Store', descriptio
     },
     productDisplay: {
       gridColumns: 3,
+      layoutDensity: 'comfortable',
       cardRadius: '2xl',
       cardShadow: 'lg',
       imageAspectRatio: 'square',
       imageFit: 'cover',
+      imagePadding: 0,
       showDiscountBadge: true,
       showStockBadge: true,
       buttonStyle: 'gradient'
@@ -715,6 +718,7 @@ export function sanitizeThemeConfig(input: any, baseStoreName: string = 'My Stor
     version: typeof input.version === 'number' ? input.version : defaults.version,
     updatedAt: new Date().toISOString(),
     publishedAt: input.publishedAt || defaults.publishedAt,
+    industryProfile: ['general', 'fashion', 'electronics', 'cosmetics', 'grocery', 'home'].includes(input.industryProfile) ? input.industryProfile : defaults.industryProfile,
     brand: {
       logoUrl: typeof input.brand?.logoUrl === 'string' ? input.brand.logoUrl : defaults.brand.logoUrl,
       faviconUrl: typeof input.brand?.faviconUrl === 'string' ? input.brand.faviconUrl : defaults.brand.faviconUrl,
@@ -765,11 +769,13 @@ export function sanitizeThemeConfig(input: any, baseStoreName: string = 'My Stor
       })) : defaults.homepage.sections
     },
     productDisplay: {
-      gridColumns: [2, 3, 4].includes(Number(input.productDisplay?.gridColumns)) ? Number(input.productDisplay.gridColumns) : defaults.productDisplay.gridColumns,
+      gridColumns: [2, 3, 4, 5, 6].includes(Number(input.productDisplay?.gridColumns)) ? Number(input.productDisplay.gridColumns) : defaults.productDisplay.gridColumns,
+      layoutDensity: ['comfortable', 'compact', 'tight'].includes(input.productDisplay?.layoutDensity) ? input.productDisplay.layoutDensity : defaults.productDisplay.layoutDensity,
       cardRadius: ['none', 'md', 'xl', '2xl', '3xl'].includes(input.productDisplay?.cardRadius) ? input.productDisplay.cardRadius : defaults.productDisplay.cardRadius,
       cardShadow: ['none', 'sm', 'md', 'lg', 'glow'].includes(input.productDisplay?.cardShadow) ? input.productDisplay.cardShadow : defaults.productDisplay.cardShadow,
-      imageAspectRatio: ['square', 'portrait', 'landscape'].includes(input.productDisplay?.imageAspectRatio) ? input.productDisplay.imageAspectRatio : defaults.productDisplay.imageAspectRatio,
+      imageAspectRatio: ['square', 'portrait', 'landscape', 'curated'].includes(input.productDisplay?.imageAspectRatio) ? input.productDisplay.imageAspectRatio : defaults.productDisplay.imageAspectRatio,
       imageFit: ['cover', 'contain'].includes(input.productDisplay?.imageFit) ? input.productDisplay.imageFit : defaults.productDisplay.imageFit,
+      imagePadding: typeof input.productDisplay?.imagePadding === 'number' ? input.productDisplay.imagePadding : defaults.productDisplay.imagePadding,
       showDiscountBadge: typeof input.productDisplay?.showDiscountBadge === 'boolean' ? input.productDisplay.showDiscountBadge : defaults.productDisplay.showDiscountBadge,
       showStockBadge: typeof input.productDisplay?.showStockBadge === 'boolean' ? input.productDisplay.showStockBadge : defaults.productDisplay.showStockBadge,
       buttonStyle: ['gradient', 'solid', 'outline', 'pill'].includes(input.productDisplay?.buttonStyle) ? input.productDisplay.buttonStyle : defaults.productDisplay.buttonStyle,

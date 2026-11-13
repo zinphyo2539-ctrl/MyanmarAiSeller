@@ -102,14 +102,14 @@ export const OrderSupportModal: React.FC<OrderSupportModalProps> = ({ isOpen, on
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between bg-slate-900/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-purple-400 shadow-md">
+            <div className="w-10 h-10 rounded-2xl bg-[var(--brand-primary)]/15 border border-[var(--brand-primary)]/25 flex items-center justify-center text-[var(--brand-primary)] shadow-md">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white tracking-tight">
                 {lang === 'my' ? 'အော်ဒါ အကူအညီ' : 'Order Support'}
               </h2>
-              <p className="text-[10px] text-purple-300/80 uppercase font-bold tracking-wider mt-0.5 font-mono">
+              <p className="text-[10px] text-[var(--brand-primary)]/80 uppercase font-bold tracking-wider mt-0.5 font-mono">
                 {step === 'chat' ? (lang === 'my' ? 'ဆိုင်ရှင်နှင့် တိုက်ရိုက်ဆက်သွယ်ရန်' : 'Live Chat with Seller') : (lang === 'my' ? 'Customer Code စစ်ဆေးခြင်း' : 'Code Verification')}
               </p>
             </div>
@@ -128,7 +128,7 @@ export const OrderSupportModal: React.FC<OrderSupportModalProps> = ({ isOpen, on
           {step === 'verify' ? (
             <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
               <div className="space-y-2 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/10 border border-purple-500/30 rounded-2xl flex items-center justify-center mx-auto text-purple-400 mb-2 shadow-lg shadow-purple-500/20">
+                <div className="w-16 h-16 bg-gradient-to-br from-[var(--brand-primary)]/20 via-[var(--brand-primary)]/10 to-blue-500/10 border border-[var(--brand-primary)]/30 rounded-2xl flex items-center justify-center mx-auto text-[var(--brand-primary)] mb-2 shadow-lg shadow-[var(--brand-primary)]/20">
                   <Key className="w-8 h-8" />
                 </div>
                 <h3 className="text-base font-bold text-white">
@@ -156,7 +156,7 @@ export const OrderSupportModal: React.FC<OrderSupportModalProps> = ({ isOpen, on
                     placeholder={lang === 'my' ? 'သင့် Customer Code ကို ထည့်ပါ' : 'Enter Customer Code'} 
                     value={code} 
                     onChange={e => setCode(e.target.value)} 
-                    className="w-full bg-white/[0.04] border border-white/10 focus:border-purple-500/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-purple-500/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono" 
+                    className="w-full bg-white/[0.04] border border-white/10 focus:border-[var(--brand-primary)] focus:bg-white/[0.08] focus:ring-4 focus:ring-[var(--brand-primary)]/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono" 
                     required 
                   />
                 </div>
@@ -170,14 +170,14 @@ export const OrderSupportModal: React.FC<OrderSupportModalProps> = ({ isOpen, on
                     placeholder={lang === 'my' ? '၀၉xxxxxxxxx' : '09xxxxxxxxx'} 
                     value={phone} 
                     onChange={e => setPhone(e.target.value)} 
-                    className="w-full bg-white/[0.04] border border-white/10 focus:border-purple-500/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-purple-500/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono" 
+                    className="w-full bg-white/[0.04] border border-white/10 focus:border-[var(--brand-primary)] focus:bg-white/[0.08] focus:ring-4 focus:ring-[var(--brand-primary)]/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono" 
                   />
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer disabled:opacity-50 text-sm"
+                  className="w-full bg-[var(--brand-primary)] hover:brightness-110 text-[var(--brand-on-primary)] font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-[var(--brand-primary)]/30 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer disabled:opacity-50 text-sm"
                 >
                   {loading ? (
                     <>
@@ -203,7 +203,7 @@ export const OrderSupportModal: React.FC<OrderSupportModalProps> = ({ isOpen, on
                     <div key={m.id} className={`flex flex-col ${m.sender === 'customer' ? 'items-end' : 'items-start'}`}>
                       <div className={`max-w-[85%] p-3.5 rounded-2xl text-xs leading-relaxed ${
                         m.sender === 'customer' 
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-sm shadow-md' 
+                          ? 'bg-[var(--brand-primary)] text-[var(--brand-on-primary)] rounded-tr-sm shadow-md' 
                           : 'bg-white/[0.05] border border-white/10 text-slate-200 rounded-tl-sm'
                       }`}>
                         {m.text}
@@ -222,12 +222,12 @@ export const OrderSupportModal: React.FC<OrderSupportModalProps> = ({ isOpen, on
                   type="text" 
                   value={newMessage} 
                   onChange={e => setNewMessage(e.target.value)} 
-                  className="flex-1 bg-white/[0.04] border border-white/10 focus:border-purple-500/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-purple-500/15 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all" 
+                  className="flex-1 bg-white/[0.04] border border-white/10 focus:border-[var(--brand-primary)] focus:bg-white/[0.08] focus:ring-4 focus:ring-[var(--brand-primary)]/15 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all" 
                   placeholder={lang === 'my' ? 'စာရေးရန်...' : 'Type message...'} 
                 />
                 <button 
                   type="submit" 
-                  className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 p-3 rounded-xl text-white shadow-lg shadow-purple-600/30 active:scale-95 transition-all cursor-pointer"
+                  className="bg-[var(--brand-primary)] hover:brightness-110 p-3 rounded-xl text-[var(--brand-on-primary)] shadow-lg shadow-[var(--brand-primary)]/30 active:scale-95 transition-all cursor-pointer"
                   aria-label="Send"
                 >
                   <Send className="w-4 h-4" />

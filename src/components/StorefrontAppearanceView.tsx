@@ -28,10 +28,20 @@ import {
   ChevronUp,
   MoveUp,
   MoveDown,
-  Info
+  Info,
+  Box,
+  Laptop,
+  Smartphone as PhoneIcon,
+  Shirt,
+  Zap,
+  Brush,
+  Carrot,
+  Home as HomeIcon,
+  ShoppingBasket
 } from 'lucide-react';
 import { StoreSettings, StorefrontThemeConfig, Product } from '../types';
 import { CustomerStorefrontView } from './CustomerStorefrontView';
+import { DevicePreviewFrame } from './studio/DevicePreviewFrame';
 
 interface StorefrontAppearanceViewProps {
   store: StoreSettings | null;
@@ -41,80 +51,221 @@ interface StorefrontAppearanceViewProps {
   onOpenLiveStore?: () => void;
 }
 
-const PRESET_PALETTES = [
+const INDUSTRY_PROFILES = [
   {
-    name: 'SHOPSONE Royal Gold',
-    primary: '#C9A227',
-    secondary: '#393426',
-    accent: '#E0BD55',
-    surface: '#181810',
-    bg: '#0B0B09',
-    heading: '#FFFFFF',
-    body: '#B9B5A7',
-    border: 'rgba(255, 255, 255, 0.08)'
+    id: 'general',
+    nameMy: 'အထွေထွေ အရောင်းဆိုင် (General)',
+    nameEn: 'General Retail',
+    description: 'Balanced universal storefront default for any business.',
+    icon: ShoppingBag,
+    config: {
+      industryProfile: 'general',
+      productDisplay: {
+        gridColumns: 3,
+        layoutDensity: 'comfortable',
+        cardRadius: '2xl',
+        imageAspectRatio: 'square',
+        imageFit: 'cover',
+        imagePadding: 0,
+        showSkuOnCard: false,
+        showBuyButtonOnCard: true
+      },
+      homepage: { heroStyle: 'editorial' },
+      background: { surfaceTheme: 'light' }
+    }
   },
   {
-    name: 'Cyber Violet Neon',
-    primary: '#8B5CF6',
-    secondary: '#4F46E5',
-    accent: '#EC4899',
-    surface: '#0F172A',
-    bg: '#020617',
-    heading: '#FFFFFF',
-    body: '#94A3B8',
-    border: 'rgba(255, 255, 255, 0.1)'
+    id: 'fashion',
+    nameMy: 'အဝတ်အထည်နှင့် ဖက်ရှင် (Fashion)',
+    nameEn: 'Fashion & Apparel',
+    description: '4:5 Portrait cards, cover fit, minimal editorial typography.',
+    icon: Shirt,
+    config: {
+      industryProfile: 'fashion',
+      productDisplay: {
+        gridColumns: 3,
+        layoutDensity: 'comfortable',
+        cardRadius: 'none',
+        imageAspectRatio: 'portrait',
+        imageFit: 'cover',
+        imagePadding: 0,
+        showSkuOnCard: false,
+        showBuyButtonOnCard: true
+      },
+      homepage: { heroStyle: 'editorial' },
+      background: { surfaceTheme: 'light' }
+    }
   },
   {
-    name: 'Emerald Luxe',
-    primary: '#10B981',
-    secondary: '#065F46',
-    accent: '#34D399',
-    surface: '#064E3B',
-    bg: '#022C22',
-    heading: '#F0FDF4',
-    body: '#A7F3D0',
-    border: 'rgba(16, 185, 129, 0.2)'
+    id: 'electronics',
+    nameMy: 'အီလက်ထရောနစ် (Electronics)',
+    nameEn: 'Electronics & Gadgets',
+    description: '1:1 Square cards, contain fit with padding, technical style.',
+    icon: Zap,
+    config: {
+      industryProfile: 'electronics',
+      productDisplay: {
+        gridColumns: 3,
+        layoutDensity: 'compact',
+        cardRadius: 'xl',
+        imageAspectRatio: 'square',
+        imageFit: 'contain',
+        imagePadding: 12,
+        showSkuOnCard: true,
+        showBuyButtonOnCard: true
+      },
+      homepage: { heroStyle: 'compact' },
+      background: { surfaceTheme: 'dark' }
+    }
   },
   {
-    name: 'Minimal Monolith',
-    primary: '#E2E8F0',
-    secondary: '#334155',
-    accent: '#38BDF8',
-    surface: '#1E293B',
-    bg: '#0F172A',
-    heading: '#F8FAFC',
-    body: '#94A3B8',
-    border: 'rgba(255, 255, 255, 0.1)'
+    id: 'cosmetics',
+    nameMy: 'အလှကုန်နှင့် ပစ္စည်းများ (Cosmetics)',
+    nameEn: 'Cosmetics & Beauty',
+    description: 'Clean luxury layout, soft neutral surfaces, elegant presentation.',
+    icon: Brush,
+    config: {
+      industryProfile: 'cosmetics',
+      productDisplay: {
+        gridColumns: 3,
+        layoutDensity: 'comfortable',
+        cardRadius: '3xl',
+        imageAspectRatio: 'portrait',
+        imageFit: 'cover',
+        imagePadding: 0,
+        showSkuOnCard: false,
+        showBuyButtonOnCard: true
+      },
+      homepage: { heroStyle: 'editorial' },
+      background: { surfaceTheme: 'ivory' }
+    }
   },
   {
-    name: 'Rose Champagne',
-    primary: '#F43F5E',
-    secondary: '#881337',
-    accent: '#FB7185',
-    surface: '#271017',
-    bg: '#140508',
-    heading: '#FFF1F2',
-    body: '#FECDD3',
-    border: 'rgba(244, 63, 94, 0.2)'
+    id: 'grocery',
+    nameMy: 'ကုန်စုံဆိုင် (Grocery)',
+    nameEn: 'Grocery & Mini-Mart',
+    description: 'High-density compact grid, instant add-to-cart focus.',
+    icon: Carrot,
+    config: {
+      industryProfile: 'grocery',
+      productDisplay: {
+        gridColumns: 4,
+        layoutDensity: 'tight',
+        cardRadius: 'md',
+        imageAspectRatio: 'square',
+        imageFit: 'contain',
+        imagePadding: 8,
+        showSkuOnCard: false,
+        showBuyButtonOnCard: true
+      },
+      homepage: { heroStyle: 'hidden' },
+      background: { surfaceTheme: 'light' }
+    }
+  },
+  {
+    id: 'home',
+    nameMy: 'အိမ်သုံးနှင့် အလှဆင် (Home)',
+    nameEn: 'Home & Living',
+    description: 'Spacious curated layout for furniture and decor.',
+    icon: HomeIcon,
+    config: {
+      industryProfile: 'home',
+      productDisplay: {
+        gridColumns: 2,
+        layoutDensity: 'comfortable',
+        cardRadius: '2xl',
+        imageAspectRatio: 'landscape',
+        imageFit: 'cover',
+        imagePadding: 0,
+        showSkuOnCard: false,
+        showBuyButtonOnCard: true
+      },
+      homepage: { heroStyle: 'editorial' },
+      background: { surfaceTheme: 'ivory' }
+    }
   }
 ];
 
-const HEADING_FONTS = [
-  'Plus Jakarta Sans',
-  'Outfit',
-  'Playfair Display',
-  'DM Sans',
-  'Space Grotesk',
-  'Cinzel'
-] as const;
+const PRESET_PALETTES = [
+  {
+    name: 'Editorial Alabaster',
+    primary: '#121212',
+    secondary: '#F6F6F4',
+    accent: '#121212',
+    surface: '#FFFFFF',
+    bg: '#FFFFFF',
+    heading: '#121212',
+    body: '#555555',
+    border: 'rgba(0, 0, 0, 0.08)'
+  },
+  {
+    name: 'Obsidian Champagne',
+    primary: '#D4AF37',
+    secondary: '#16161D',
+    accent: '#D4AF37',
+    surface: '#13121D',
+    bg: '#0E0E12',
+    heading: '#FFFFFF',
+    body: '#A0A0B0',
+    border: 'rgba(255, 255, 255, 0.08)'
+  },
+  {
+    name: 'Emerald Boutique',
+    primary: '#0F3D2E',
+    secondary: '#FAF9F6',
+    accent: '#C9A227',
+    surface: '#FFFFFF',
+    bg: '#FAF9F6',
+    heading: '#0F3D2E',
+    body: '#2D4F3F',
+    border: 'rgba(15, 61, 46, 0.1)'
+  },
+  {
+    name: 'Rose Atelier',
+    primary: '#C86D51',
+    secondary: '#FDFBF9',
+    accent: '#231F20',
+    surface: '#FFFFFF',
+    bg: '#FDFBF9',
+    heading: '#231F20',
+    body: '#5A5452',
+    border: 'rgba(200, 109, 81, 0.15)'
+  },
+  {
+    name: 'Cyber Titanium',
+    primary: '#6366F1',
+    secondary: '#111827',
+    accent: '#6366F1',
+    surface: '#1F2937',
+    bg: '#0B0F19',
+    heading: '#F9FAFB',
+    body: '#9CA3AF',
+    border: 'rgba(255, 255, 255, 0.1)'
+  },
+  {
+    name: 'Minimal Monochrome',
+    primary: '#000000',
+    secondary: '#FFFFFF',
+    accent: '#000000',
+    surface: '#FFFFFF',
+    bg: '#FFFFFF',
+    heading: '#000000',
+    body: '#333333',
+    border: 'rgba(0, 0, 0, 0.2)'
+  }
+];
 
-const BODY_FONTS = [
-  'Plus Jakarta Sans',
-  'DM Sans',
-  'Manrope',
-  'Source Serif 4',
-  'Public Sans'
-] as const;
+function getContrastColor(hex: string): string {
+  if (!hex) return '#FFFFFF';
+  if (hex.indexOf('#') === 0) hex = hex.slice(1);
+  if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+  if (hex.length !== 6) return '#FFFFFF';
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 155 ? '#121212' : '#FFFFFF';
+}
 
 export const StorefrontAppearanceView: React.FC<StorefrontAppearanceViewProps> = ({
   store,
@@ -124,9 +275,9 @@ export const StorefrontAppearanceView: React.FC<StorefrontAppearanceViewProps> =
   onOpenLiveStore
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'brand' | 'background' | 'typography' | 'header' | 'sections' | 'products' | 'footer'
-  >('brand');
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+    'vibe' | 'brand' | 'background' | 'typography' | 'header' | 'sections' | 'products' | 'footer'
+  >('vibe');
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('mobile');
   const [previewMode, setPreviewMode] = useState<'draft' | 'published'>('draft');
 
   const [publishedTheme, setPublishedTheme] = useState<StorefrontThemeConfig | null>(null);
@@ -144,7 +295,6 @@ export const StorefrontAppearanceView: React.FC<StorefrontAppearanceViewProps> =
     message: string;
   } | null>(null);
 
-  // Fetch authoritatively from backend
   const fetchTheme = async () => {
     try {
       setLoading(true);
@@ -152,18 +302,44 @@ export const StorefrontAppearanceView: React.FC<StorefrontAppearanceViewProps> =
       const res = await fetch('/api/merchant/storefront/theme', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
-      if (!res.ok) {
-        throw new Error('Failed to load storefront theme configuration.');
-      }
+      if (!res.ok) throw new Error('Failed to load theme');
       const data = await res.json();
       setPublishedTheme(data.published);
       setDraftTheme(data.draft);
       setHasUnpublishedChanges(data.hasUnpublishedChanges);
-    } catch (err: any) {
-      setBannerNotice({
-        type: 'error',
-        message: err.message || 'Error loading appearance settings.'
-      });
+    } catch (err) {
+      console.warn('Theme fetch failed, using defaults');
+      // Create default if fetch fails
+      const defaultTheme: StorefrontThemeConfig = {
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        industryProfile: 'general',
+        brand: {
+          storeName: store?.storeName || 'My Store',
+          description: store?.description || 'Premium shopping experience.',
+          primaryColor: '#121212',
+          secondaryColor: '#F6F6F4',
+          accentColor: '#121212',
+          headingTextColor: '#121212',
+          bodyTextColor: '#555555',
+          surfaceColor: '#FFFFFF',
+          surfaceBorderColor: 'rgba(0, 0, 0, 0.08)'
+        },
+        background: { storeBgColor: '#FFFFFF', bgPosition: 'center', bgSize: 'cover', bgRepeat: 'no-repeat', overlayColor: '#000000', overlayOpacity: 0 },
+        typography: { headingFont: 'Plus Jakarta Sans', bodyFont: 'Plus Jakarta Sans', headingScale: 'normal', bodyScale: 'normal', textAlignment: 'left' },
+        header: { logoPosition: 'left', headerBgColor: 'rgba(255, 255, 255, 0.9)', headerTextColor: '#121212', showNavigation: true, showSearch: true, showCart: true, stickyHeader: true, showAnnouncement: true, announcementText: '' },
+        homepage: { 
+          sections: [
+            { id: 'hero', enabled: true, title: 'Welcome', subtitle: 'Explore our latest collection' },
+            { id: 'featured_products', enabled: true, title: 'Our Catalog' }
+          ],
+          heroStyle: 'editorial'
+        },
+        productDisplay: { gridColumns: 3, layoutDensity: 'comfortable', cardRadius: '2xl', cardShadow: 'lg', imageAspectRatio: 'square', imageFit: 'cover', imagePadding: 0, showDiscountBadge: true, showStockBadge: true, showSkuOnCard: false, showBuyButtonOnCard: true, buttonStyle: 'solid' },
+        buttons: { buttonPrimaryBg: '#121212', buttonPrimaryText: '#FFFFFF', buttonRadius: 'full' },
+        footer: { footerBgColor: '#FFFFFF', footerTextColor: '#555555', showContact: true, showSocial: true, copyrightText: 'All rights reserved.' }
+      };
+      setDraftTheme(defaultTheme);
     } finally {
       setLoading(false);
     }
@@ -173,7 +349,6 @@ export const StorefrontAppearanceView: React.FC<StorefrontAppearanceViewProps> =
     fetchTheme();
   }, []);
 
-  // Handle draft field mutation
   const updateDraft = (updater: (prev: StorefrontThemeConfig) => StorefrontThemeConfig) => {
     if (!draftTheme) return;
     const updated = updater({ ...draftTheme });
@@ -181,206 +356,66 @@ export const StorefrontAppearanceView: React.FC<StorefrontAppearanceViewProps> =
     setHasUnpublishedChanges(true);
   };
 
-  // Save Draft (does NOT affect customer storefront)
   const handleSaveDraft = async () => {
     if (!draftTheme) return;
     setSavingDraft(true);
-    setBannerNotice(null);
     try {
       const token = localStorage.getItem('myanmar_seller_token');
-      const res = await fetch('/api/merchant/storefront/theme/draft', {
+      await fetch('/api/merchant/storefront/theme/draft', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(draftTheme)
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to save draft.');
-      }
-      const data = await res.json();
-      setDraftTheme(data.draft);
-      setBannerNotice({
-        type: 'success',
-        message:
-          lang === 'my'
-            ? 'စတိုးမူကြမ်းကို သိမ်းဆည်းပြီးပါပြီ (ဖောက်သည်များသို့ မထုတ်ဝေရသေးပါ)'
-            : 'Draft saved successfully (not yet visible on live storefront).'
-      });
+      setBannerNotice({ type: 'success', message: lang === 'my' ? 'မူကြမ်းသိမ်းပြီးပါပြီ' : 'Draft saved successfully' });
     } catch (err: any) {
-      setBannerNotice({
-        type: 'error',
-        message: err.message || 'Failed to save draft.'
-      });
+      setBannerNotice({ type: 'error', message: err.message });
     } finally {
       setSavingDraft(false);
     }
   };
 
-  // Publish to Live Storefront
   const handlePublish = async () => {
     if (!draftTheme) return;
     setPublishing(true);
-    setBannerNotice(null);
     try {
-      // Auto-save current draft first
       const token = localStorage.getItem('myanmar_seller_token');
-      await fetch('/api/merchant/storefront/theme/draft', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(draftTheme)
-      });
-
       const res = await fetch('/api/merchant/storefront/theme/publish', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        }
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to publish storefront.');
-      }
       const data = await res.json();
       setPublishedTheme(data.published);
       setDraftTheme(data.published);
       setHasUnpublishedChanges(false);
-
-      if (onStoreUpdated && store) {
-        onStoreUpdated({
-          ...store,
-          themeConfig: data.published,
-          draftThemeConfig: data.published,
-          logoUrl: data.published.brand.logoUrl || store.logoUrl,
-          storeName: data.published.brand.storeName || store.storeName
-        });
-      }
-
-      setBannerNotice({
-        type: 'success',
-        message:
-          lang === 'my'
-            ? 'စတိုးဒီဇိုင်း အသစ်ကို တိုက်ရိုက်ထုတ်ဝေပြီးပါပြီ!'
-            : 'Storefront theme has been successfully published to customers!'
-      });
+      setBannerNotice({ type: 'success', message: lang === 'my' ? 'တိုက်ရိုက်ထုတ်ဝေပြီးပါပြီ' : 'Published successfully' });
     } catch (err: any) {
-      setBannerNotice({
-        type: 'error',
-        message: err.message || 'Failed to publish storefront.'
-      });
+      setBannerNotice({ type: 'error', message: err.message });
     } finally {
       setPublishing(false);
     }
   };
 
-  // Revert draft changes back to current published version
-  const handleRevert = async () => {
-    if (!publishedTheme) return;
-    setReverting(true);
-    setBannerNotice(null);
-    try {
-      const token = localStorage.getItem('myanmar_seller_token');
-      const res = await fetch('/api/merchant/storefront/theme/revert', {
-        method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        }
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to revert draft.');
-      }
-      const data = await res.json();
-      setDraftTheme(data.draft);
-      setHasUnpublishedChanges(false);
-      setBannerNotice({
-        type: 'info',
-        message:
-          lang === 'my'
-            ? 'လက်ရှိထုတ်ဝေထားသော ဒီဇိုင်းသို့ ပြန်လည်သတ်မှတ်ပြီးပါပြီ'
-            : 'Reverted draft to currently published storefront design.'
-      });
-    } catch (err: any) {
-      setBannerNotice({
-        type: 'error',
-        message: err.message || 'Failed to revert draft.'
-      });
-    } finally {
-      setReverting(false);
-    }
+  const applyIndustryProfile = (profile: typeof INDUSTRY_PROFILES[0]) => {
+    updateDraft(prev => ({
+      ...prev,
+      industryProfile: profile.id as any,
+      productDisplay: {
+        ...prev.productDisplay,
+        ...profile.config.productDisplay
+      } as any,
+      homepage: {
+        ...prev.homepage,
+        ...profile.config.homepage
+      } as any,
+      background: {
+        ...prev.background,
+        ...profile.config.background
+      } as any
+    }));
   };
 
-  // Asset upload helper
-  const handleUploadAsset = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    assetType: 'logo' | 'favicon' | 'background' | 'hero' | 'banner',
-    targetField: 'brand.logoUrl' | 'brand.faviconUrl' | 'background.storeBgImage' | 'background.heroBgImage'
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingAsset(targetField);
-    setBannerNotice(null);
-    try {
-      const formData = new FormData();
-      formData.append('asset', file);
-      formData.append('assetType', assetType);
-
-      const token = localStorage.getItem('myanmar_seller_token');
-      const res = await fetch('/api/merchant/upload-storefront-asset', {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Upload failed.');
-      }
-
-      const data = await res.json();
-      const uploadedUrl = data.assetUrl;
-
-      updateDraft((prev) => {
-        const next = { ...prev };
-        if (targetField === 'brand.logoUrl') {
-          next.brand = { ...next.brand, logoUrl: uploadedUrl };
-        } else if (targetField === 'brand.faviconUrl') {
-          next.brand = { ...next.brand, faviconUrl: uploadedUrl };
-        } else if (targetField === 'background.storeBgImage') {
-          next.background = { ...next.background, storeBgImage: uploadedUrl };
-        } else if (targetField === 'background.heroBgImage') {
-          next.background = { ...next.background, heroBgImage: uploadedUrl };
-        }
-        return next;
-      });
-
-      setBannerNotice({
-        type: 'success',
-        message:
-          lang === 'my'
-            ? 'ဓာတ်ပုံ အောင်မြင်စွာ တင်ပြီးပါပြီ'
-            : 'Image asset uploaded successfully.'
-      });
-    } catch (err: any) {
-      setBannerNotice({
-        type: 'error',
-        message: err.message || 'Image upload failed.'
-      });
-    } finally {
-      setUploadingAsset(null);
-    }
-  };
-
-  // Apply a curated color palette preset
-  const applyPalette = (palette: (typeof PRESET_PALETTES)[0]) => {
-    updateDraft((prev) => ({
+  const applyPalette = (palette: typeof PRESET_PALETTES[0]) => {
+    updateDraft(prev => ({
       ...prev,
       brand: {
         ...prev.brand,
@@ -388,29 +423,25 @@ export const StorefrontAppearanceView: React.FC<StorefrontAppearanceViewProps> =
         secondaryColor: palette.secondary,
         accentColor: palette.accent,
         surfaceColor: palette.surface,
+        bg: palette.bg,
         headingTextColor: palette.heading,
         bodyTextColor: palette.body,
         surfaceBorderColor: palette.border
-      },
-      background: {
-        ...prev.background,
-        storeBgColor: palette.bg
-      },
+      } as any,
+      background: { ...prev.background, storeBgColor: palette.bg },
       buttons: {
         ...prev.buttons,
         buttonPrimaryBg: palette.primary,
-        buttonPrimaryText: palette.bg === '#0B0B09' || palette.bg === '#020617' ? '#0B0B09' : '#FFFFFF'
+        buttonPrimaryText: getContrastColor(palette.primary)
       }
     }));
   };
 
   if (loading && !draftTheme) {
     return (
-      <div className="min-h-[400px] flex flex-col items-center justify-center p-8 text-center space-y-3">
-        <RefreshCw className="w-8 h-8 text-[#C9A227] animate-spin" />
-        <p className="text-xs text-[#B9B5A7] font-mono">
-          {lang === 'my' ? 'စတိုးဒီဇိုင်း ဆက်တင်များ ရယူနေပါသည်...' : 'Loading appearance customizer...'}
-        </p>
+      <div className="min-h-[400px] flex flex-col items-center justify-center p-8 space-y-4">
+        <RefreshCw className="w-8 h-8 text-violet-500 animate-spin" />
+        <p className="text-xs text-slate-400 font-mono">Initializing Theme Studio...</p>
       </div>
     );
   }
@@ -420,1426 +451,550 @@ export const StorefrontAppearanceView: React.FC<StorefrontAppearanceViewProps> =
   const currentPreviewTheme = previewMode === 'draft' ? draftTheme : publishedTheme || draftTheme;
 
   return (
-    <div className="space-y-5">
-      {/* Top Action & Status Control Bar */}
-      <div className="bg-[#181810] border border-[#393426] rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C9A227] to-[#E0BD55] flex items-center justify-center text-[#0B0B09] font-bold shadow-md shadow-[#C9A227]/20">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-[#F5F2E8] flex items-center gap-2">
-                <span>{lang === 'my' ? 'စတိုး ဒီဇိုင်း ပြင်ဆင်မှု Studio' : 'Storefront Appearance Studio'}</span>
-                {hasUnpublishedChanges ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    {lang === 'my' ? 'မထုတ်ဝေရသေးသော မူကြမ်းရှိသည်' : 'Unpublished Draft'}
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>{lang === 'my' ? 'တိုက်ရိုက်စတိုးနှင့် တူညီသည်' : 'Live Synced'}</span>
-                  </span>
-                )}
-              </h2>
-              <p className="text-xs text-[#B9B5A7] mt-0.5">
-                {lang === 'my'
-                  ? 'သင့်လုပ်ငန်း Brand Identity နှင့်အညီ စတိုးအရောင်၊ ဖောင့်၊ ဓာတ်ပုံများနှင့် အစီအစဉ်များကို စိတ်ကြိုက်ပြင်ဆင်ပါ'
-                  : 'Customize your public storefront colors, typography, layout, and branding.'}
-              </p>
-            </div>
+    <div className="space-y-6">
+      {/* Header Bar */}
+      <div className="bg-[#13121D] border border-white/10 rounded-2xl p-5 shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-5">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-violet-500/20">
+            <Brush className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-white tracking-tight">
+              {lang === 'my' ? 'စတိုးဒီဇိုင်း ဖန်တီးမှု စတူဒီယို' : 'Storefront Theme Studio'}
+            </h2>
+            <p className="text-xs text-slate-400">
+              {lang === 'my' ? 'No-code စနစ်ဖြင့် သင့်စတိုးကို စိတ်ကြိုက်ပြင်ဆင်ပါ' : 'Code-free visual theme customization'}
+            </p>
           </div>
         </div>
 
-        {/* Global Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
+        <div className="flex items-center gap-2.5">
           {hasUnpublishedChanges && (
             <button
-              type="button"
-              onClick={handleRevert}
-              disabled={reverting || publishing || savingDraft}
-              className="px-3.5 py-2 rounded-xl border border-[#393426] bg-[#0B0B09] hover:bg-white/[0.05] text-[#B9B5A7] hover:text-[#F5F2E8] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              onClick={() => fetchTheme()}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:bg-white/10 transition-all cursor-pointer"
             >
-              <Undo2 className="w-3.5 h-3.5 text-rose-400" />
-              <span>{lang === 'my' ? 'မူလအတိုင်း ပြန်ထားမည်' : 'Revert Draft'}</span>
+              Revert
             </button>
           )}
-
           <button
-            type="button"
             onClick={handleSaveDraft}
             disabled={savingDraft || publishing}
-            className="px-4 py-2 rounded-xl border border-[#393426] bg-[#22211A] hover:bg-[#2B2920] text-[#F5F2E8] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 rounded-xl bg-[#1A1829] border border-white/15 text-white text-xs font-bold hover:bg-[#232135] transition-all cursor-pointer disabled:opacity-50"
           >
-            {savingDraft ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 text-[#C9A227]" />}
-            <span>{savingDraft ? (lang === 'my' ? 'သိမ်းနေသည်...' : 'Saving...') : lang === 'my' ? 'မူကြမ်းသိမ်းမည်' : 'Save Draft'}</span>
+            {savingDraft ? 'Saving...' : 'Save Draft'}
           </button>
-
           <button
-            type="button"
             onClick={handlePublish}
             disabled={publishing || savingDraft}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#C9A227] to-[#E0BD55] hover:brightness-110 text-[#0B0B09] text-xs font-bold flex items-center gap-2 shadow-lg shadow-[#C9A227]/25 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+            className="px-6 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-extrabold shadow-lg shadow-violet-600/30 hover:shadow-violet-600/50 transition-all cursor-pointer disabled:opacity-50"
           >
-            {publishing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-            <span>{publishing ? (lang === 'my' ? 'ထုတ်ဝေနေသည်...' : 'Publishing...') : lang === 'my' ? 'တိုက်ရိုက်စတိုးသို့ ထုတ်ဝေမည်' : 'Publish Live'}</span>
+            {publishing ? 'Publishing...' : 'Publish Live'}
           </button>
-
           {onOpenLiveStore && (
-            <button
-              type="button"
-              onClick={onOpenLiveStore}
-              className="p-2 rounded-xl border border-[#393426] bg-[#0B0B09] hover:bg-white/[0.05] text-[#B9B5A7] hover:text-[#F5F2E8] transition-colors cursor-pointer"
-              title={lang === 'my' ? 'တိုက်ရိုက်စတိုးကို ကြည့်ရှုမည်' : 'View Live Store'}
-            >
-              <ExternalLink className="w-4 h-4 text-[#C9A227]" />
+            <button onClick={onOpenLiveStore} className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer">
+              <ExternalLink className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Notice Banner */}
       {bannerNotice && (
-        <div
-          className={`px-4 py-3 rounded-xl border flex items-center justify-between gap-3 text-xs ${
-            bannerNotice.type === 'success'
-              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-200'
-              : bannerNotice.type === 'error'
-              ? 'bg-rose-500/15 border-rose-500/30 text-rose-200'
-              : 'bg-blue-500/15 border-blue-500/30 text-blue-200'
-          }`}
-        >
+        <div className={`px-4 py-3 rounded-xl border flex items-center justify-between text-xs font-bold ${
+          bannerNotice.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+        }`}>
           <div className="flex items-center gap-2">
-            {bannerNotice.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />}
-            {bannerNotice.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />}
-            {bannerNotice.type === 'info' && <Info className="w-4 h-4 shrink-0 text-blue-400" />}
+            {bannerNotice.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
             <span>{bannerNotice.message}</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setBannerNotice(null)}
-            className="text-white/60 hover:text-white cursor-pointer"
-          >
-            ✕
-          </button>
+          <button onClick={() => setBannerNotice(null)} className="opacity-60 hover:opacity-100">✕</button>
         </div>
       )}
 
-      {/* Main Split Interface: Controls on Left, Responsive Device Live Preview on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Customization Controls (5 cols on lg) */}
+        {/* Controls Sidebar */}
         <div className="lg:col-span-5 space-y-4">
-          {/* Navigation Sub-Tabs */}
-          <div className="bg-[#181810] border border-[#393426] p-1 rounded-2xl flex items-center gap-1 overflow-x-auto">
+          <div className="bg-[#13121D] border border-white/10 p-1 rounded-2xl flex items-center gap-1 overflow-x-auto no-scrollbar">
             {[
-              { id: 'brand', label: lang === 'my' ? 'အမှတ်တံဆိပ်' : 'Brand', icon: Palette },
-              { id: 'background', label: lang === 'my' ? 'နောက်ခံ' : 'Background', icon: ImageIcon },
-              { id: 'typography', label: lang === 'my' ? 'ဖောင့်' : 'Fonts', icon: Type },
-              { id: 'header', label: lang === 'my' ? 'ခေါင်းစဉ်' : 'Header', icon: Layout },
-              { id: 'sections', label: lang === 'my' ? 'အပိုင်းများ' : 'Sections', icon: Layers },
-              { id: 'products', label: lang === 'my' ? 'ပစ္စည်းပြကွက်' : 'Products', icon: ShoppingBag },
-              { id: 'footer', label: lang === 'my' ? 'အောက်ခြေ' : 'Footer', icon: Sliders }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-[#C9A227] text-[#0B0B09] shadow-sm font-bold'
-                      : 'text-[#B9B5A7] hover:text-[#F5F2E8] hover:bg-white/[0.03]'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+              { id: 'vibe', label: 'Vibe', icon: Sparkles },
+              { id: 'brand', label: 'Colors', icon: Palette },
+              { id: 'typography', label: 'Typography', icon: Type },
+              { id: 'header', label: 'Header', icon: Layout },
+              { id: 'sections', label: 'Sections', icon: Layers },
+              { id: 'products', label: 'Cards', icon: ShoppingBag }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
+                  activeTab === tab.id ? 'bg-white/10 text-violet-400 border border-violet-500/30 shadow-inner' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <tab.icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          {/* Tab Panel Content Box */}
-          <div className="bg-[#181810] border border-[#393426] rounded-2xl p-5 shadow-xl space-y-5">
-            {/* 1. BRAND TAB */}
-            {activeTab === 'brand' && (
-              <div className="space-y-5">
+          <div className="bg-[#13121D] border border-white/10 rounded-2xl p-6 shadow-2xl min-h-[500px]">
+            {activeTab === 'vibe' && (
+              <div className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-bold text-[#F5F2E8] flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-[#C9A227]" />
-                    <span>{lang === 'my' ? 'အမှတ်တံဆိပ်နှင့် အရောင်များ' : 'Brand Identity & Palette'}</span>
-                  </h3>
-                  <p className="text-xs text-[#B9B5A7] mt-0.5">
-                    {lang === 'my'
-                      ? 'လိုဂို၊ ဖန်ဗီကွန်၊ ဆိုင်အမည်နှင့် သင့် Brand အရောင်စုံတွဲများကို ရွေးချယ်ပါ'
-                      : 'Set your store logo, name, tagline, and brand color palette.'}
-                  </p>
+                  <h3 className="text-sm font-bold text-white">Industry Presets</h3>
+                  <p className="text-[11px] text-slate-400 mt-1">Select your industry to auto-apply optimal layout rules.</p>
                 </div>
-
-                {/* Preset Palettes Quick Pick */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    {lang === 'my' ? 'ဒီဇိုင်း အရောင်စုံတွဲများ (Curated Palettes)' : 'Curated Brand Palettes'}
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {PRESET_PALETTES.map((p) => {
-                      const isSelected =
-                        draftTheme.brand.primaryColor.toLowerCase() === p.primary.toLowerCase();
-                      return (
-                        <button
-                          key={p.name}
-                          type="button"
-                          onClick={() => applyPalette(p)}
-                          className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-[#C9A227] bg-[#C9A227]/10'
-                              : 'border-[#393426] bg-[#0B0B09] hover:border-[#C9A227]/50'
-                          }`}
-                        >
-                          <div className="min-w-0">
-                            <span className="text-xs font-bold text-[#F5F2E8] block truncate">
-                              {p.name}
-                            </span>
-                            <div className="flex items-center gap-1.5 mt-1.5">
-                              <span className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: p.primary }} />
-                              <span className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: p.secondary }} />
-                              <span className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: p.accent }} />
-                              <span className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: p.surface }} />
-                            </div>
-                          </div>
-                          {isSelected && <Check className="w-4 h-4 text-[#C9A227] shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Logo & Favicon Uploaders */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#393426]">
-                  {/* Logo */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-[#F5F2E8] block">
-                      {lang === 'my' ? 'ဆိုင် Logo' : 'Store Logo'}
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-2xl bg-[#0B0B09] border border-[#393426] flex items-center justify-center overflow-hidden shrink-0">
-                        {draftTheme.brand.logoUrl ? (
-                          <img
-                            src={draftTheme.brand.logoUrl}
-                            alt="Logo"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <ImageIcon className="w-6 h-6 text-[#8C887B]" />
-                        )}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#22211A] hover:bg-[#2B2920] border border-[#393426] text-xs font-semibold text-[#F5F2E8] cursor-pointer">
-                          {uploadingAsset === 'brand.logoUrl' ? (
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Upload className="w-3.5 h-3.5 text-[#C9A227]" />
-                          )}
-                          <span>{lang === 'my' ? 'တင်မည်' : 'Upload'}</span>
-                          <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/webp"
-                            className="hidden"
-                            onChange={(e) => handleUploadAsset(e, 'logo', 'brand.logoUrl')}
-                          />
-                        </label>
-                        {draftTheme.brand.logoUrl && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateDraft((prev) => ({
-                                ...prev,
-                                brand: { ...prev.brand, logoUrl: '' }
-                              }))
-                            }
-                            className="block text-[11px] text-rose-400 hover:underline cursor-pointer"
-                          >
-                            {lang === 'my' ? 'ဖျက်မည်' : 'Remove'}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Favicon */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-[#F5F2E8] block">
-                      {lang === 'my' ? 'Favicon Icon' : 'Browser Favicon'}
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-2xl bg-[#0B0B09] border border-[#393426] flex items-center justify-center overflow-hidden shrink-0">
-                        {draftTheme.brand.faviconUrl ? (
-                          <img
-                            src={draftTheme.brand.faviconUrl}
-                            alt="Favicon"
-                            className="w-full h-full object-contain p-2"
-                          />
-                        ) : (
-                          <Sparkles className="w-6 h-6 text-[#8C887B]" />
-                        )}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#22211A] hover:bg-[#2B2920] border border-[#393426] text-xs font-semibold text-[#F5F2E8] cursor-pointer">
-                          {uploadingAsset === 'brand.faviconUrl' ? (
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Upload className="w-3.5 h-3.5 text-[#C9A227]" />
-                          )}
-                          <span>{lang === 'my' ? 'တင်မည်' : 'Upload'}</span>
-                          <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/webp"
-                            className="hidden"
-                            onChange={(e) => handleUploadAsset(e, 'favicon', 'brand.faviconUrl')}
-                          />
-                        </label>
-                        {draftTheme.brand.faviconUrl && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateDraft((prev) => ({
-                                ...prev,
-                                brand: { ...prev.brand, faviconUrl: '' }
-                              }))
-                            }
-                            className="block text-[11px] text-rose-400 hover:underline cursor-pointer"
-                          >
-                            {lang === 'my' ? 'ဖျက်မည်' : 'Remove'}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Store Name, Tagline & Description */}
-                <div className="space-y-3 pt-2 border-t border-[#393426]">
-                  <div>
-                    <label className="text-xs font-semibold text-[#F5F2E8] block mb-1">
-                      {lang === 'my' ? 'စတိုးအမည်' : 'Store Display Name'}
-                    </label>
-                    <input
-                      type="text"
-                      value={draftTheme.brand.storeName}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          brand: { ...prev.brand, storeName: e.target.value }
-                        }))
-                      }
-                      className="w-full px-3 py-2 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-[#F5F2E8] block mb-1">
-                      {lang === 'my' ? 'ဆောင်ပုဒ် / Tagline' : 'Brand Tagline'}
-                    </label>
-                    <input
-                      type="text"
-                      value={draftTheme.brand.tagline || ''}
-                      placeholder="e.g. Modern Everyday Streetwear"
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          brand: { ...prev.brand, tagline: e.target.value }
-                        }))
-                      }
-                      className="w-full px-3 py-2 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-[#F5F2E8] block mb-1">
-                      {lang === 'my' ? 'စတိုးမိတ်ဆက် စာပိုဒ်' : 'Store Description'}
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={draftTheme.brand.description}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          brand: { ...prev.brand, description: e.target.value }
-                        }))
-                      }
-                      className="w-full px-3 py-2 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227] focus:outline-none resize-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Detailed Hex Color Pickers */}
-                <div className="space-y-3 pt-2 border-t border-[#393426]">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    {lang === 'my' ? 'သတ်မှတ်အရောင်များ (Custom Color Tokens)' : 'Custom Color Values'}
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-[11px] text-[#B9B5A7] block mb-1">Primary Brand</span>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={draftTheme.brand.primaryColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              brand: { ...prev.brand, primaryColor: e.target.value }
-                            }))
-                          }
-                          className="w-8 h-8 rounded-lg cursor-pointer border border-[#393426] bg-transparent"
-                        />
-                        <input
-                          type="text"
-                          value={draftTheme.brand.primaryColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              brand: { ...prev.brand, primaryColor: e.target.value }
-                            }))
-                          }
-                          className="w-full px-2 py-1.5 rounded-lg bg-[#0B0B09] border border-[#393426] text-[11px] font-mono text-[#F5F2E8]"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-[11px] text-[#B9B5A7] block mb-1">Accent Highlight</span>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={draftTheme.brand.accentColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              brand: { ...prev.brand, accentColor: e.target.value }
-                            }))
-                          }
-                          className="w-8 h-8 rounded-lg cursor-pointer border border-[#393426] bg-transparent"
-                        />
-                        <input
-                          type="text"
-                          value={draftTheme.brand.accentColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              brand: { ...prev.brand, accentColor: e.target.value }
-                            }))
-                          }
-                          className="w-full px-2 py-1.5 rounded-lg bg-[#0B0B09] border border-[#393426] text-[11px] font-mono text-[#F5F2E8]"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-[11px] text-[#B9B5A7] block mb-1">Surface Card Bg</span>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={draftTheme.brand.surfaceColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              brand: { ...prev.brand, surfaceColor: e.target.value }
-                            }))
-                          }
-                          className="w-8 h-8 rounded-lg cursor-pointer border border-[#393426] bg-transparent"
-                        />
-                        <input
-                          type="text"
-                          value={draftTheme.brand.surfaceColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              brand: { ...prev.brand, surfaceColor: e.target.value }
-                            }))
-                          }
-                          className="w-full px-2 py-1.5 rounded-lg bg-[#0B0B09] border border-[#393426] text-[11px] font-mono text-[#F5F2E8]"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-[11px] text-[#B9B5A7] block mb-1">Heading Text</span>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={draftTheme.brand.headingTextColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              brand: { ...prev.brand, headingTextColor: e.target.value }
-                            }))
-                          }
-                          className="w-8 h-8 rounded-lg cursor-pointer border border-[#393426] bg-transparent"
-                        />
-                        <input
-                          type="text"
-                          value={draftTheme.brand.headingTextColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              brand: { ...prev.brand, headingTextColor: e.target.value }
-                            }))
-                          }
-                          className="w-full px-2 py-1.5 rounded-lg bg-[#0B0B09] border border-[#393426] text-[11px] font-mono text-[#F5F2E8]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 2. BACKGROUND & VISUAL TAB */}
-            {activeTab === 'background' && (
-              <div className="space-y-5">
-                <div>
-                  <h3 className="text-sm font-bold text-[#F5F2E8] flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-[#C9A227]" />
-                    <span>{lang === 'my' ? 'နောက်ခံဓာတ်ပုံနှင့် မြင်ကွင်းဒီဇိုင်း' : 'Background & Visual Scrim'}</span>
-                  </h3>
-                  <p className="text-xs text-[#B9B5A7] mt-0.5">
-                    {lang === 'my'
-                      ? 'စတိုးနောက်ခံပုံ၊ အနေအထား၊ အချိုးအစားနှင့် ရှင်းလင်းစွာဖတ်ရှုနိုင်ရန် Scrim အလွှာကို သတ်မှတ်ပါ'
-                      : 'Upload full background photos, positioning, scale, and readability scrim.'}
-                  </p>
-                </div>
-
-                {/* Store Background Image */}
-                <div className="space-y-3">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    {lang === 'my' ? 'စတိုး ပင်မနောက်ခံပုံ (Store Background)' : 'Store Background Photo'}
-                  </label>
-                  <div className="p-3 rounded-2xl bg-[#0B0B09] border border-[#393426] space-y-3">
-                    {draftTheme.background.storeBgImage ? (
-                      <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-[#393426]">
-                        <img
-                          src={draftTheme.background.storeBgImage}
-                          alt="Store Background"
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              background: { ...prev.background, storeBgImage: '' }
-                            }))
-                          }
-                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 hover:bg-rose-600 text-white transition-colors cursor-pointer"
-                          title="Remove image"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="py-6 border-2 border-dashed border-[#393426] rounded-xl flex flex-col items-center justify-center text-center text-[#8C887B] space-y-1">
-                        <ImageIcon className="w-8 h-8 text-[#C9A227]/40 mb-1" />
-                        <span className="text-xs font-semibold text-[#F5F2E8]">
-                          {lang === 'my' ? 'နောက်ခံပုံ မရှိသေးပါ' : 'No background image uploaded'}
-                        </span>
-                        <span className="text-[11px] text-[#8C887B]">
-                          PNG, JPG, WebP up to 5MB
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between gap-3">
-                      <label className="px-3.5 py-1.5 rounded-xl bg-[#22211A] hover:bg-[#2B2920] border border-[#393426] text-xs font-semibold text-[#F5F2E8] flex items-center gap-1.5 transition-colors cursor-pointer">
-                        {uploadingAsset === 'background.storeBgImage' ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Upload className="w-3.5 h-3.5 text-[#C9A227]" />
-                        )}
-                        <span>{lang === 'my' ? 'နောက်ခံပုံ အသစ်တင်မည်' : 'Upload Image'}</span>
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp"
-                          className="hidden"
-                          onChange={(e) =>
-                            handleUploadAsset(e, 'background', 'background.storeBgImage')
-                          }
-                        />
-                      </label>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-[#B9B5A7]">Base Color:</span>
-                        <input
-                          type="color"
-                          value={draftTheme.background.storeBgColor}
-                          onChange={(e) =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              background: { ...prev.background, storeBgColor: e.target.value }
-                            }))
-                          }
-                          className="w-7 h-7 rounded cursor-pointer border border-[#393426] bg-transparent"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Position, Size, Repeat Controls */}
-                <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-[#393426]">
-                  <div>
-                    <label className="text-[11px] font-semibold text-[#B9B5A7] block mb-1">
-                      Position
-                    </label>
-                    <select
-                      value={draftTheme.background.bgPosition}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          background: { ...prev.background, bgPosition: e.target.value as any }
-                        }))
-                      }
-                      className="w-full px-2 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                    >
-                      <option value="center">Center</option>
-                      <option value="top">Top</option>
-                      <option value="bottom">Bottom</option>
-                      <option value="left">Left</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-semibold text-[#B9B5A7] block mb-1">
-                      Size
-                    </label>
-                    <select
-                      value={draftTheme.background.bgSize}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          background: { ...prev.background, bgSize: e.target.value as any }
-                        }))
-                      }
-                      className="w-full px-2 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                    >
-                      <option value="cover">Cover (Full)</option>
-                      <option value="contain">Contain</option>
-                      <option value="auto">Auto</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-semibold text-[#B9B5A7] block mb-1">
-                      Repeat
-                    </label>
-                    <select
-                      value={draftTheme.background.bgRepeat}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          background: { ...prev.background, bgRepeat: e.target.value as any }
-                        }))
-                      }
-                      className="w-full px-2 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                    >
-                      <option value="no-repeat">No Repeat</option>
-                      <option value="repeat">Repeat Both</option>
-                      <option value="repeat-x">Repeat X</option>
-                      <option value="repeat-y">Repeat Y</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Scrim Overlay Opacity & Color */}
-                <div className="space-y-2 pt-2 border-t border-[#393426]">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-[#F5F2E8]">
-                      {lang === 'my' ? 'ဖတ်ရှုရလွယ်ကူစေမည့် Scrim အမှောင်လွှာ' : 'Contrast Overlay Scrim'}
-                    </span>
-                    <span className="font-mono text-[#C9A227]">
-                      {draftTheme.background.overlayOpacity}%
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={draftTheme.background.overlayOpacity}
-                    onChange={(e) =>
-                      updateDraft((prev) => ({
-                        ...prev,
-                        background: { ...prev.background, overlayOpacity: Number(e.target.value) }
-                      }))
-                    }
-                    className="w-full accent-[#C9A227] cursor-pointer"
-                  />
-                  <p className="text-[11px] text-[#8C887B]">
-                    {lang === 'my'
-                      ? 'နောက်ခံပုံပေါ်တွင် ကုန်ပစ္စည်းစာလုံးများ ရှင်းလင်းစွာဖတ်ရှုနိုင်စေရန် 30% မှ 60% ကြားထားရှိရန် အကြံပြုပါသည်'
-                      : 'Recommended between 30% and 60% so text remains crisp and readable over photography.'}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* 3. TYPOGRAPHY TAB */}
-            {activeTab === 'typography' && (
-              <div className="space-y-5">
-                <div>
-                  <h3 className="text-sm font-bold text-[#F5F2E8] flex items-center gap-2">
-                    <Type className="w-4 h-4 text-[#C9A227]" />
-                    <span>{lang === 'my' ? 'ဖောင့်စတိုင်နှင့် အရွယ်အစား' : 'Typography & Font Scale'}</span>
-                  </h3>
-                  <p className="text-xs text-[#B9B5A7] mt-0.5">
-                    {lang === 'my'
-                      ? 'ခေါင်းစဉ်ဖောင့်နှင့် အကြောင်းအရာဖောင့်များကို ရွေးချယ်ပါ'
-                      : 'Choose curated font families for headings and body content.'}
-                  </p>
-                </div>
-
-                {/* Heading Font */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    {lang === 'my' ? 'ခေါင်းစဉ်ဖောင့် (Heading Font)' : 'Heading Font Family'}
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {HEADING_FONTS.map((font) => {
-                      const isSelected = draftTheme.typography.headingFont === font;
-                      return (
-                        <button
-                          key={font}
-                          type="button"
-                          onClick={() =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              typography: { ...prev.typography, headingFont: font }
-                            }))
-                          }
-                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-[#C9A227] bg-[#C9A227]/10'
-                              : 'border-[#393426] bg-[#0B0B09] hover:border-[#C9A227]/40'
-                          }`}
-                        >
-                          <span
-                            className="text-sm font-bold block text-[#F5F2E8]"
-                            style={{ fontFamily: font }}
-                          >
-                            {font}
-                          </span>
-                          <span className="text-[10px] text-[#8C887B] block mt-0.5">
-                            Sample Heading Text
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Body Font */}
-                <div className="space-y-2 pt-2 border-t border-[#393426]">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    {lang === 'my' ? 'အကြောင်းအရာဖောင့် (Body Font)' : 'Body Font Family'}
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {BODY_FONTS.map((font) => {
-                      const isSelected = draftTheme.typography.bodyFont === font;
-                      return (
-                        <button
-                          key={font}
-                          type="button"
-                          onClick={() =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              typography: { ...prev.typography, bodyFont: font }
-                            }))
-                          }
-                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-[#C9A227] bg-[#C9A227]/10'
-                              : 'border-[#393426] bg-[#0B0B09] hover:border-[#C9A227]/40'
-                          }`}
-                        >
-                          <span
-                            className="text-xs font-medium block text-[#F5F2E8]"
-                            style={{ fontFamily: font }}
-                          >
-                            {font}
-                          </span>
-                          <span className="text-[10px] text-[#8C887B] block mt-0.5">
-                            Clean readable text
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Alignment & Scale */}
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#393426]">
-                  <div>
-                    <label className="text-xs font-semibold text-[#F5F2E8] block mb-1">
-                      {lang === 'my' ? 'ခေါင်းစဉ် အရွယ်အစား' : 'Heading Scale'}
-                    </label>
-                    <select
-                      value={draftTheme.typography.headingScale}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          typography: { ...prev.typography, headingScale: e.target.value as any }
-                        }))
-                      }
-                      className="w-full px-2.5 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                    >
-                      <option value="compact">Compact</option>
-                      <option value="normal">Normal</option>
-                      <option value="large">Prominent / Large</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-[#F5F2E8] block mb-1">
-                      {lang === 'my' ? 'စာသား ညှိချက်' : 'Text Alignment'}
-                    </label>
-                    <select
-                      value={draftTheme.typography.textAlignment}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          typography: { ...prev.typography, textAlignment: e.target.value as any }
-                        }))
-                      }
-                      className="w-full px-2.5 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                    >
-                      <option value="left">Left Aligned</option>
-                      <option value="center">Centered</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 4. HEADER TAB */}
-            {activeTab === 'header' && (
-              <div className="space-y-5">
-                <div>
-                  <h3 className="text-sm font-bold text-[#F5F2E8] flex items-center gap-2">
-                    <Layout className="w-4 h-4 text-[#C9A227]" />
-                    <span>{lang === 'my' ? 'စတိုး ခေါင်းစဉ် (Header Settings)' : 'Header Customization'}</span>
-                  </h3>
-                  <p className="text-xs text-[#B9B5A7] mt-0.5">
-                    {lang === 'my'
-                      ? 'Logo အနေအထား၊ စတိုးအပေါ်ဘားအရောင်နှင့် ခလုတ်များကို သတ်မှတ်ပါ'
-                      : 'Configure logo position, sticky behavior, and header controls.'}
-                  </p>
-                </div>
-
-                {/* Logo Position */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    Logo Placement
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['left', 'center'] as const).map((pos) => {
-                      const isSelected = draftTheme.header.logoPosition === pos;
-                      return (
-                        <button
-                          key={pos}
-                          type="button"
-                          onClick={() =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              header: { ...prev.header, logoPosition: pos }
-                            }))
-                          }
-                          className={`p-2.5 rounded-xl border text-center text-xs font-bold capitalize transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-[#C9A227] bg-[#C9A227]/10 text-[#C9A227]'
-                              : 'border-[#393426] bg-[#0B0B09] text-[#B9B5A7]'
-                          }`}
-                        >
-                          {pos}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Sticky Header Toggle */}
-                <div className="p-3 rounded-xl bg-[#0B0B09] border border-[#393426] flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-[#F5F2E8] block">
-                      Sticky Header
-                    </span>
-                    <span className="text-[11px] text-[#8C887B]">
-                      Keep header fixed at top while scrolling
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateDraft((prev) => ({
-                        ...prev,
-                        header: { ...prev.header, stickyHeader: !prev.header.stickyHeader }
-                      }))
-                    }
-                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      draftTheme.header.stickyHeader ? 'bg-[#C9A227]' : 'bg-[#393426]'
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                        draftTheme.header.stickyHeader ? 'right-1' : 'left-1'
+                <div className="grid grid-cols-1 gap-3">
+                  {INDUSTRY_PROFILES.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => applyIndustryProfile(p)}
+                      className={`p-4 rounded-2xl border text-left flex items-center gap-4 transition-all group cursor-pointer ${
+                        draftTheme.industryProfile === p.id ? 'bg-violet-600/10 border-violet-500/40 ring-1 ring-violet-500/20' : 'bg-white/[0.03] border-white/5 hover:border-white/20'
                       }`}
-                    />
-                  </button>
-                </div>
-
-                {/* Header Feature Toggles */}
-                <div className="space-y-2 pt-2 border-t border-[#393426]">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    Header Buttons & Search
-                  </label>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs">
-                      <span className="text-[#F5F2E8]">Show Product Search Bar</span>
-                      <input
-                        type="checkbox"
-                        checked={draftTheme.header.showSearch}
-                        onChange={(e) =>
-                          updateDraft((prev) => ({
-                            ...prev,
-                            header: { ...prev.header, showSearch: e.target.checked }
-                          }))
-                        }
-                        className="accent-[#C9A227] w-4 h-4 cursor-pointer"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs">
-                      <span className="text-[#F5F2E8]">Show Cart Button</span>
-                      <input
-                        type="checkbox"
-                        checked={draftTheme.header.showCart}
-                        onChange={(e) =>
-                          updateDraft((prev) => ({
-                            ...prev,
-                            header: { ...prev.header, showCart: e.target.checked }
-                          }))
-                        }
-                        className="accent-[#C9A227] w-4 h-4 cursor-pointer"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs">
-                      <span className="text-[#F5F2E8]">Show Marketplace Navigation</span>
-                      <input
-                        type="checkbox"
-                        checked={draftTheme.header.showNavigation}
-                        onChange={(e) =>
-                          updateDraft((prev) => ({
-                            ...prev,
-                            header: { ...prev.header, showNavigation: e.target.checked }
-                          }))
-                        }
-                        className="accent-[#C9A227] w-4 h-4 cursor-pointer"
-                      />
-                    </div>
-                  </div>
+                    >
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                        draftTheme.industryProfile === p.id ? 'bg-violet-600 text-white' : 'bg-white/5 text-slate-400 group-hover:text-white'
+                      }`}>
+                        <p.icon className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm text-white">{lang === 'my' ? p.nameMy : p.nameEn}</div>
+                        <p className="text-[11px] text-slate-400 truncate">{p.description}</p>
+                      </div>
+                      {draftTheme.industryProfile === p.id && <CheckCircle2 className="w-5 h-5 text-violet-400 shrink-0" />}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* 5. HOMEPAGE SECTIONS TAB */}
-            {activeTab === 'sections' && (
-              <div className="space-y-5">
-                <div>
-                  <h3 className="text-sm font-bold text-[#F5F2E8] flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-[#C9A227]" />
-                    <span>{lang === 'my' ? 'ပင်မစာမျက်နှာ အပိုင်းများ' : 'Homepage Section Builder'}</span>
-                  </h3>
-                  <p className="text-xs text-[#B9B5A7] mt-0.5">
-                    {lang === 'my'
-                      ? 'စတိုးစာမျက်နှာတွင် ဖော်ပြမည့် အပိုင်းများကို ဖွင့်/ပိတ်နှင့် အစီအစဉ် ပြင်ဆင်ပါ'
-                      : 'Toggle and reorder sections displayed on your storefront homepage.'}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  {draftTheme.homepage.sections.map((section, idx) => {
-                    const sectionLabels: Record<string, { title: string; desc: string }> = {
-                      hero: {
-                        title: 'Hero Banner & Headline',
-                        desc: 'Top announcement and welcome message'
-                      },
-                      customer_lookup: {
-                        title: 'Order Status & Support Code',
-                        desc: 'Customer tracking search bar'
-                      },
-                      delivery_payment: {
-                        title: 'Delivery & Payment Policies',
-                        desc: 'Official shipping rules and accepted payments'
-                      },
-                      featured_products: {
-                        title: 'Product Catalog Grid',
-                        desc: 'Interactive shopping products list'
-                      },
-                      intro: {
-                        title: 'Store Story / About Intro',
-                        desc: 'Brand bio and shop information'
-                      },
-                      contact: {
-                        title: 'Social & Contact Channels',
-                        desc: 'Facebook, Viber, phone channels'
-                      }
-                    };
-
-                    const meta = sectionLabels[section.id] || {
-                      title: section.id,
-                      desc: 'Storefront section'
-                    };
-
-                    return (
-                      <div
-                        key={section.id}
-                        className={`p-3 rounded-xl border transition-all ${
-                          section.enabled
-                            ? 'bg-[#0B0B09] border-[#393426]'
-                            : 'bg-white/[0.01] border-white/5 opacity-60'
+            {activeTab === 'brand' && (
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-white">Store Surface Theme</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'light', labelMy: 'Editorial Light', labelEn: 'Light', canvas: '#FFFFFF', accent: '#000000' },
+                      { id: 'ivory', labelMy: 'Warm Ivory', labelEn: 'Ivory', canvas: '#FAF8F5', accent: '#B48A3E' },
+                      { id: 'dark', labelMy: 'Obsidian Dark', labelEn: 'Dark', canvas: '#0B0B0E', accent: '#FFFFFF' }
+                    ].map(s => (
+                      <button
+                        key={s.id}
+                        onClick={() => updateDraft(prev => ({ ...prev, background: { ...prev.background, surfaceTheme: s.id as any }}))}
+                        className={`p-3 rounded-2xl border transition-all flex flex-col items-center gap-2 cursor-pointer ${
+                          (draftTheme.background.surfaceTheme || 'light') === s.id ? 'bg-violet-600/10 border-violet-500/40 shadow-inner' : 'bg-white/[0.03] border-white/5 hover:border-white/20'
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="text-[11px] font-mono text-[#8C887B]">
-                              #{idx + 1}
-                            </span>
-                            <div className="min-w-0">
-                              <span className="text-xs font-bold text-[#F5F2E8] block truncate">
-                                {meta.title}
-                              </span>
-                              <span className="text-[10px] text-[#8C887B] block truncate">
-                                {meta.desc}
-                              </span>
-                            </div>
-                          </div>
+                        <div className="w-10 h-10 rounded-lg shadow-inner border border-white/5" style={{ backgroundColor: s.canvas }}>
+                           <div className="w-4 h-2 rounded-sm mx-auto mt-2" style={{ backgroundColor: s.accent }} />
+                        </div>
+                        <span className="text-[10px] font-bold text-white">{lang === 'my' ? s.labelMy : s.labelEn}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
-                            {/* Move Up / Down */}
-                            <button
-                              type="button"
-                              disabled={idx === 0}
-                              onClick={() => {
-                                updateDraft((prev) => {
-                                  const arr = [...prev.homepage.sections];
-                                  const temp = arr[idx - 1];
-                                  arr[idx - 1] = arr[idx];
-                                  arr[idx] = temp;
-                                  return { ...prev, homepage: { ...prev.homepage, sections: arr } };
-                                });
-                              }}
-                              className="p-1 rounded-lg hover:bg-white/[0.08] text-[#B9B5A7] disabled:opacity-30 cursor-pointer"
-                              title="Move Up"
-                            >
-                              <MoveUp className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              disabled={idx === draftTheme.homepage.sections.length - 1}
-                              onClick={() => {
-                                updateDraft((prev) => {
-                                  const arr = [...prev.homepage.sections];
-                                  const temp = arr[idx + 1];
-                                  arr[idx + 1] = arr[idx];
-                                  arr[idx] = temp;
-                                  return { ...prev, homepage: { ...prev.homepage, sections: arr } };
-                                });
-                              }}
-                              className="p-1 rounded-lg hover:bg-white/[0.08] text-[#B9B5A7] disabled:opacity-30 cursor-pointer"
-                              title="Move Down"
-                            >
-                              <MoveDown className="w-3.5 h-3.5" />
-                            </button>
+                <div className="pt-4 border-t border-white/10 space-y-6">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Brand Accent Color</h3>
+                    <p className="text-[11px] text-slate-400 mt-1">Applies to primary buttons, active states, and badges.</p>
+                  </div>
+                  <div className="grid grid-cols-5 gap-2">
+                    {[
+                      '#121212', // Obsidian
+                      '#B48A3E', // Champagne Gold
+                      '#BE185D', // Royal Rose
+                      '#047857', // Emerald
+                      '#4338CA', // Indigo
+                      '#7C3AED', // Violet
+                      '#EA580C', // Orange
+                      '#2563EB', // Blue
+                      '#000000', // Black
+                      '#FFFFFF'  // White
+                    ].map(color => (
+                      <button
+                        key={color}
+                        onClick={() => {
+                          updateDraft(prev => ({
+                            ...prev,
+                            brand: { ...prev.brand, primaryColor: color, accentColor: color },
+                            buttons: { ...prev.buttons, buttonPrimaryBg: color, buttonPrimaryText: getContrastColor(color) }
+                          }));
+                        }}
+                        className={`w-full aspect-square rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
+                          draftTheme.brand.primaryColor.toLowerCase() === color.toLowerCase() ? 'border-violet-500 ring-2 ring-violet-500/20' : 'border-white/10'
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={draftTheme.brand.primaryColor}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        updateDraft(prev => ({
+                          ...prev,
+                          brand: { ...prev.brand, primaryColor: val, accentColor: val },
+                          buttons: { ...prev.buttons, buttonPrimaryBg: val, buttonPrimaryText: getContrastColor(val) }
+                        }));
+                      }}
+                      className="w-12 h-12 rounded-xl bg-transparent border-none cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={draftTheme.brand.primaryColor}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val.startsWith('#') && val.length <= 7) {
+                          updateDraft(prev => ({
+                            ...prev,
+                            brand: { ...prev.brand, primaryColor: val, accentColor: val },
+                            buttons: { ...prev.buttons, buttonPrimaryBg: val, buttonPrimaryText: getContrastColor(val) }
+                          }));
+                        }
+                      }}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-mono text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
-                            {/* Enable Toggle */}
-                            <input
-                              type="checkbox"
-                              checked={section.enabled}
-                              onChange={(e) => {
-                                updateDraft((prev) => {
-                                  const arr = prev.homepage.sections.map((s, i) =>
-                                    i === idx ? { ...s, enabled: e.target.checked } : s
-                                  );
-                                  return { ...prev, homepage: { ...prev.homepage, sections: arr } };
-                                });
+            {activeTab === 'typography' && (
+              <div className="space-y-6">
+                 <div>
+                  <h3 className="text-sm font-bold text-white">Store Typography</h3>
+                  <p className="text-[11px] text-slate-400 mt-1">Premium font pairings optimized for English & Myanmar.</p>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400">Heading Font</label>
+                    <select
+                      value={draftTheme.typography.headingFont}
+                      onChange={(e) => updateDraft(prev => ({ ...prev, typography: { ...prev.typography, headingFont: e.target.value as any }}))}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white"
+                    >
+                      {['Plus Jakarta Sans', 'Outfit', 'Playfair Display', 'DM Sans', 'Space Grotesk', 'Cinzel'].map(f => <option key={f} value={f} className="bg-[#13121D]">{f}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400">Text Alignment</label>
+                    <div className="flex bg-white/5 p-1 rounded-xl gap-1">
+                      {['left', 'center'].map(align => (
+                        <button
+                          key={align}
+                          onClick={() => updateDraft(prev => ({ ...prev, typography: { ...prev.typography, textAlignment: align as any }}))}
+                          className={`flex-1 py-2 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                            draftTheme.typography.textAlignment === align ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {align}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'header' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Header & Announcement Bar</h3>
+                  <p className="text-[11px] text-slate-400 mt-1">Configure your storefront announcement ribbon and header navigation.</p>
+                </div>
+
+                <div className="space-y-5">
+                  {/* Announcement Bar Toggle */}
+                  <div className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-white">Announcement Ribbon ပြသမည်</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Show top announcement / promotion ribbon</span>
+                    </div>
+                    <button
+                      onClick={() => updateDraft(prev => ({
+                        ...prev,
+                        header: {
+                          ...prev.header,
+                          showAnnouncement: prev.header?.showAnnouncement === false ? true : false
+                        }
+                      }))}
+                      className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${draftTheme.header?.showAnnouncement !== false ? 'bg-violet-600' : 'bg-slate-700'}`}
+                    >
+                      <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${draftTheme.header?.showAnnouncement !== false ? 'right-1' : 'left-1'}`} />
+                    </button>
+                  </div>
+
+                  {/* Announcement Text Input */}
+                  {draftTheme.header?.showAnnouncement !== false && (
+                    <div className="space-y-3 bg-white/[0.02] p-4 rounded-2xl border border-white/5">
+                      <label className="text-xs font-bold text-slate-300 block">
+                        အဓိက ပရိုမိုးရှင်း သို့မဟုတ် Delivery စာသား
+                      </label>
+                      <input
+                        type="text"
+                        value={draftTheme.header?.announcementText || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          updateDraft(prev => ({
+                            ...prev,
+                            header: { ...prev.header, announcementText: val }
+                          }));
+                        }}
+                        placeholder="ဥပမာ - တစ်နိုင်ငံလုံး အိမ်အရောက် ပို့ဆောင်ပေးပါသည်"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-violet-500/50"
+                      />
+
+                      <div className="pt-2">
+                        <span className="text-[10px] font-bold text-slate-400 block mb-2 uppercase tracking-wider">
+                          အကြံပြုချက် နမူနာများ (Quick Presets)
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            'တစ်နိုင်ငံလုံး အိမ်အရောက် ပို့ဆောင်ပေးပါသည်',
+                            '၅၀,၀၀၀ ကျပ်အထက် ဝယ်ယူပါက ပို့ခအခမဲ့',
+                            'တိုက်ရိုက် အော်ဒါများကို ၂၄ နာရီအတွင်း အမြန်ပို့ပေးပါသည်',
+                            'Official Verified Luxury Boutique'
+                          ].map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => {
+                                updateDraft(prev => ({
+                                  ...prev,
+                                  header: { ...prev.header, announcementText: preset }
+                                }));
                               }}
-                              className="accent-[#C9A227] w-4 h-4 cursor-pointer"
-                            />
-                          </div>
+                              className="text-[10px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-violet-600/20 hover:text-violet-300 border border-white/5 transition-all text-slate-300 cursor-pointer text-left"
+                            >
+                              + {preset}
+                            </button>
+                          ))}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                    </div>
+                  )}
 
-            {/* 6. PRODUCTS TAB */}
-            {activeTab === 'products' && (
-              <div className="space-y-5">
-                <div>
-                  <h3 className="text-sm font-bold text-[#F5F2E8] flex items-center gap-2">
-                    <ShoppingBag className="w-4 h-4 text-[#C9A227]" />
-                    <span>{lang === 'my' ? 'ကုန်ပစ္စည်း ကတ်ဒီဇိုင်း' : 'Product Display & Cards'}</span>
-                  </h3>
-                  <p className="text-xs text-[#B9B5A7] mt-0.5">
-                    {lang === 'my'
-                      ? 'ကတ်အရွယ်အစား၊ ကော်လံအရေအတွက်၊ ဓာတ်ပုံအချိုးနှင့် ခလုတ်ပုံစံများကို ရွေးပါ'
-                      : 'Customize columns, card borders, image aspect ratio, and button styles.'}
-                  </p>
-                </div>
-
-                {/* Grid Columns */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    Catalog Grid Columns (Desktop)
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {([2, 3, 4] as const).map((cols) => {
-                      const isSelected = draftTheme.productDisplay.gridColumns === cols;
-                      return (
-                        <button
-                          key={cols}
-                          type="button"
-                          onClick={() =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              productDisplay: { ...prev.productDisplay, gridColumns: cols }
-                            }))
-                          }
-                          className={`p-2.5 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-[#C9A227] bg-[#C9A227]/10 text-[#C9A227]'
-                              : 'border-[#393426] bg-[#0B0B09] text-[#B9B5A7]'
-                          }`}
-                        >
-                          {cols} Columns
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Image Aspect Ratio */}
-                <div className="space-y-2 pt-2 border-t border-[#393426]">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    Product Photo Aspect Ratio
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['square', 'portrait', 'landscape'] as const).map((aspect) => {
-                      const isSelected = draftTheme.productDisplay.imageAspectRatio === aspect;
-                      return (
-                        <button
-                          key={aspect}
-                          type="button"
-                          onClick={() =>
-                            updateDraft((prev) => ({
-                              ...prev,
-                              productDisplay: { ...prev.productDisplay, imageAspectRatio: aspect }
-                            }))
-                          }
-                          className={`p-2 rounded-xl border text-center text-xs font-semibold capitalize transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-[#C9A227] bg-[#C9A227]/10 text-[#C9A227]'
-                              : 'border-[#393426] bg-[#0B0B09] text-[#B9B5A7]'
-                          }`}
-                        >
-                          {aspect === 'square' ? '1:1 Square' : aspect === 'portrait' ? '3:4 Portrait' : '16:9 Wide'}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Corner Radius & Button Style */}
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#393426]">
-                  <div>
-                    <label className="text-[11px] font-semibold text-[#B9B5A7] block mb-1">
-                      Card Corner Radius
-                    </label>
-                    <select
-                      value={draftTheme.productDisplay.cardRadius}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          productDisplay: { ...prev.productDisplay, cardRadius: e.target.value as any }
-                        }))
-                      }
-                      className="w-full px-2.5 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                    >
-                      <option value="none">Sharp / None</option>
-                      <option value="md">Subtle (md)</option>
-                      <option value="xl">Standard (xl)</option>
-                      <option value="2xl">Rounded (2xl)</option>
-                      <option value="3xl">Pill Smooth (3xl)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-semibold text-[#B9B5A7] block mb-1">
-                      Button Style
-                    </label>
-                    <select
-                      value={draftTheme.productDisplay.buttonStyle}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          productDisplay: { ...prev.productDisplay, buttonStyle: e.target.value as any }
-                        }))
-                      }
-                      className="w-full px-2.5 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                    >
-                      <option value="gradient">Brand Gradient</option>
-                      <option value="solid">Solid Color</option>
-                      <option value="outline">Glass Outline</option>
-                      <option value="pill">Pill Rounded</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Badges Toggle */}
-                <div className="space-y-2 pt-2 border-t border-[#393426]">
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs">
-                    <span className="text-[#F5F2E8]">Show Stock Availability Pills</span>
-                    <input
-                      type="checkbox"
-                      checked={draftTheme.productDisplay.showStockBadge}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          productDisplay: { ...prev.productDisplay, showStockBadge: e.target.checked }
-                        }))
-                      }
-                      className="accent-[#C9A227] w-4 h-4 cursor-pointer"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs">
-                    <span className="text-[#F5F2E8]">Show Discount Badges</span>
-                    <input
-                      type="checkbox"
-                      checked={draftTheme.productDisplay.showDiscountBadge}
-                      onChange={(e) =>
-                        updateDraft((prev) => ({
-                          ...prev,
-                          productDisplay: { ...prev.productDisplay, showDiscountBadge: e.target.checked }
-                        }))
-                      }
-                      className="accent-[#C9A227] w-4 h-4 cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 7. FOOTER TAB */}
-            {activeTab === 'footer' && (
-              <div className="space-y-5">
-                <div>
-                  <h3 className="text-sm font-bold text-[#F5F2E8] flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-[#C9A227]" />
-                    <span>{lang === 'my' ? 'စတိုး အောက်ခြေပိုင်း (Footer)' : 'Footer Customization'}</span>
-                  </h3>
-                  <p className="text-xs text-[#B9B5A7] mt-0.5">
-                    {lang === 'my'
-                      ? 'မူပိုင်ခွင့်စာသား၊ ဆက်သွယ်ရန်နှင့် လူမှုကွန်ရက်လင့်ခ်များကို သတ်မှတ်ပါ'
-                      : 'Set copyright notice and merchant social contact channels.'}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-[#F5F2E8] block mb-1">
-                    Copyright Notice
-                  </label>
-                  <input
-                    type="text"
-                    value={draftTheme.footer.copyrightText}
-                    onChange={(e) =>
-                      updateDraft((prev) => ({
+                  {/* Sticky Header Toggle */}
+                  <div className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-white">Sticky Header ကပ်ထားမည်</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Keep header fixed at top while scrolling</span>
+                    </div>
+                    <button
+                      onClick={() => updateDraft(prev => ({
                         ...prev,
-                        footer: { ...prev.footer, copyrightText: e.target.value }
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                  />
+                        header: {
+                          ...prev.header,
+                          stickyHeader: !prev.header?.stickyHeader
+                        }
+                      }))}
+                      className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${draftTheme.header?.stickyHeader !== false ? 'bg-violet-600' : 'bg-slate-700'}`}
+                    >
+                      <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${draftTheme.header?.stickyHeader !== false ? 'right-1' : 'left-1'}`} />
+                    </button>
+                  </div>
                 </div>
+              </div>
+            )}
 
-                <div className="space-y-3 pt-2 border-t border-[#393426]">
-                  <label className="text-xs font-semibold text-[#F5F2E8] block">
-                    Merchant Social Channels
-                  </label>
-                  <div className="space-y-2">
-                    <div>
-                      <span className="text-[11px] text-[#B9B5A7] block mb-1">Facebook Page URL</span>
-                      <input
-                        type="text"
-                        placeholder="https://facebook.com/yourpage"
-                        value={draftTheme.footer.socialLinks?.facebook || ''}
-                        onChange={(e) =>
-                          updateDraft((prev) => ({
-                            ...prev,
-                            footer: {
-                              ...prev.footer,
-                              socialLinks: {
-                                ...prev.footer.socialLinks,
-                                facebook: e.target.value
-                              }
-                            }
-                          }))
-                        }
-                        className="w-full px-3 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                      />
+            {activeTab === 'products' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Product Card Style</h3>
+                  <p className="text-[11px] text-slate-400 mt-1">Configure how your products are displayed in the grid.</p>
+                </div>
+                <div className="space-y-5">
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-slate-400">Corner Radius</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['none', 'xl', '3xl'].map(radius => (
+                        <button
+                          key={radius}
+                          onClick={() => updateDraft(prev => ({ ...prev, productDisplay: { ...prev.productDisplay, cardRadius: radius as any }}))}
+                          className={`py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                            draftTheme.productDisplay.cardRadius === radius ? 'bg-violet-600/10 border-violet-500/40 text-white' : 'bg-white/5 border-white/5 text-slate-400'
+                          }`}
+                        >
+                          {radius === 'none' ? 'Sharp' : radius === 'xl' ? 'Modern' : 'Soft'}
+                        </button>
+                      ))}
                     </div>
-
-                    <div>
-                      <span className="text-[11px] text-[#B9B5A7] block mb-1">Viber Contact / Channel</span>
-                      <input
-                        type="text"
-                        placeholder="viber://chat?number=..."
-                        value={draftTheme.footer.socialLinks?.viber || ''}
-                        onChange={(e) =>
-                          updateDraft((prev) => ({
-                            ...prev,
-                            footer: {
-                              ...prev.footer,
-                              socialLinks: {
-                                ...prev.footer.socialLinks,
-                                viber: e.target.value
-                              }
-                            }
-                          }))
-                        }
-                        className="w-full px-3 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                      />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-slate-400">Image Ratio</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'portrait', label: '4:5 Portrait' },
+                        { id: 'square', label: '1:1 Square' },
+                        { id: 'landscape', label: '4:3 Landscape' }
+                      ].map(ratio => (
+                        <button
+                          key={ratio.id}
+                          onClick={() => updateDraft(prev => ({ ...prev, productDisplay: { ...prev.productDisplay, imageAspectRatio: ratio.id as any }}))}
+                          className={`py-2 rounded-xl text-[10px] font-bold transition-all border cursor-pointer ${
+                            draftTheme.productDisplay.imageAspectRatio === ratio.id ? 'bg-violet-600/10 border-violet-500/40 text-white' : 'bg-white/5 border-white/5 text-slate-400'
+                          }`}
+                        >
+                          {ratio.label}
+                        </button>
+                      ))}
                     </div>
-
-                    <div>
-                      <span className="text-[11px] text-[#B9B5A7] block mb-1">Telegram Link</span>
-                      <input
-                        type="text"
-                        placeholder="https://t.me/yourstore"
-                        value={draftTheme.footer.socialLinks?.telegram || ''}
-                        onChange={(e) =>
-                          updateDraft((prev) => ({
-                            ...prev,
-                            footer: {
-                              ...prev.footer,
-                              socialLinks: {
-                                ...prev.footer.socialLinks,
-                                telegram: e.target.value
-                              }
-                            }
-                          }))
-                        }
-                        className="w-full px-3 py-1.5 rounded-xl bg-[#0B0B09] border border-[#393426] text-xs text-[#F5F2E8] focus:border-[#C9A227]"
-                      />
+                  </div>
+                  <div className="pt-4 space-y-4">
+                    <div className="flex items-center justify-between bg-white/5 p-3 rounded-2xl border border-white/5">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-white">SKU ကုဒ် ပြသမည်</span>
+                        <span className="text-[9px] text-slate-400 uppercase tracking-widest">Show Technical SKU</span>
+                      </div>
+                      <button
+                        onClick={() => updateDraft(prev => ({ ...prev, productDisplay: { ...prev.productDisplay, showSkuOnCard: !prev.productDisplay.showSkuOnCard }}))}
+                        className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${draftTheme.productDisplay.showSkuOnCard ? 'bg-violet-600' : 'bg-slate-700'}`}
+                      >
+                        <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${draftTheme.productDisplay.showSkuOnCard ? 'right-1' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between bg-white/5 p-3 rounded-2xl border border-white/5">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-white">ဝယ်ယူရန်ခလုတ် ပြသမည်</span>
+                        <span className="text-[9px] text-slate-400 uppercase tracking-widest">Show Buy Button</span>
+                      </div>
+                      <button
+                        onClick={() => updateDraft(prev => ({ ...prev, productDisplay: { ...prev.productDisplay, showBuyButtonOnCard: draftTheme.productDisplay.showBuyButtonOnCard === false ? true : false }}))}
+                        className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${draftTheme.productDisplay.showBuyButtonOnCard !== false ? 'bg-violet-600' : 'bg-slate-700'}`}
+                      >
+                        <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${draftTheme.productDisplay.showBuyButtonOnCard !== false ? 'right-1' : 'left-1'}`} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-slate-400">Image Fit</label>
+                    <div className="flex bg-white/5 p-1 rounded-xl gap-1">
+                      {['cover', 'contain'].map(fit => (
+                        <button
+                          key={fit}
+                          onClick={() => updateDraft(prev => ({ ...prev, productDisplay: { ...prev.productDisplay, imageFit: fit as any }}))}
+                          className={`flex-1 py-2 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                            draftTheme.productDisplay.imageFit === fit ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {fit}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
             )}
+            
+            {activeTab === 'sections' && (
+              <>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Hero Banner Style</h3>
+                    <p className="text-[11px] text-slate-400 mt-1">Control the main spotlight area of your store.</p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { id: 'editorial', labelMy: 'Editorial Lookbook (ပုံအပြည့်)', labelEn: 'Editorial Lookbook' },
+                      { id: 'compact', labelMy: 'Compact Minimal (အကျဉ်းချုပ်)', labelEn: 'Compact Minimal' },
+                      { id: 'hidden', labelMy: 'Hidden (ဖျောက်ထားမည်)', labelEn: 'Hidden / Catalog Only' }
+                    ].map(style => (
+                      <button
+                        key={style.id}
+                        onClick={() => updateDraft(prev => ({ ...prev, homepage: { ...prev.homepage, heroStyle: style.id as any }}))}
+                        className={`px-4 py-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                          (draftTheme.homepage.heroStyle || 'editorial') === style.id ? 'bg-violet-600/10 border-violet-500/40 text-white' : 'bg-white/[0.03] border-white/5 text-slate-400 hover:border-white/20'
+                        }`}
+                      >
+                        <span className="text-xs font-bold">{lang === 'my' ? style.labelMy : style.labelEn}</span>
+                        {(draftTheme.homepage.heroStyle || 'editorial') === style.id && <CheckCircle2 className="w-4 h-4 text-violet-400" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/10 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Homepage Sections</h3>
+                      <p className="text-[11px] text-slate-400 mt-1">Toggle and reorder secondary modules.</p>
+                    </div>
+                  </div>
+                <div className="space-y-3">
+                  {draftTheme.homepage.sections.map((section, idx) => (
+                    <div key={section.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4 group">
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                             disabled={idx === 0}
+                             onClick={() => {
+                               const sections = [...draftTheme.homepage.sections];
+                               [sections[idx-1], sections[idx]] = [sections[idx], sections[idx-1]];
+                               updateDraft(prev => ({ ...prev, homepage: { sections }}));
+                             }}
+                             className="text-slate-500 hover:text-white disabled:opacity-20 cursor-pointer"
+                          >
+                            <ChevronUp className="w-3 h-3" />
+                          </button>
+                          <button
+                             disabled={idx === draftTheme.homepage.sections.length - 1}
+                             onClick={() => {
+                               const sections = [...draftTheme.homepage.sections];
+                               [sections[idx+1], sections[idx]] = [sections[idx], sections[idx+1]];
+                               updateDraft(prev => ({ ...prev, homepage: { sections }}));
+                             }}
+                             className="text-slate-500 hover:text-white disabled:opacity-20 cursor-pointer"
+                          >
+                            <ChevronDown className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <div className="font-bold text-xs text-white capitalize">{section.id.replace(/_/g, ' ')}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const sections = draftTheme.homepage.sections.map(s => s.id === section.id ? { ...s, enabled: !s.enabled } : s);
+                          updateDraft(prev => ({ ...prev, homepage: { sections }}));
+                        }}
+                        className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${section.enabled ? 'bg-violet-600' : 'bg-slate-700'}`}
+                      >
+                        <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${section.enabled ? 'right-1' : 'left-1'}`} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
           </div>
         </div>
 
-        {/* Right Column: Responsive Live Preview Stage (7 cols on lg) */}
-        <div className="lg:col-span-7 space-y-3">
-          {/* Preview Viewport Toolbar */}
-          <div className="bg-[#181810] border border-[#393426] rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
-            {/* Mode Switcher: Draft vs Published */}
-            <div className="flex items-center gap-1 bg-[#0B0B09] p-1 rounded-xl border border-[#393426]">
-              <button
-                type="button"
-                onClick={() => setPreviewMode('draft')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
-                  previewMode === 'draft'
-                    ? 'bg-[#C9A227] text-[#0B0B09] font-bold shadow-xs'
-                    : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-                }`}
-              >
-                {lang === 'my' ? 'မူကြမ်း (Draft)' : 'Draft Preview'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewMode('published')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
-                  previewMode === 'published'
-                    ? 'bg-[#C9A227] text-[#0B0B09] font-bold shadow-xs'
-                    : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-                }`}
-              >
-                {lang === 'my' ? 'တိုက်ရိုက် (Live)' : 'Live Store'}
-              </button>
-            </div>
-
-            {/* Device Frame Switcher */}
-            <div className="flex items-center gap-1 bg-[#0B0B09] p-1 rounded-xl border border-[#393426]">
-              <button
-                type="button"
-                onClick={() => setPreviewDevice('desktop')}
-                className={`p-1.5 rounded-lg cursor-pointer transition-all ${
-                  previewDevice === 'desktop'
-                    ? 'bg-[#C9A227] text-[#0B0B09]'
-                    : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-                }`}
-                title="Desktop View (100%)"
-              >
-                <Monitor className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewDevice('tablet')}
-                className={`p-1.5 rounded-lg cursor-pointer transition-all ${
-                  previewDevice === 'tablet'
-                    ? 'bg-[#C9A227] text-[#0B0B09]'
-                    : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-                }`}
-                title="Tablet View (768px)"
-              >
-                <Tablet className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewDevice('mobile')}
-                className={`p-1.5 rounded-lg cursor-pointer transition-all ${
-                  previewDevice === 'mobile'
-                    ? 'bg-[#C9A227] text-[#0B0B09]'
-                    : 'text-[#B9B5A7] hover:text-[#F5F2E8]'
-                }`}
-                title="Mobile View (375px)"
-              >
-                <Smartphone className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Device Frame Container */}
-          <div className="bg-[#0B0B09] border border-[#393426] rounded-3xl p-3 sm:p-5 overflow-hidden flex justify-center min-h-[750px] shadow-2xl">
-            <div
-              className={`transition-all duration-300 rounded-2xl overflow-y-auto max-h-[820px] shadow-2xl ${
-                previewDevice === 'mobile'
-                  ? 'w-[375px] border-8 border-[#22211A] rounded-[36px]'
-                  : previewDevice === 'tablet'
-                  ? 'w-[768px] border-4 border-[#22211A] rounded-[24px]'
-                  : 'w-full border border-white/10'
-              }`}
+        {/* Live Preview Stage */}
+        <div className="lg:col-span-7 h-full flex flex-col">
+          <div className="bg-[#13121D] border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden flex-1 flex flex-col min-h-[850px]">
+            <DevicePreviewFrame 
+              device={previewDevice}
+              setDevice={setPreviewDevice}
+              url={`https://shopsone.com/store/${store?.slug || 'yangon-style'}`}
+              lang={lang}
+              onOpenExternal={onOpenLiveStore}
             >
-              {/* Embedded CustomerStorefrontView using active preview theme and store */}
               <CustomerStorefrontView
-                slug={store?.slug || 'sample'}
+                slug={store?.slug || 'yangon-style'}
                 previewTheme={currentPreviewTheme}
                 previewStore={store}
                 previewProducts={products}
                 isPreviewMode={true}
+                viewport={previewDevice}
               />
-            </div>
+            </DevicePreviewFrame>
+          </div>
+          
+          <div className="mt-4 flex items-center justify-center gap-4 text-[10px] text-slate-500 font-mono italic">
+             <Info className="w-3 h-3" />
+             High-fidelity {previewDevice} hardware simulation. Proportional scaling active.
           </div>
         </div>
       </div>

@@ -22,12 +22,10 @@ import {
 import { MarketplaceStore, Product } from '../types';
 import { CustomerCodeLookup } from './CustomerCodeLookup';
 import { OrderSupportModal } from './OrderSupportModal';
-import { MiniAvatarPreview } from './studio/MiniAvatarPreview';
 
 interface MarketplaceViewProps {
   onSelectStore: (slug: string, productId?: string) => void;
   onNavigateToMerchant?: () => void;
-  onNavigateToAvatarStudio?: () => void;
   initialSearchQuery?: string;
 }
 
@@ -130,7 +128,6 @@ const MarketplaceProductCard: React.FC<{
 export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
   onSelectStore,
   onNavigateToMerchant,
-  onNavigateToAvatarStudio,
   initialSearchQuery = ''
 }) => {
   const [lang, setLang] = useState<'my' | 'en'>('my');
@@ -310,33 +307,6 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
         }}
         onContactSupport={() => setIsSupportOpen(true)}
       />
-
-      {/* Avatar Studio Card */}
-      <section aria-label="Avatar Studio" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="rounded-3xl bg-gradient-to-r from-slate-900 to-indigo-950 p-6 sm:p-8 border border-white/10 shadow-2xl flex flex-col sm:flex-row items-center gap-6">
-          <div className="flex-1 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-[10px] font-bold text-purple-300 uppercase tracking-wider">
-              <Sparkles className="w-3 h-3" />
-              <span>Your Virtual Fashion Studio</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Create Your 3D Avatar
-            </h2>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-md">
-              Build your virtual body, customize your appearance, and get ready to explore fashion in 3D.
-            </p>
-            <button
-              onClick={onNavigateToAvatarStudio}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm rounded-full shadow-lg transition-all cursor-pointer"
-            >
-              Customize Avatar
-            </button>
-          </div>
-          <div className="w-full sm:w-1/3 h-48 sm:h-64 rounded-2xl overflow-hidden border border-white/10 bg-slate-950">
-            <MiniAvatarPreview />
-          </div>
-        </div>
-      </section>
 
       {/* Next-Gen Hero Section (Loopstack & Vercel Style) */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-16 pb-20 text-center flex flex-col items-center">

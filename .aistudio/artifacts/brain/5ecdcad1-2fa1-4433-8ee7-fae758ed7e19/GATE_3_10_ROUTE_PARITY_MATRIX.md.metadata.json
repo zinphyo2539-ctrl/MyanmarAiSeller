@@ -1,5 +1,0 @@
-{
-  "summary": "Gate 3.10 Route Parity Matrix. Exhaustive comparison of all 82 backend routes across Express and Hono Workers runtimes, covering methods, paths, auth, RBAC, repository bindings, and response schemas.",
-  "updatedAt": "2026-11-06T11:02:13.590113217Z",
-  "userFacing": true
-}

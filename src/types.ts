@@ -101,6 +101,7 @@ export interface StorefrontBackgroundConfig {
   bgRepeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
   overlayColor: string;
   overlayOpacity: number;
+  surfaceTheme?: 'light' | 'ivory' | 'dark';
 }
 
 export interface StorefrontTypographyConfig {
@@ -119,6 +120,8 @@ export interface StorefrontHeaderConfig {
   showSearch: boolean;
   showCart: boolean;
   stickyHeader: boolean;
+  announcementText?: string;
+  showAnnouncement?: boolean;
 }
 
 export interface StorefrontHomepageSection {
@@ -129,13 +132,17 @@ export interface StorefrontHomepageSection {
 }
 
 export interface StorefrontProductDisplayConfig {
-  gridColumns: 2 | 3 | 4;
+  gridColumns: 2 | 3 | 4 | 5 | 6;
+  layoutDensity: 'comfortable' | 'compact' | 'tight';
   cardRadius: 'none' | 'md' | 'xl' | '2xl' | '3xl';
   cardShadow: 'none' | 'sm' | 'md' | 'lg' | 'glow';
-  imageAspectRatio: 'square' | 'portrait' | 'landscape';
+  imageAspectRatio: 'square' | 'portrait' | 'landscape' | 'curated';
   imageFit: 'cover' | 'contain';
+  imagePadding: number;
   showDiscountBadge: boolean;
   showStockBadge: boolean;
+  showSkuOnCard?: boolean;
+  showBuyButtonOnCard?: boolean;
   buttonStyle: 'gradient' | 'solid' | 'outline' | 'pill';
 }
 
@@ -164,12 +171,14 @@ export interface StorefrontThemeConfig {
   version: number;
   updatedAt: string;
   publishedAt?: string;
+  industryProfile: 'general' | 'fashion' | 'electronics' | 'cosmetics' | 'grocery' | 'home';
   brand: StorefrontBrandConfig;
   background: StorefrontBackgroundConfig;
   typography: StorefrontTypographyConfig;
   header: StorefrontHeaderConfig;
   homepage: {
     sections: StorefrontHomepageSection[];
+    heroStyle?: 'compact' | 'editorial' | 'hidden';
   };
   productDisplay: StorefrontProductDisplayConfig;
   buttons: StorefrontButtonConfig;
@@ -319,7 +328,7 @@ export interface AiHealth {
   lastCheck: string;
 }
 
-export type NavigationDestination = 'home' | 'messages' | 'inventory' | 'accounting' | 'aistudio' | 'ai' | 'profile' | 'lab' | 'avatar_studio';
+export type NavigationDestination = 'home' | 'messages' | 'inventory' | 'accounting' | 'aistudio' | 'ai' | 'profile' | 'lab';
 
 export interface TestLabMessage {
   id: string;

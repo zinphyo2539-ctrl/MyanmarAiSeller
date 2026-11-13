@@ -313,10 +313,23 @@ export class LedgerService {
   }
 
   async listEntriesByMerchant(merchantId: string, limit = 100): Promise<JournalEntry[]> {
-    return await this.client.runQuery<JournalEntry>('journalEntries', {
-      where: [{ field: 'merchantId', op: 'EQUAL', value: merchantId }],
-      limit,
+    let localEntries: JournalEntry[] = [];
+    await withDbTransaction((db: any) => {
+      localEntries = (db.accountingEntries || []).filter((e: any) => e.merchantId === merchantId);
     });
+    if (localEntries.length > 0) {
+      return localEntries.slice(0, limit);
+    }
+
+    try {
+      return await this.client.runQuery<JournalEntry>('journalEntries', {
+        where: [{ field: 'merchantId', op: 'EQUAL', value: merchantId }],
+        limit,
+      });
+    } catch (err: any) {
+      console.warn('Firestore query failed for journalEntries, falling back to local db:', err?.message || err);
+      return [];
+    }
   }
 }
 

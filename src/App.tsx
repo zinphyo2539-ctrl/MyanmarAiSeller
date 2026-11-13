@@ -49,7 +49,6 @@ import { MarketplaceView } from './components/MarketplaceView';
 import { OnboardingView } from './components/OnboardingView';
 import { AccountingView } from './components/AccountingView';
 import { AiStudioView } from './components/AiStudioView';
-import { StudioView } from './components/StudioView';
 import { CustomerCodeLookup } from './components/CustomerCodeLookup';
 import { OrderSupportModal } from './components/OrderSupportModal';
 
@@ -106,7 +105,11 @@ export default function App() {
   const [publicStoreSlug, setPublicStoreSlug] = useState<string | null>(() => {
     try {
       if (typeof window === 'undefined') return null;
-      const pathMatch = window.location.pathname.match(/^\/store\/([a-zA-Z0-9_-]+)/);
+      const path = window.location.pathname;
+      if (path === '/store' || path === '/store/' || path === '/preview/store') {
+        return 'yangon-style';
+      }
+      const pathMatch = path.match(/^\/store\/([a-zA-Z0-9_-]+)/);
       if (pathMatch) return pathMatch[1];
 
       const params = new URLSearchParams(window.location.search);
@@ -160,6 +163,12 @@ export default function App() {
 
         setIsLoginView(path === '/login');
         setIsMarketplace(path.startsWith('/marketplace') || search.includes('page=marketplace') || hash.includes('marketplace'));
+
+        if (path === '/store' || path === '/store/' || path === '/preview/store') {
+          setPublicStoreSlug('yangon-style');
+          setSelectedProductId(new URLSearchParams(search).get('product') || null);
+          return;
+        }
 
         const pathMatch = path.match(/^\/store\/([a-zA-Z0-9_-]+)/);
         if (pathMatch) {
@@ -276,17 +285,17 @@ export default function App() {
         healthRes,
         supportRes
       ] = await Promise.all([
-        fetch('/api/dashboard/summary', { headers }).then(r => r.ok ? r.json() : null),
-        fetch('/api/products', { headers }).then(r => r.ok ? r.json() : []),
-        fetch('/api/orders', { headers }).then(r => r.ok ? r.json() : []),
-        fetch('/api/conversations', { headers }).then(r => r.ok ? r.json() : []),
-        fetch('/api/merchant/samples', { headers }).then(r => r.ok ? r.json() : []),
-        fetch('/api/merchant/ai-config', { headers }).then(r => r.ok ? r.json() : null),
-        fetch('/api/merchant/store', { headers }).then(r => r.ok ? r.json() : null),
-        fetch('/api/audit-logs', { headers }).then(r => r.ok ? r.json() : []),
-        fetch('/api/auth/config-status').then(r => r.ok ? r.json() : null),
-        fetch('/api/ai/health', { headers }).then(r => r.ok ? r.json() : null),
-        fetch('/api/merchant/support/conversations', { headers }).then(r => r.ok ? r.json() : [])
+        fetch('/api/dashboard/summary', { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/products', { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch('/api/orders', { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch('/api/conversations', { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch('/api/merchant/samples', { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch('/api/merchant/ai-config', { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/merchant/store', { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/audit-logs', { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch('/api/auth/config-status').then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/ai/health', { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/merchant/support/conversations', { headers }).then(r => r.ok ? r.json() : []).catch(() => [])
       ]);
 
       if (summaryRes) setSummary(summaryRes);
@@ -787,10 +796,6 @@ export default function App() {
           setPublicStoreSlug(null);
           setSelectedProductId(null);
         }}
-        onNavigateToAvatarStudio={() => {
-          setCurrentTab('avatar_studio');
-          setIsMarketplace(false);
-        }}
       />
     );
   }
@@ -827,7 +832,7 @@ export default function App() {
   }
 
   // Unauthenticated Login Screen (Only the Login Box is displayed)
-  if ((isLoginView || isAuthenticated === false) && currentTab !== 'avatar_studio') {
+  if (isLoginView || isAuthenticated === false) {
     return (
       <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden selection:bg-purple-500 selection:text-white">
         {/* Background Ambient Orbs */}
@@ -946,7 +951,7 @@ export default function App() {
             aria-label="Desktop Primary Navigation"
             className="hidden lg:flex items-center gap-1 bg-white/[0.04] p-1.5 rounded-2xl border border-white/10 backdrop-blur-xl"
           >
-            {(isAuthenticated === false 
+            {(!isAuthenticated 
               ? [] 
               : (user?.role === 'merchant_admin' || user?.role === 'admin' || user?.provider === 'local')
                 ? ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile', 'lab']
@@ -1112,16 +1117,6 @@ export default function App() {
             getHeaders={getHeaders}
             onProductUpdated={() => fetchAllData()}
             onNavigateToInventory={() => setCurrentTab('inventory')}
-          />
-        )}
-
-        {currentTab === 'avatar_studio' && (
-          <StudioView 
-            lang={lang} 
-            onBack={() => {
-              setIsMarketplace(true);
-              setCurrentTab('home');
-            }}
           />
         )}
 

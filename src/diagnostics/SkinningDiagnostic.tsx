@@ -24,7 +24,13 @@ export const SkinningDiagnostic: React.FC = () => {
         camera.position.set(0, 1.2, 2.5);
         camera.lookAt(0, 1.0, 0);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        let renderer: THREE.WebGLRenderer;
+        try {
+          renderer = new THREE.WebGLRenderer({ antialias: true });
+        } catch (err) {
+          console.warn('WebGL context unavailable in SkinningDiagnostic:', err);
+          return;
+        }
         renderer.setSize(300, 300);
         testContainer.appendChild(renderer.domElement);
         renderers.push(renderer);

@@ -2,7 +2,7 @@
  * Product Repository - Firestore Authoritative Implementation
  */
 import { getFirestoreRestClient, FirestoreRestClient } from '../firestoreClient.ts';
-import { ProductRecord } from '../db.ts';
+import { ProductRecord, withDbTransaction } from '../db.ts';
 
 export class ProductRepository {
   private client: FirestoreRestClient;
@@ -13,15 +13,43 @@ export class ProductRepository {
 
   async findById(productId: string): Promise<ProductRecord | null> {
     if (!productId) return null;
-    return await this.client.getDocument<ProductRecord>('products', productId);
+    try {
+      const doc = await this.client.getDocument<ProductRecord>('products', productId);
+      if (doc) return doc;
+    } catch (err: any) {
+      console.warn('Firestore getDocument failed for product, falling back to local db:', err?.message || err);
+    }
+    let found: ProductRecord | null = null;
+    await withDbTransaction((db: any) => {
+      found = db.products?.[productId] || Object.values(db.products || {}).find((p: any) => p.id === productId) || null;
+    });
+    return found;
   }
 
   async findByMerchantId(merchantId: string): Promise<ProductRecord[]> {
-    if (!merchantId) return [];
-    return await this.client.runQuery<ProductRecord>('products', {
-      where: [{ field: 'merchantId', op: 'EQUAL', value: merchantId }],
-      limit: 200,
+    let firestoreProducts: ProductRecord[] = [];
+    try {
+      if (merchantId) {
+        firestoreProducts = await this.client.runQuery<ProductRecord>('products', {
+          where: [{ field: 'merchantId', op: 'EQUAL', value: merchantId }],
+          limit: 200,
+        });
+      }
+    } catch (err: any) {
+      console.warn('Firestore query failed for products:', err?.message || err);
+    }
+
+    let localProducts: ProductRecord[] = [];
+    await withDbTransaction((db: any) => {
+      const all = Object.values(db.products || {}) as ProductRecord[];
+      localProducts = merchantId ? all.filter((p: any) => p.merchantId === merchantId) : all;
     });
+
+    const combined = [...(firestoreProducts || []), ...localProducts];
+    const map = new Map<string, ProductRecord>();
+    combined.forEach(p => { if (p && p.id) map.set(p.id, p); });
+    const finalProducts = Array.from(map.values());
+    return finalProducts.length > 0 ? finalProducts : localProducts;
   }
 
   async listPublishedByMerchant(merchantId: string): Promise<ProductRecord[]> {

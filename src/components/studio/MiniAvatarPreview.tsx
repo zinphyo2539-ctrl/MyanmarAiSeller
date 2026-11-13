@@ -29,7 +29,13 @@ export const MiniAvatarPreview: React.FC = () => {
     cameraRef.current = camera;
 
     // 3. Setup Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    } catch (err) {
+      console.warn('WebGL context unavailable in MiniAvatarPreview:', err);
+      return;
+    }
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);

@@ -1,0 +1,252 @@
+SHOPSONE — EDITORIAL CHAMELEON (REVISION 3: PRODUCTION-READY ARCHITECTURE SPECIFICATION)
+Executive Summary
+The Editorial Chameleon (Revision 3) specification remediation elevates the ShopsOne universal e-commerce architecture from a conceptual design to a production-ready, highly secure, server-authoritative enterprise specification.
+Building upon the robust foundation of Revision 2—which established the Universal Does Not Mean Uniform principle, industry-specific presentation profiles, a three-tier design token hierarchy, and a strict Myanmar typography validation matrix—Revision 3 rigorously hardens all system boundaries. It addresses critical distributed systems challenges, including server-authoritative inventory locks, atomic transaction boundaries, idempotent order creation, tamper-proof server-side pricing, stable cursor-based pagination, secure remote image sanitization, and strict schema-driven configuration safety.
+This is a comprehensive architectural specification and remediation document. In strict compliance with execution restrictions, no source code has been modified, no repository files have been altered, no dependencies have been installed, and no production operations have been executed. All repository-dependent contracts that lack explicit local confirmation are formally classified as NOT VERIFIED.
+Architectural Principles
+ * Client is Untrusted; Server is Authoritative: The browser client and frontend application layer are strictly treated as untrusted rendering and interaction surfaces. No prices, discounts, delivery fees, taxes, stock levels, or final order totals calculated on the client are accepted by backend systems without strict server-side revalidation.
+ * Universal Does Not Mean Uniform: A single, unified component library renders distinct, context-aware industry presentations driven entirely by structured configuration profiles (Fashion, Electronics, Cosmetics, Grocery, Home & Living, General Retail).
+ * Immutability of Primitives & Tiered Separation: Design tokens, security configurations, and layout schemas follow strict cascading boundaries where lower layers (Tier 1 primitives, Zod security schemas) cannot be overridden by merchant customizations.
+ * Resilience by Design: All edge cases (empty states, loading skeletons, slow networks, offline recovery, malformed payloads, and third-party image failures) are explicitly architected to prevent white-screen crashes and layout shifts.
+ * Myanmar-First Bilingual Ergonomics: Typography, form controls, line heights, and touch targets are optimized natively for complex script rendering without compromising English UI elements.
+Industry Adaptive Presentation Matrix
+The following matrix defines how universal components adapt across the six supported store profiles while sharing a single codebase:
+| Store Profile | Image Ratio & Fit Mode | Grid Density (Mobile / Tablet / Desktop) | Card Metadata Priority | Variant & Card Controls | Quick-Add Behavior |
+|---|---|---|---|---|---|
+| 1. Fashion & Apparel (Editorial) | 4:5 (Portrait)
+object-fit: cover
+Bg: #F6F6F4 | 2 / 3 / 4 cols
+Gap: 16px (M), 24px (D) | 1. Title
+2. Price & Discount
+3. Color Swatch Dots (max 4 + N) | Visual Color Dots & Size Pills | Disabled on multi-variant (Opens Quick-Select Bottom Sheet / Navigates to PDP). Single-SKU allows Quick-Add. |
+| 2. Electronics & Gadgets (Technical) | 1:1 (Square)
+object-fit: contain
+Padding: 12px, Bg: #F8F8F7 | 2 / 3 / 4 cols
+Gap: 12px (M), 20px (D) | 1. Brand / Model SKU Eyebrow
+2. Title (2 lines)
+3. Key Spec / Warranty Badge
+4. Tabular Price | Capacity / Spec Pills on PDP | Direct Add for single-SKU accessories; View Specs / Options for multi-variant devices. |
+| 3. Cosmetics & Beauty (Clean Luxury) | 1:1 or 4:5
+object-fit: cover (Lifestyle) / contain (Bottle) | 2 / 3 / 4 cols
+Gap: 16px (M), 24px (D) | 1. Brand / Line Eyebrow
+2. Title + Volume (50ml)
+3. Shade Swatches
+4. Price | Shade Color Circles & Volume Pills | Shade Picker Sheet if multi-shade; Instant Add if single SKU. |
+| 4. Grocery & Daily Essentials (High-Density Mart) | 1:1 (Square)
+object-fit: contain
+Padding: 8px, Bg: #FFFFFF | 2 (compact 3) / 4 / 5–6 cols
+Gap: 8px (M), 16px (D) | 1. Title
+2. Unit / Weight Label (500g, 1 Pack)
+3. Price | Inline Quantity Stepper (- 1 +) directly on Card once added | Instant 1-Tap Quick-Add (+) turning into inline - N + quantity stepper. |
+| 5. Home & Living (Spatial / Curated) | 4:3 (Landscape) or 1:1
+object-fit: cover (Room) / contain (Item) | 1–2 / 2–3 / 3–4 cols
+Gap: 16px (M), 28px (D) | 1. Title
+2. Dimensions / Material Note
+3. Price | Material / Finish Swatches | Navigates to PDP (High-consideration items) or Quick-Add for small decor. |
+| 6. General Retail (Balanced Default) | 1:1 (Square)
+object-fit: contain (Safe default) or cover
+Bg: #F6F6F4 | 2 / 3 / 4 cols
+Gap: 12px (M), 20px (D) | 1. Category Eyebrow (optional)
+2. Title
+3. Price & Verified Stock Status | Standard Pill Selector on PDP | Conditional: Direct + if hasVariants === false && inStock, else Options. |
+Three-Tier Design Token Architecture
+[Tier 1: Immutable Primitives] ──► [Tier 2: Semantic UI & Tokens] ──► [Tier 3: Adaptive Profile Tokens]
+
+1. Tier 1: Primitive Tokens (Immutable Base Scale)
+ * Neutral Palette: neutral-0 (#FFFFFF), neutral-50 (#F9F9F8), neutral-100 (#F3F3F1), neutral-200 (#E6E6E2), neutral-600 (#666662), neutral-900 (#121212).
+ * Spacing Scale: 4px base (space-1: 4px, space-2: 8px, space-3: 12px, space-4: 16px, space-5: 20px, space-6: 24px, space-8: 32px, space-12: 48px).
+2. Tier 2: Semantic UI & Bilingual Typography Tokens
+:root {
+  /* Surfaces & Borders */
+  --surface-canvas: #FFFFFF;
+  --surface-subtle: #F6F6F4;
+  --surface-elevated: #FFFFFF;
+  --border-hairline: #EBEBE8;
+  --border-strong: #D4D4CE;
+  
+  /* Text Hierarchy */
+  --text-primary: #121212;
+  --text-secondary: #5A5A55;
+  --text-muted: #767670; /* WCAG AA compliant on white (>= 4.5:1) */
+  
+  /* Brand & Status (Merchant-overridable with contrast guard) */
+  --brand-primary: #121212;
+  --brand-on-primary: #FFFFFF;
+  --status-danger: #C83E31;
+  --status-success: #1B6E44;
+  --status-warning: #B25E09;
+  
+  /* Typography Primitives */
+  --font-sans: 'Inter', 'Plus Jakarta Sans', 'Pyidaungsu', 'Noto Sans Myanmar', system-ui, sans-serif;
+  --font-size-xs: 0.75rem; /* 12px minimum — 11px eliminated for Myanmar legibility */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --leading-heading-mm: 1.5;
+  --leading-body-mm: 1.75;
+}
+
+3. Tier 3: Adaptive Profile Tokens
+[data-store-profile="fashion"] {
+  --card-aspect-ratio: 4 / 5;
+  --card-image-fit: cover;
+  --card-image-padding: 0px;
+  --grid-cols-desktop: 4;
+  --grid-gap-mobile: 12px;
+  --grid-gap-desktop: 24px;
+}
+[data-store-profile="electronics"] {
+  --card-aspect-ratio: 1 / 1;
+  --card-image-fit: contain;
+  --card-image-padding: 12px;
+  --grid-cols-desktop: 4;
+  --grid-gap-mobile: 12px;
+  --grid-gap-desktop: 20px;
+}
+[data-store-profile="grocery"] {
+  --card-aspect-ratio: 1 / 1;
+  --card-image-fit: contain;
+  --card-image-padding: 8px;
+  --grid-cols-desktop: 5;
+  --grid-gap-mobile: 8px;
+  --grid-gap-desktop: 16px;
+}
+
+Myanmar Typography Validation Matrix
+To guarantee flawless readability across Android (OneUI, MIUI, ColorOS), iOS Safari, and Desktop browsers, the following validation rules apply:
+| Text Scenario | Test String Pattern | Failure Mode Tested | Proposed CSS Safeguard | Minimum Size Rule |
+|---|---|---|---|---|
+| 1. Myanmar Headings | "အထူးလျှော့ဈေးနှင့် ပစ္စည်းသစ်များ" | Upper vowel/tone (-ိ, -ီ, -ံ) and lower subscript/slant (-ု, -ူ, ြ-) vertical clipping. | line-height: 1.5 to 1.6; container padding-block: 0.1em. | Mobile H1 \ge 24px, H2 \ge 18px |
+| 2. English-Only Text | "SPRING / SUMMER COLLECTION 2026" | Excessive vertical gaps when Myanmar line-height is applied. | :lang(my) or unicode-range detection; balanced 1.45 baseline adjustment. | Eyebrow \ge 12px (0.75rem) |
+| 3. Mixed Text | "iPhone 16 Pro Max (256GB) - အာမခံ ၁ နှစ်ပါ" | Baseline mismatch causing vertical wave distortion. | vertical-align: baseline; metric-matching font stacks. | Body \ge 14px (0.875rem) |
+| 4. Long Product Titles | ၃ ကြောင်းထက်ပိုရှည်သော မြန်မာကုန်ပစ္စည်းအမည်များ | Lower subscript clipping on -webkit-line-clamp: 2. | min-height: calc(2 * 1.55em); padding-bottom: 2px; | Card Title: 14px–15px |
+| 5. Price & Currency | "1,250,000 MMK" / "၁,၂၅၀,၀၀၀ ကျပ်" | Wrapping break on narrow cards. | font-variant-numeric: tabular-nums; white-space: nowrap; flex-wrap: wrap; | Price \ge 15px (Bold), Old Price \ge 12px |
+| 6. Navigation & Pills | "အိမ်သုံးနှင့် မီးဖိုချောင်သုံး ပစ္စည်းများ" | 11px illegibility and container overflow. | Minimum 12px (13px recommended for pills); white-space: nowrap. | Nav/Pill \ge 13px |
+| 7. Button Text | "ခြင်းတောင်းထဲထည့်မည်" / "အခုဝယ်မည်" | Vertical cramping inside fixed 36px buttons. | min-height: 44px (Mobile); padding-block: 10px. | Button \ge 14px |
+Product Image Rendering Architecture
+The universal AspectImage component prevents layout shifts and protects against unsafe remote resources:
+ * Configurable Properties: aspectRatio (1/1, 4/5, 4/3, 3/4, 16/9), fitMode (contain | cover), surfaceBg (subtle | white | transparent), position (center | top).
+ * Contain Padding Guard: When contain is active, inner padding (var(--card-image-padding, 10px)) ensures transparent or square product cutouts never bleed into card borders.
+ * Loading & Error Fallbacks: Neutral skeleton pulse during loading; on image load error (onError), surfaces a minimal store/product monogram icon with a neutral surface background (--surface-subtle) without broken browser image icons.
+Universal Product Card & Inventory Integrity
+ * Server-Authoritative Stock Display:
+   * trackInventory: false \rightarrow No stock badge; assumed in-stock.
+   * In Stock (availableQuantity > lowStockThreshold) \rightarrow No badge (minimizes visual noise).
+   * Low Stock (trackInventory: true && availableQuantity <= lowStockThreshold && > 0) \rightarrow Exact count: "လက်ကျန် X ခု" / "X left in stock".
+   * Out of Stock \rightarrow Muted pill badge "ပစ္စည်းကုန်နေပါသည်" / "Sold Out", opacity 0.75, Quick-Add disabled.
+ * Variant-Specific Availability: Card-level reflects aggregate status; PDP/Quick-Select sheets disable specific variant pills (e.g., strikethrough unavailable size M).
+ * Quick-Add Eligibility: Direct 1-tap + is permitted only when product.variants.length === 0 && isAvailable === true && !hasCustomRequiredModifiers. Otherwise, it resolves to "ရွေးချယ်ရန်" / "Options".
+ * Price Validation: Compare-at price and discount badges render strictly when compareAtPrice > currentPrice && currentPrice > 0. Negative discounts or 0% are structurally barred.
+Homepage Section Composition Architecture
+To prevent arbitrary JSX execution or unsafe code evaluation, merchant customization relies on a strict schema-driven Section Registry:
+[Storefront Config JSON (v1)] ──► [Zod Strict Schema Validator] ──► [Allowlisted Section Registry] ──► [Per-Section ErrorBoundary] ──► [Render]
+
+ * Allowlisted Section Registry: Supports only HERO_BANNER, CATEGORY_RAIL, PRODUCT_SHELF, PROMO_SPLIT, TRUST_BAR, FEATURED_COLLECTIONS. Unknown types are safely skipped with a development warning.
+ * Zero-Config Default Guarantee: Falls back gracefully to DEFAULT_STOREFRONT_CONFIG_V1 if no custom layout is provided.
+ * Per-Section Isolation: Empty data sources trigger graceful collapses rather than blank container boxes.
+PLP / PDP / Cart / Checkout UX
+ * PLP & Category Browsing: Sticky category pill rail with sort/filter bottom sheets (price range, availability, categories).
+ * PDP: Swipeable image gallery carousel (mobile) or thumbnail grid (desktop); reactive variant matrix updates.
+ * Cart Drawer & Re-Verification: Incremental quantity steps (+) are blocked if they exceed server stock, displaying inline warnings.
+ * Myanmar-Optimized Checkout: Clean integer MMK currency formatting (45,000 MMK), phone-first customer inputs (09... validation with optional email), region/township hierarchical selection, and truthful merchant-configured payment methods (KBZPay, WavePay, COD, Bank Transfer).
+Empty, Error & Loading States
+ * Empty Storefront: Header, Brand Hero, and "ဆိုင်ခန်း ပြင်ဆင်နေဆဲ ဖြစ်ပါသည် — မကြာမီ ပစ္စည်းသစ်များ ရောက်ရှိပါမည်" banner with contact links.
+ * Empty Category: "ဤအမျိုးအစားတွင် ပစ္စည်း မရှိသေးပါ" with "Browse All Products" CTA and active category recommendations.
+ * Search with No Results: "[Query] အတွက် ပစ္စည်းရှာမတွေ့ပါ" with spelling check suggestions, clear search button, and popular product shelves.
+ * Out-of-Stock (PDP/PLP): Disabled "Out of Stock" button with alternative in-stock recommendations from the same category.
+ * Slow Network (3G / Unstable): Layout-stable skeleton placeholders, 300ms debounced search inputs, and loading spinners with disabled states to prevent double-taps.
+ * Image Load Failure: AspectImage onError handler swapping broken states to neutral placeholder surfaces immediately.
+ * API Fetch Failure: Section-level or page-level fallback with "အင်တာနက်ချိတ်ဆက်မှု အခက်အခဲရှိနေပါသည်" and a functional Retry button.
+ * Cart Stock Re-Verification Failure: Inline warning badge ("လက်ကျန် X ခုသာ ကျန်ပါတော့သည်") with automatic quantity adjustment prompts.
+ * Checkout Validation / Submission Errors: Preserved form state; inline red error text under failing inputs with auto-scroll and focus assignment.
+ * Long Titles / Mixed Text: line-clamp-2 with overflow-wrap: anywhere preventing horizontal card leaks.
+Responsive Design Matrix
+| Viewport Tier | Breakpoint | Grid Density (Default / Grocery) | Navigation & Search Pattern | PDP Purchase Pattern | Filter & Cart Pattern |
+|---|---|---|---|---|---|
+| Small Mobile | 320px – 374px | 2 cols (8px gap, condensed padding) | Compact Header + Expandable Full-width Search Bar | Sticky Bottom Action Bar (min-height: 64px, safe-area padded) | Full-width Bottom Sheet (90vh) |
+| Standard Mobile | 375px – 767px | 2 cols (12px gap) / Grocery: 2–3 cols | Sticky Header + Horizontal Category Pill Rail | Sticky Bottom Action Bar (Price + Variant summary + CTA) | Bottom Sheet (85vh) + Slide-over Cart |
+| Tablet | 768px – 1023px | 3 cols (16px gap) / Grocery: 4 cols | Header with inline Search + Scrollable Category Bar | 2-Column Split (50% Gallery / 50% Buy Box) | Side Drawer (380px width) |
+| Desktop | \ge 1024px (Max 1360px) | 4 cols (20–24px gap) / Grocery: 5–6 cols | Full Header: Logo, Category Links, Inline Search, Cart Trigger | 2-Column Asymmetric Split (58% Sticky Gallery / 42% Buy Box) | Inline Filter Bar / Left Rail + Slide-over Cart (420px) |
+Merchant Customization Readiness
+ * Data-Driven Store Profile: Shell updates dynamically across profiles (fashion, electronics, grocery, etc.) via CSS variables and component props.
+ * Brand Color Contrast Guard: Automatic luminance calculation (--brand-primary) to switch --brand-on-primary between white and #121212 if merchant color choices violate contrast minimums.
+ * Zero Hardcoded Identity: Store metadata, logos, payment methods, and social links are sourced strictly from store context/API payloads with graceful fallbacks.
+Performance & Accessibility
+ * Measurable Performance Targets:
+   * LCP \le 2.5s: Enforced via fetchpriority="high" and loading="eager" on hero images and first two product cards; lazy loading for below-the-fold assets.
+   * INP \le 200ms: Achieved via optimistic UI feedback, 300ms debounced search inputs, and avoidance of heavy synchronous main-thread computations.
+   * CLS \le 0.1: Guaranteed through explicit CSS aspect-ratio containers, reserved header/banner minimum heights, and font-display: swap.
+ * Accessibility (a11y) Standards:
+   * Focus Management: Visible 2px focus rings (--brand-primary, 2px offset) on all interactive controls; focus traps in modals and drawers with Escape key dismissal.
+   * Screen Readers: Explicit aria-label attributes on icon-only controls; aria-live="polite" for cart badge updates.
+   * Touch Targets: Minimum 44px \times 44px hit areas on mobile viewports.
+   * Reduced Motion: Respects prefers-reduced-motion: reduce by zeroing out non-essential animation durations.
+Repository Compatibility Requirements
+ * Product & Variant API Contract: Verification required regarding whether PLP endpoints bundle variant stock, compare-at prices, and images.
+ * Store Metadata & Payment Config Contract: Verification required on backend field names for payment gateways (KBZPay, Wave, COD) and store profiles.
+ * Existing Styling System: Identification required of existing styling pipelines (Tailwind CSS, CSS Modules, or Styled Components) to integrate design tokens without unauthorized dependency additions.
+ * Routing & State Management: Preservation of existing cart persistence (LocalStorage, Zustand, or server session) and URL routing structures (/store/:slug, /products/:id).
+ * Image Hosting & Dimensions: Inspection required for image CDN transformation parameters and URL structures.
+Server-Authoritative Cart & Inventory Architecture (AR-01)
+ * Inventory Authority: The client frontend never decides item availability. Stock validation executes strictly within backend transaction boundaries.
+ * Atomic Reservation: When initiating checkout, an atomic database transaction locks product and variant rows (SELECT ... FOR UPDATE), verifies available quantity against cart request quantity, and writes an ephemeral reservation holding stock for 15 minutes.
+ * Concurrent Purchase Protection: Database row-level locks prevent race conditions when two users attempt to purchase the final unit simultaneously. The second transaction fails gracefully with a stock deficit error, prompting cart quantity re-sync.
+Idempotent Order Creation (AR-02)
+ * Idempotency Key Lifecycle: The client generates a cryptographically secure UUID (Idempotency-Key header) upon checkout submission.
+ * Server-Side Validation: The backend checks an idempotency_keys table for existing keys. If a key exists within a 24-hour retention window, the original order response is returned immediately without re-processing payment or deducting stock.
+ * Payload Consistency: Request body cryptographic hashes (SHA-256) are validated against the stored key fingerprint to reject mismatched payload retries under the same key.
+Pricing & Delivery Integrity (AR-03)
+ * Server-Side Calculation: The backend recalculates item unit prices, variant adjustments, active volume discounts, compare-at thresholds, subtotal, delivery fees, and final payable totals at the moment of order placement.
+ * Currency Handling: All monetary calculations in MMK use integer representations (paise/cents equivalent avoided in favor of raw integer kyat amounts with safe arithmetic validation) to prevent floating-point rounding errors.
+ * Price Drift Handling: If prices change between cart addition and checkout, the checkout transaction halts, returning a price-drift payload notifying the user of updated pricing before allowing re-submission.
+Product Pagination & Stable Sorting (AR-04)
+ * Cursor-Based Pagination: Replaces offset pagination with cursor-based pagination (cursor = base64(sort_value + id)) to prevent duplicate items or skipped records during concurrent catalog insertions and deletions.
+ * Deterministic Tie-Breaker: Every sort query includes a secondary tie-breaker (ORDER BY created_at DESC, id DESC) ensuring strict stability.
+ * Filter & Sort Invalidation: Changing filters or sort orders automatically invalidates existing cursors, resetting pagination to page one.
+Image Security Architecture (AR-05)
+ * Trusted Host Allowlist: All product and banner image URLs must resolve against a strict allowlist of approved storage domains (e.g., Supabase storage buckets, Firebase Storage, and approved merchant CDN domains). Arbitrary external domains trigger fallback rendering.
+ * SSRF Prevention: Server-side image processing pipelines (if any) are restricted from fetching arbitrary remote URLs, preventing Server-Side Request Forgery (SSRF).
+ * Timeout & Retry Policy: Image fetch requests enforce a 5-second timeout with a maximum of 1 bounded retry before rendering the graceful monogram error fallback.
+Configuration Security Architecture (AR-06)
+ * Zod Schema Validation: All merchant storefront layout configurations are parsed through strict Zod schemas enforcing maximum section counts, unique section IDs, payload size limits, and allowed property types.
+ * Execution Safety: Dynamic script execution, arbitrary JSX, eval functions, and unsafe HTML tags (dangerouslySetInnerHTML with un-sanitized input) are strictly barred. Unknown section types are pruned automatically.
+Security Threat & Abuse Matrix
+| Threat | Impact | Prevention Mechanism | Verification Evidence |
+|---|---|---|---|
+| Client-Side Price Tampering | Users checking out with manipulated zero prices | Server-side recalculation of all item and cart totals from authoritative database records. | Integration test verifying forged client totals are ignored by checkout API. |
+| Overselling / Race Conditions | Purchasing more stock than physically available | Database row-level locking (FOR UPDATE) and atomic inventory decrement during checkout. | Concurrent multi-client load test targeting final inventory unit. |
+| Duplicate Order Submission | Double charging and accidental inventory double-deduction | Cryptographic idempotency keys with 24-hour server-side uniqueness enforcement. | Repeated rapid-fire submission test with identical idempotency headers. |
+| Malicious Store Config Injection | XSS or Remote Code Execution via merchant layout payload | Strict Zod schema validation stripping unknown properties and executable scripts. | Automated fuzz testing with malicious JSON configuration payloads. |
+| SSRF via Remote Images | Internal network scanning through image upload/fetch endpoints | Domain allowlist validation blocking private IP ranges and unapproved hosts. | URI validation test suite against internal and malformed endpoints. |
+API Contract Compatibility Matrix
+| Endpoint / Payload Field | Required Data | Expected Source | Verification Status | Potential Backend Impact | Fallback Behavior |
+|---|---|---|---|---|---|
+| GET /api/products | Paginated product list with variants & stock | Database / Worker | NOT VERIFIED | Requires cursor parameter support and stable tie-breakers. | Return empty catalog with graceful empty state UI. |
+| POST /api/cart/validate | Cart items array with quantities | Client Request | NOT VERIFIED | Requires server-authoritative price and stock re-check logic. | Reject cart sync and prompt cart refresh. |
+| POST /api/orders | Idempotency key, items, shipping address, payment method | Client Request | NOT VERIFIED | Requires transactional order creation, inventory lock, and idempotency table check. | Return 400 Bad Request with error description. |
+| GET /api/store/config | Store profile, theme tokens, section layout | Database / KV | NOT VERIFIED | Requires Zod schema validation at API boundary. | Fallback to DEFAULT_STOREFRONT_CONFIG_V1. |
+Test & Verification Matrix
+| Test ID | Category | Preconditions | Test Scenario | Expected Result | Pass/Fail Criteria |
+|---|---|---|---|---|---|
+| TC-SEC-01 | Security | Valid JWT / Session | Client submits order with modified price payload (price: 0). | Server rejects client price and charges authoritative database price. | Order total equals database price; unit test passes. |
+| TC-CON-01 | Concurrency | Stock level = 1 | Two clients simultaneously submit checkout for the final unit. | Exactly one order succeeds; second client receives stock deficit error. | Database inventory count equals 0; no negative stock. |
+| TC-IDEM-01 | Reliability | Valid checkout payload | Client submits identical checkout request twice with same Idempotency-Key. | Second request returns cached order response without duplicate creation. | Exactly one order record exists in database. |
+| TC-TYPO-01 | Accessibility / UI | Myanmar locale active | Render long product title with stacked vowels and tone marks. | Zero vertical clipping or horizontal overflow. | Visual regression snapshot matches baseline. |
+| TC-CFG-01 | Security | Malformed JSON config | Merchant uploads storefront config containing script injection tags. | Zod schema validator rejects payload. | API returns validation error; default config remains active. |
+Regression Protection
+ * API Contract Integrity: Existing API endpoints must maintain backward compatibility. Unverified contracts must undergo explicit inspection before integration.
+ * State Preservation: Client-side cart state and authentication session tokens must persist across navigation and profile shifts.
+ * Checkout Continuity: Existing customer checkout submission flows remain structurally undisturbed during UI layer refactoring.
+Rollback & Recovery Plan
+ * Change Isolation: Frontend UI presentations (Editorial Chameleon components) and backend architectural invariants are decoupled, allowing UI rollbacks without data corruption.
+ * Data Integrity Checks: Database transaction logs and inventory audit trails maintain immutability. In the event of transaction failures, automatic rollbacks restore inventory counters.
+ * Financial Mutations Note: Frontend deployments cannot reverse completed financial or inventory database mutations; rollbacks apply strictly to presentation layer and API routing configurations.
+Implementation Readiness Gate
+ * ARCHITECTURE APPROVED: YES
+ * SPECIFICATION COMPLETE: YES
+ * REPOSITORY COMPATIBILITY VERIFIED: NO (Maintained as NOT VERIFIED pending read-only inspection)
+ * IMPLEMENTATION AUTHORIZED: NO (Strictly prohibited until repository inspection is completed)
+Deliverable Conclusion & Change Summary
+ * What Changed from Revision 2: Hardened server-authoritative inventory locks, atomic transaction boundaries, idempotent order creation architecture, cryptographically verified pricing integrity, cursor-based stable pagination, domain-restricted image security, and strict Zod-validated configuration registries.
+ * What Was Preserved: Universal Does Not Mean Uniform, single universal component library, industry presentation profiles, three-tier design token architecture, Myanmar typography validation matrix, universal AspectImage, responsive matrix, and all ten empty/error/loading UX states.
+ * What Remains NOT VERIFIED: All repository-specific API contracts, database schemas, styling pipelines, and existing routing implementations.
+ * Readiness Status: Revision 3 is complete as a specification document. It is READY FOR READ-ONLY REPOSITORY INSPECTION, but NOT AUTHORIZED FOR IMPLEMENTATION until repository compatibility is verified.

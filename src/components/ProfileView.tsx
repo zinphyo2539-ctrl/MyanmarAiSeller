@@ -552,13 +552,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Section 1: Store Settings */}
       {activeSection === 'store' && (
-        <section aria-label="Store Profile and Settings" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#CBD5E1] pb-3 gap-2">
+        <section aria-label="Store Profile and Settings" className="bg-[#13121D] border border-white/10 rounded-2xl p-5 shadow-[0_15px_35px_rgba(0,0,0,0.5)] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-white/15 pb-3 gap-2">
             <div>
-              <h3 className="text-base font-bold text-[#0F172A]">
+              <h3 className="text-base font-bold text-slate-100">
                 {lang === 'my' ? 'စတိုးပရိုဖိုင်နှင့် အချက်အလက်များ' : 'Store Profile & Publication'}
               </h3>
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-slate-400">
                 {lang === 'my' ? 'ဖောက်သည်များနှင့် AI စစ်ဆေးရာတွင် အသုံးပြုမည့် စတိုးအချက်အလက်များ' : 'Public store details used by customers and AI catalog verification.'}
               </p>
             </div>
@@ -584,7 +584,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <button
                 type="button"
                 onClick={onOpenPublicStore}
-                className="px-3 py-1.5 bg-[#F8FAFC] hover:bg-[#CBD5E1] border border-[#CBD5E1] text-xs font-semibold text-[#475569] hover:text-[#0F172A] rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-[#F8FAFC] hover:bg-[#CBD5E1] border border-white/15 text-xs font-semibold text-slate-300 hover:text-slate-100 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span>{lang === 'my' ? 'စမ်းသပ်ခန်း' : 'Simulator'}</span>
@@ -593,9 +593,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
 
           {/* Public Storefront Link & Sharing Banner */}
-          <div className="bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3.5 space-y-2.5">
+          <div className="bg-[#1A1829] border border-white/15 rounded-xl p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-[#64748B] tracking-wider flex items-center gap-1.5">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
                 <Globe className="w-3 h-3 text-[#2563EB]" />
                 <span>{lang === 'my' ? 'ဖောက်သည်များသို့ ပေးပို့ရမည့် စတိုးလိပ်စာ (Storefront URL)' : 'Public Customer Storefront Link'}</span>
               </span>
@@ -613,7 +613,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 type="text"
                 readOnly
                 value={publicStoreUrl}
-                className="w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs font-mono text-[#0F172A] select-all shadow-xs"
+                className="w-full bg-[#13121D] border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 select-all shadow-xs"
               />
               <button
                 type="button"
@@ -630,7 +630,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <form onSubmit={handleSaveStore} className="space-y-4 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-slate-300 font-semibold mb-1">
                   {lang === 'my' ? 'စတိုးအမည် (Store Name)' : 'Store Name'}
                 </label>
                 <input
@@ -638,16 +638,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   required
                   value={storeName}
                   onChange={(e) => setStoreName(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                  className="w-full bg-[#1A1829] border border-white/15 rounded-xl px-3 py-2 text-slate-100 focus:border-[#2563EB] focus:outline-none"
                 />
               </div>
 
               <div className="flex items-center justify-between sm:pt-6">
                 <div>
-                  <span className="font-semibold text-[#0F172A] block">
+                  <span className="font-semibold text-slate-100 block">
                     {lang === 'my' ? 'စတိုး အများပြည်သူသို့ တင်ပြရန်' : 'Publish Storefront'}
                   </span>
-                  <span className="text-[11px] text-[#64748B]">
+                  <span className="text-[11px] text-slate-400">
                     {lang === 'my' ? 'ဖောက်သည်များ ဝင်ရောက်ဝယ်ယူနိုင်ခြင်း ရှိမရှိ' : 'Allow customers to view and place orders.'}
                   </span>
                 </div>
@@ -659,7 +659,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   }`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                    className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-[#1A1829] transition-transform ${
                       isPublished ? 'translate-x-6' : 'translate-x-0'
                     }`}
                   />
@@ -668,39 +668,39 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-[#475569] font-semibold mb-1">
+              <label className="block text-slate-300 font-semibold mb-1">
                 {lang === 'my' ? 'စတိုး ဖော်ပြချက် (Description)' : 'Store Description'}
               </label>
               <textarea
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                className="w-full bg-[#1A1829] border border-white/15 rounded-xl p-3 text-slate-100 focus:border-[#2563EB] focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-slate-300 font-semibold mb-1">
                   {lang === 'my' ? 'ပို့ဆောင်ရေး အချက်အလက် (Delivery Info)' : 'Delivery Information'}
                 </label>
                 <textarea
                   rows={2}
                   value={deliveryInfo}
                   onChange={(e) => setDeliveryInfo(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                  className="w-full bg-[#1A1829] border border-white/15 rounded-xl p-3 text-slate-100 focus:border-[#2563EB] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-slate-300 font-semibold mb-1">
                   {lang === 'my' ? 'ငွေပေးချေရန် လမ်းညွှန်ချက်များ (Payment Instructions)' : 'Payment Instructions'}
                 </label>
                 <textarea
                   rows={2}
                   value={paymentInstructions}
                   onChange={(e) => setPaymentInstructions(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                  className="w-full bg-[#1A1829] border border-white/15 rounded-xl p-3 text-slate-100 focus:border-[#2563EB] focus:outline-none"
                 />
               </div>
             </div>
@@ -729,14 +729,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Section: Merchant KPay Payment Settings */}
       {activeSection === 'payment_settings' && (
-        <section aria-label="Merchant Payment Settings" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#CBD5E1] pb-3 gap-2">
+        <section aria-label="Merchant Payment Settings" className="bg-[#13121D] border border-white/10 rounded-2xl p-5 shadow-[0_15px_35px_rgba(0,0,0,0.5)] space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-white/15 pb-3 gap-2">
             <div>
-              <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-[#2563EB]" />
                 <span>{lang === 'my' ? 'KBZPay ငွေပေးချေမှု ဆက်တင်များ' : 'KBZPay Merchant Payment Setup'}</span>
               </h3>
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-slate-400">
                 {lang === 'my'
                   ? 'ဖောက်သည်များ ငွေလွှဲရန် အသုံးပြုမည့် ကုန်သည်၏ စစ်မှန်သော KPay အကောင့်၊ ဖုန်းနံပါတ်၊ QR ကုဒ်နှင့် လွှဲပြောင်းမှု စည်းမျဉ်းများ'
                   : 'Configure verified KBZPay account details, QR code, and strict payment rules shown to customers at checkout.'}
@@ -770,7 +770,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               {/* Account Name & Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#475569] font-semibold mb-1">
+                  <label className="block text-slate-300 font-semibold mb-1">
                     {lang === 'my' ? 'KBZPay အကောင့်ပိုင်ရှင် အမည် *' : 'KBZPay Account Holder Name *'}
                   </label>
                   <input
@@ -779,15 +779,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     placeholder="e.g. Daw Thida Win / Ko Aung Thu"
                     value={kpayAccountName}
                     onChange={(e) => setKpayAccountName(e.target.value)}
-                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                    className="w-full bg-[#1A1829] border border-white/15 rounded-xl px-3 py-2 text-slate-100 focus:border-[#2563EB] focus:outline-none"
                   />
-                  <span className="text-[11px] text-[#64748B] mt-0.5 block">
+                  <span className="text-[11px] text-slate-400 mt-0.5 block">
                     {lang === 'my' ? 'KBZPay အက်ပ်ထဲတွင် ဖော်ပြထားသည့် အမည် အတိအကျ' : 'Official legal or registered KBZPay account name'}
                   </span>
                 </div>
 
                 <div>
-                  <label className="block text-[#475569] font-semibold mb-1">
+                  <label className="block text-slate-300 font-semibold mb-1">
                     {lang === 'my' ? 'KBZPay ဖုန်းနံပါတ် *' : 'KBZPay Phone Number *'}
                   </label>
                   <input
@@ -796,22 +796,22 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     placeholder="09..."
                     value={kpayPhone}
                     onChange={(e) => setKpayPhone(e.target.value)}
-                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 font-mono text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                    className="w-full bg-[#1A1829] border border-white/15 rounded-xl px-3 py-2 font-mono text-slate-100 focus:border-[#2563EB] focus:outline-none"
                   />
-                  <span className="text-[11px] text-[#64748B] mt-0.5 block">
+                  <span className="text-[11px] text-slate-400 mt-0.5 block">
                     {lang === 'my' ? 'မြန်မာဖုန်းနံပါတ် (09xxxxxxxxx သို့မဟုတ် +959xxxxxxxxx)' : 'Myanmar phone format: 09... or +959...'}
                   </span>
                 </div>
               </div>
 
               {/* QR Code Upload */}
-              <div className="bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-4 space-y-3">
+              <div className="bg-[#1A1829] border border-white/15 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="font-semibold text-[#0F172A] block">
+                    <span className="font-semibold text-slate-100 block">
                       {lang === 'my' ? 'KBZPay QR ကုဒ် ပုံတင်ရန်' : 'KBZPay QR Code Image'}
                     </span>
-                    <span className="text-[11px] text-[#64748B]">
+                    <span className="text-[11px] text-slate-400">
                       {lang === 'my' ? 'ဖောက်သည်များ တိုက်ရိုက် Scan ဖတ်နိုင်မည့် QR ပုံ (PNG, JPG, WebP - အများဆုံး 5MB)' : 'Upload your official KBZPay receive-money QR code (PNG, JPG, WebP, max 5MB)'}
                     </span>
                   </div>
@@ -832,7 +832,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   {kpayQrUrl ? (
-                    <div className="relative group w-32 h-32 bg-white rounded-xl border border-slate-200 p-2 flex items-center justify-center shrink-0 shadow-xs">
+                    <div className="relative group w-32 h-32 bg-[#1A1829] rounded-xl border border-slate-200 p-2 flex items-center justify-center shrink-0 shadow-xs">
                       <img
                         src={kpayQrUrl}
                         alt="KPay QR"
@@ -855,7 +855,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   )}
 
                   <div className="space-y-2 flex-1">
-                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-700 cursor-pointer shadow-xs transition-colors">
+                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-[#1A1829] hover:bg-[#1A1829] border border-slate-300 rounded-xl font-semibold text-slate-700 cursor-pointer shadow-xs transition-colors">
                       <Upload className="w-4 h-4 text-blue-600" />
                       <span>{uploadingQr ? (lang === 'my' ? 'တင်နေသည်...' : 'Uploading...') : (kpayQrUrl ? (lang === 'my' ? 'QR ပုံ အသစ်လဲမည်' : 'Change QR Image') : (lang === 'my' ? 'QR ပုံ ရွေးချယ်တင်မည်' : 'Upload QR Image'))}</span>
                       <input
@@ -876,7 +876,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               {/* Payment Rules & Regulations */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[#475569] font-semibold">
+                  <label className="text-slate-300 font-semibold">
                     {lang === 'my' ? 'ငွေလွှဲစည်းမျဉ်းနှင့် သတိပြုရန်များ (Transfer Rules) *' : 'Payment Rules & Verification Policy *'}
                   </label>
                   <button
@@ -893,16 +893,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   placeholder={lang === 'my' ? 'ဖောက်သည်များ ငွေမလွှဲမီ သတိပြုရမည့် စည်းမျဉ်းများကို ရေးသားပါ...' : 'Rules that customers must follow before transferring money...'}
                   value={paymentRules}
                   onChange={(e) => setPaymentRules(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-[#0F172A] focus:border-[#2563EB] focus:outline-none leading-relaxed font-sans"
+                  className="w-full bg-[#1A1829] border border-white/15 rounded-xl p-3 text-slate-100 focus:border-[#2563EB] focus:outline-none leading-relaxed font-sans"
                 />
-                <span className="text-[11px] text-[#64748B] block">
+                <span className="text-[11px] text-slate-400 block">
                   {lang === 'my' ? 'ငွေလွှဲသည့်အခါ ပြေစာအပြည့်အစုံတင်ရန်၊ မှားယွင်းငွေလွှဲခြင်းနှင့် ပတ်သက်သည့် စည်းမျဉ်းများကို ထည့်သွင်းပါ။' : 'Explicit transfer rules help prevent customer errors and fraudulent transaction slips.'}
                 </span>
               </div>
 
               {/* Custom Optional Instructions */}
               <div className="space-y-1.5">
-                <label className="text-[#475569] font-semibold block">
+                <label className="text-slate-300 font-semibold block">
                   {lang === 'my' ? 'ဖောက်သည်များထံသို့ ထပ်ဆောင်း အမှာစကား (ရွေးချယ်နိုင်သည်)' : 'Additional Customer Instructions (Optional)'}
                 </label>
                 <textarea
@@ -910,7 +910,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   placeholder={lang === 'my' ? 'ဥပမာ - မနက် ၉ နာရီမှ ညနေ ၆ နာရီအတွင်းသာ ငွေလွှဲအတည်ပြုပေးပါသည်။' : 'e.g. Slips verified within 15 minutes during operating hours.'}
                   value={customPaymentInstructions}
                   onChange={(e) => setCustomPaymentInstructions(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 text-[#0F172A] focus:border-[#2563EB] focus:outline-none"
+                  className="w-full bg-[#1A1829] border border-white/15 rounded-xl p-3 text-slate-100 focus:border-[#2563EB] focus:outline-none"
                 />
               </div>
 
@@ -928,7 +928,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </form>
 
             {/* Right 5 cols: Live Checkout Customer Preview */}
-            <div className="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3.5">
+            <div className="lg:col-span-5 bg-[#1A1829] border border-slate-200 rounded-2xl p-4 space-y-3.5">
               <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
                 <Eye className="w-4 h-4 text-slate-500" />
                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -942,7 +942,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <p className="text-xs">{lang === 'my' ? 'အချက်အလက်များ ဖြည့်စွက်ပါက နမူနာမြင်ကွင်း ပေါ်လာပါမည်။' : 'Fill in payment details on the left to see customer preview.'}</p>
                 </div>
               ) : (
-                <div className="bg-white border border-blue-200 rounded-xl p-4 space-y-3 shadow-xs">
+                <div className="bg-[#1A1829] border border-blue-200 rounded-xl p-4 space-y-3 shadow-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                       KBZPay Official
@@ -952,7 +952,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
                   {kpayQrUrl ? (
                     <div className="flex justify-center py-2">
-                      <div className="w-40 h-40 bg-white p-2 border border-slate-200 rounded-xl shadow-xs">
+                      <div className="w-40 h-40 bg-[#1A1829] p-2 border border-slate-200 rounded-xl shadow-xs">
                         <img src={kpayQrUrl} alt="Preview QR" className="w-full h-full object-contain rounded-lg" />
                       </div>
                     </div>
@@ -962,10 +962,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     </div>
                   )}
 
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
+                  <div className="bg-[#1A1829] border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500">{lang === 'my' ? 'အကောင့်ပိုင်ရှင်' : 'Holder Name'}:</span>
-                      <span className="font-bold text-slate-900">{kpayAccountName || '—'}</span>
+                      <span className="font-bold text-slate-100">{kpayAccountName || '—'}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500">{lang === 'my' ? 'KPay ဖုန်း' : 'Phone'}:</span>
@@ -986,7 +986,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   )}
 
                   {customPaymentInstructions && (
-                    <div className="text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-600 italic">
+                    <div className="text-[11px] bg-[#1A1829] p-2.5 rounded-lg border border-slate-200 text-slate-600 italic">
                       "{customPaymentInstructions}"
                     </div>
                   )}
@@ -1017,7 +1017,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <h2 className="text-xl font-bold text-[#F5F2E8]">
                 {lang === 'my' ? 'Groq AI အရောင်းကိုယ်စားလှယ်' : 'Groq AI Sales Representative'}
               </h2>
-              <div className="flex items-center gap-3 text-xs text-[#817D70] font-mono pt-0.5">
+              <div className="flex items-center gap-3 text-xs text-slate-400/80 font-mono pt-0.5">
                 <span>Model: {aiHealth?.model || 'openai/gpt-oss-120b'}</span>
                 <span>·</span>
                 <span className={aiHealth?.configured ? 'text-[#65B985] font-semibold' : 'text-[#E06B61]'}>
@@ -1034,7 +1034,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     ? (lang === 'my' ? 'အလိုအလျောက်ဖွင့်ထားသည်' : 'Agent Active')
                     : (lang === 'my' ? 'ယာယီရပ်ဆိုင်းထားသည်' : 'Agent Paused')}
                 </span>
-                <span className="text-[11px] text-[#817D70]">
+                <span className="text-[11px] text-slate-400/80">
                   {config?.enabled
                     ? (lang === 'my' ? 'ဖောက်သည်အား ဖြေကြားနေသည်' : 'Answering customer queries')
                     : (lang === 'my' ? 'ဖောက်သည်ထံ စာမပြန်ပါ' : 'No automated responses')}
@@ -1102,7 +1102,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <h3 className="text-base font-bold text-[#F5F2E8]">
                   {lang === 'my' ? 'AI အရောင်းဟန်ပန်နှင့် ညွှန်ကြားချက်များ' : 'Sales Behavior & Custom Instructions'}
                 </h3>
-                <p className="text-xs text-[#817D70]">
+                <p className="text-xs text-slate-400/80">
                   {lang === 'my' ? 'ဖောက်သည်အား ပြန်လည်ဖြေကြားမည့် ပုံစံကို စိတ်ကြိုက်သတ်မှတ်ပါ' : 'Configure tone, language, and human escalation triggers.'}
                 </p>
               </div>
@@ -1228,7 +1228,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     {lang === 'my' ? 'AI တုံ့ပြန်မှု စမ်းသပ်ခန်း (AI Simulation Preview)' : 'AI Simulation Preview'}
                   </h3>
                 </div>
-                <p className="text-xs text-[#817D70] mt-0.5">
+                <p className="text-xs text-slate-400/80 mt-0.5">
                   {lang === 'my'
                     ? 'စမ်းသပ်မှုသက်သက်သာဖြစ်သည် — ဖောက်သည်ထံ စာမပို့ပါ၊ အော်ဒါမတင်ပါ၊ စတော့မနုတ်ပါ။'
                     : 'Isolated simulation only — Does not message real customers, create orders, or modify inventory.'}
@@ -1322,7 +1322,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       <Bot className="w-3.5 h-3.5" />
                       <span>{lang === 'my' ? 'AI ၏ တုံ့ပြန်မည့်ပုံစံ (Generated AI Reply)' : 'Generated AI Reply'}</span>
                     </span>
-                    <span className="text-[10px] text-[#817D70] font-mono">Groq Llama 3</span>
+                    <span className="text-[10px] text-slate-400/80 font-mono">Groq Llama 3</span>
                   </div>
                   <p className="text-xs text-[#F5F2E8] leading-relaxed whitespace-pre-wrap bg-[#181810] p-3 rounded-lg border border-[#393426]">
                     {previewOutput}
@@ -1339,7 +1339,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <h3 className="text-base font-bold text-[#F5F2E8]">
                   {lang === 'my' ? 'နမူနာ ဖြေကြားချက်များ (Few-Shot Sample Replies)' : 'Few-Shot Sample Replies Library'}
                 </h3>
-                <p className="text-xs text-[#817D70]">
+                <p className="text-xs text-slate-400/80">
                   {lang === 'my' ? 'AI အား ကုန်သည်၏ အမိုက်စား ဖြေကြားဟန်ကို သင်ကြားပေးသည့် နမူနာများ' : 'Teach AI your preferred brand tone with expert conversational examples.'}
                 </p>
               </div>
@@ -1356,8 +1356,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
             {samples.length === 0 ? (
               <div className="text-center py-10 space-y-2 bg-[#11110D] border border-[#393426] rounded-2xl">
-                <HelpCircle className="w-8 h-8 text-[#817D70] mx-auto" />
-                <p className="text-xs text-[#817D70]">
+                <HelpCircle className="w-8 h-8 text-slate-400/80 mx-auto" />
+                <p className="text-xs text-slate-400/80">
                   {lang === 'my' ? 'နမူနာ ဖြေကြားချက် မရှိသေးပါ။' : 'No sample replies configured yet.'}
                 </p>
               </div>
@@ -1372,7 +1372,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         </span>
                       </div>
                       <div className="text-xs text-[#B9B5A7]">
-                        <span className="text-[#817D70] font-semibold">Q:</span> {s.customerMessage}
+                        <span className="text-slate-400/80 font-semibold">Q:</span> {s.customerMessage}
                       </div>
                       <div className="text-xs text-[#F5F2E8] font-medium bg-[#181810] p-2.5 rounded-lg border border-[#393426]">
                         <span className="text-[#65B985] font-semibold">A:</span> {s.preferredReply}
@@ -1407,14 +1407,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Section 3: Orders & Payments */}
       {activeSection === 'payments' && (
-        <section aria-label="Orders and Payments" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#CBD5E1] pb-3 gap-2">
+        <section aria-label="Orders and Payments" className="bg-[#13121D] border border-white/10 rounded-2xl p-5 shadow-[0_15px_35px_rgba(0,0,0,0.5)] space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-white/15 pb-3 gap-2">
             <div>
-              <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-[#2563EB]" />
                 <span>{lang === 'my' ? 'ဖောက်သည် အော်ဒါများနှင့် ငွေလွှဲစလစ် စစ်ဆေးခြင်း' : 'Customer Orders & Payment Slip Verification'}</span>
               </h3>
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-slate-400">
                 {lang === 'my'
                   ? 'KBZPay ပြေစာများကို စစ်ဆေးအတည်ပြုပါ သို့မဟုတ် မကိုက်ညီပါက အကြောင်းပြချက်ဖြင့် ငြင်းပယ်ပါ'
                   : 'Verify submitted KBZPay slips manually, inspect transaction references, and reject invalid slips with clear reasons.'}
@@ -1423,7 +1423,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
             {/* Quick Metrics */}
             <div className="flex items-center gap-2 text-xs">
-              <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 font-semibold flex items-center gap-1.5">
+              <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold flex items-center gap-1.5">
                 <span>{lang === 'my' ? 'စလစ်စစ်ဆေးရန်' : 'Needs Review'}:</span>
                 <span className="font-mono font-bold">{orders.filter(o => o.paymentStatus === 'SLIP_SUBMITTED').length}</span>
               </span>
@@ -1437,8 +1437,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onClick={() => setOrderPaymentFilter('all')}
               className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors ${
                 orderPaymentFilter === 'all'
-                  ? 'bg-[#0F172A] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-violet-600 text-white shadow-lg'
+                  : 'bg-[#1A1829] text-slate-400 hover:text-slate-100 hover:bg-[#252335]'
               }`}
             >
               {lang === 'my' ? 'အားလုံး' : 'All Orders'} ({orders.length})
@@ -1448,14 +1448,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onClick={() => setOrderPaymentFilter('SLIP_SUBMITTED')}
               className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1.5 ${
                 orderPaymentFilter === 'SLIP_SUBMITTED'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
               <span>{lang === 'my' ? 'စလစ်စစ်ဆေးရန်' : 'Slip Submitted'}</span>
               <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-                orderPaymentFilter === 'SLIP_SUBMITTED' ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'
+                orderPaymentFilter === 'SLIP_SUBMITTED' ? 'bg-[#1A1829] text-blue-700' : 'bg-blue-600 text-white'
               }`}>
                 {orders.filter(o => o.paymentStatus === 'SLIP_SUBMITTED').length}
               </span>
@@ -1465,8 +1465,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onClick={() => setOrderPaymentFilter('PENDING')}
               className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors ${
                 orderPaymentFilter === 'PENDING'
-                  ? 'bg-amber-600 text-white shadow-xs'
-                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                  ? 'bg-amber-600 text-white shadow-lg'
+                  : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20'
               }`}
             >
               {lang === 'my' ? 'ငွေလွှဲစောင့်ဆိုင်းဆဲ' : 'Pending Payment'} ({orders.filter(o => o.paymentStatus === 'PENDING' || !o.paymentStatus).length})
@@ -1476,8 +1476,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onClick={() => setOrderPaymentFilter('CONFIRMED')}
               className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors ${
                 orderPaymentFilter === 'CONFIRMED'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                  ? 'bg-emerald-600 text-white shadow-lg'
+                  : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
               }`}
             >
               {lang === 'my' ? 'အတည်ပြုပြီး' : 'Confirmed'} ({orders.filter(o => o.paymentStatus === 'CONFIRMED').length})
@@ -1487,8 +1487,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onClick={() => setOrderPaymentFilter('REJECTED')}
               className={`px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap cursor-pointer transition-colors ${
                 orderPaymentFilter === 'REJECTED'
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200'
+                  ? 'bg-rose-600 text-white shadow-lg'
+                  : 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20'
               }`}
             >
               {lang === 'my' ? 'ငြင်းပယ်ထားသော' : 'Rejected'} ({orders.filter(o => o.paymentStatus === 'REJECTED').length})
@@ -1507,9 +1507,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
             if (filteredOrders.length === 0) {
               return (
-                <div className="text-center py-12 space-y-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-2xl">
-                  <ShoppingBag className="w-8 h-8 text-[#64748B] mx-auto" />
-                  <p className="text-xs text-[#64748B]">
+                <div className="text-center py-12 space-y-2 bg-[#1A1829] border border-white/15 rounded-2xl">
+                  <ShoppingBag className="w-8 h-8 text-slate-400 mx-auto" />
+                  <p className="text-xs text-slate-400">
                     {lang === 'my' ? 'ရွေးချယ်ထားသော အခြေအနေနှင့် ကိုက်ညီသည့် အော်ဒါ မရှိပါ။' : 'No orders found matching the selected filter.'}
                   </p>
                 </div>
@@ -1528,45 +1528,45 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   return (
                     <div
                       key={order.id}
-                      className={`bg-[#F8FAFC] border rounded-2xl p-4 md:p-5 transition-all text-xs space-y-4 ${
+                      className={`bg-[#13121D] border rounded-2xl p-4 md:p-5 transition-all text-xs space-y-4 ${
                         isSubmitted
-                          ? 'border-blue-400 bg-blue-50/20 shadow-xs'
+                          ? 'border-blue-500/50 bg-blue-500/5 shadow-lg shadow-blue-500/5'
                           : isConfirmed
-                          ? 'border-emerald-200 bg-white'
+                          ? 'border-emerald-500/30 bg-[#13121D]'
                           : isRejected
-                          ? 'border-rose-200 bg-rose-50/10'
-                          : 'border-slate-200 bg-white'
+                          ? 'border-rose-500/30 bg-rose-500/5'
+                          : 'border-white/10 bg-[#13121D]'
                       }`}
                     >
                       {/* Order Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
                         <div className="flex items-center gap-2.5 flex-wrap">
-                          <span className="font-mono font-bold text-sm text-[#0F172A]">
+                          <span className="font-mono font-bold text-sm text-slate-100">
                             #{order.id.slice(0, 8)}
                           </span>
 
                           {/* Status Badge */}
                           {isConfirmed && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                               <span>{lang === 'my' ? 'ငွေပေးချေမှု အတည်ပြုပြီး' : 'PAID & CONFIRMED'}</span>
                             </span>
                           )}
                           {isSubmitted && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
-                              <FileText className="w-3 h-3 text-blue-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse">
+                              <FileText className="w-3 h-3 text-blue-400" />
                               <span>{lang === 'my' ? 'စလစ်စစ်ဆေးရန်' : 'SLIP SUBMITTED'}</span>
                             </span>
                           )}
                           {isPending && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                              <Clock className="w-3 h-3 text-amber-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              <Clock className="w-3 h-3 text-amber-500" />
                               <span>{lang === 'my' ? 'ငွေလွှဲစောင့်ဆိုင်းဆဲ' : 'PENDING TRANSFER'}</span>
                             </span>
                           )}
                           {isRejected && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
-                              <AlertCircle className="w-3 h-3 text-rose-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                              <AlertCircle className="w-3 h-3 text-rose-500" />
                               <span>{lang === 'my' ? 'ငြင်းပယ်ထားသည်' : 'PAYMENT REJECTED'}</span>
                             </span>
                           )}
@@ -1577,9 +1577,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         </div>
 
                         {order.supportCode && (
-                          <div className="flex items-center gap-1 text-[11px] text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 self-start sm:self-auto">
+                          <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono bg-[#1A1829] px-2 py-0.5 rounded-md border border-white/10 self-start sm:self-auto">
                             <span>Code:</span>
-                            <span className="font-bold text-slate-800">{order.supportCode}</span>
+                            <span className="font-bold text-slate-100">{order.supportCode}</span>
                           </div>
                         )}
                       </div>
@@ -1588,9 +1588,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                         {/* Customer & Items (7 cols) */}
                         <div className="lg:col-span-7 space-y-3">
-                          <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-1.5 shadow-xs">
+                          <div className="bg-[#13121D] border border-white/10 rounded-xl p-3 space-y-1.5 shadow-xs">
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-slate-900 text-sm">{order.customerName}</span>
+                              <span className="font-bold text-slate-100 text-sm">{order.customerName}</span>
                               <a
                                 href={`tel:${order.customerPhone}`}
                                 className="font-mono text-blue-600 hover:underline font-semibold"
@@ -1598,18 +1598,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                                 {order.customerPhone}
                               </a>
                             </div>
-                            <p className="text-slate-600 text-[11px]">
+                            <p className="text-slate-300 text-[11px]">
                               <span className="text-slate-400">{lang === 'my' ? 'လိပ်စာ' : 'Address'}: </span>
                               {order.shippingAddress}
                             </p>
                           </div>
 
                           {/* Ordered Items */}
-                          <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-xs">
+                          <div className="bg-[#13121D] border border-white/10 rounded-xl p-3 space-y-2 shadow-xs">
                             <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
                               {lang === 'my' ? 'မှာယူထားသော ပစ္စည်းများ' : 'Order Items'}
                             </span>
-                            <div className="divide-y divide-slate-100 space-y-1.5">
+                            <div className="divide-y divide-white/5 space-y-1.5">
                               {order.items?.map((item, i) => (
                                 <div key={i} className="flex justify-between items-center pt-1.5">
                                   <div>
@@ -1625,9 +1625,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                                 </div>
                               ))}
                             </div>
-                            <div className="border-t border-slate-200 pt-2 flex justify-between items-center text-xs">
-                              <span className="font-bold text-slate-700">{lang === 'my' ? 'ကျသင့်ငွေ စုစုပေါင်း' : 'Total Amount'}:</span>
-                              <span className="font-mono font-bold text-sm text-blue-700">
+                            <div className="border-t border-white/10 pt-2 flex justify-between items-center text-xs">
+                              <span className="font-bold text-slate-300">{lang === 'my' ? 'ကျသင့်ငွေ စုစုပေါင်း' : 'Total Amount'}:</span>
+                              <span className="font-mono font-bold text-sm text-blue-400">
                                 {order.totalAmount.toLocaleString()} MMK
                               </span>
                             </div>
@@ -1635,11 +1635,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         </div>
 
                         {/* Payment Verification / Slip Box (5 cols) */}
-                        <div className="lg:col-span-5 flex flex-col justify-between space-y-3 bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                        <div className="lg:col-span-5 flex flex-col justify-between space-y-3 bg-[#13121D] border border-white/10 rounded-xl p-4 shadow-xs">
                           <div className="space-y-3">
-                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                                <FileText className="w-3.5 h-3.5 text-blue-600" />
+                            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5 text-blue-500" />
                                 <span>{lang === 'my' ? 'ငွေလွှဲပြေစာ အချက်အလက်' : 'Payment Slip Details'}</span>
                               </span>
                               {order.paymentSlipUploadedAt && (
@@ -1652,7 +1652,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                             {/* Slip Image Thumbnail */}
                             {order.paymentSlipUrl ? (
                               <div className="space-y-2">
-                                <div className="relative group w-full h-44 bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center">
+                                <div className="relative group w-full h-44 bg-[#1A1829] rounded-xl border border-white/10 overflow-hidden flex items-center justify-center">
                                   <img
                                     src={order.paymentSlipUrl.startsWith('/api/public/orders/') ? (order.paymentSlipUrl.includes('token=') ? order.paymentSlipUrl : `${order.paymentSlipUrl}${order.paymentSlipUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(localStorage.getItem('myanmar_seller_token') || '')}`) : order.paymentSlipUrl}
                                     alt="Payment Slip"
@@ -1679,14 +1679,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                                 </div>
 
                                 {order.transactionRef && (
-                                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 flex items-center justify-between text-[11px]">
+                                  <div className="bg-[#1A1829] border border-white/10 rounded-lg p-2 flex items-center justify-between text-[11px]">
                                     <span className="text-slate-500">KBZPay Ref / Trx ID:</span>
-                                    <span className="font-mono font-bold text-slate-800">{order.transactionRef}</span>
+                                    <span className="font-mono font-bold text-slate-100">{order.transactionRef}</span>
                                   </div>
                                 )}
                               </div>
                             ) : (
-                              <div className="h-32 bg-slate-50 border border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                              <div className="h-32 bg-[#1A1829] border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center text-slate-400 p-4 text-center">
                                 <ImageIcon className="w-6 h-6 mb-1 text-slate-300" />
                                 <span className="text-[11px]">
                                   {lang === 'my' ? 'ဖောက်သည်ထံမှ စလစ်မတင်ရသေးပါ' : 'Customer has not submitted a payment slip yet.'}
@@ -1758,12 +1758,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Section 4: Connected Channels */}
       {activeSection === 'channels' && (
-        <section aria-label="Connected Channels" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-4">
-          <div className="border-b border-[#CBD5E1] pb-3">
-            <h3 className="text-base font-bold text-[#0F172A]">
+        <section aria-label="Connected Channels" className="bg-[#13121D] border border-white/10 rounded-2xl p-5 shadow-[0_15px_35px_rgba(0,0,0,0.5)] space-y-4">
+          <div className="border-b border-white/15 pb-3">
+            <h3 className="text-base font-bold text-slate-100">
               {lang === 'my' ? 'ချိတ်ဆက်ထားသော လူမှုကွန်ရက် ချန်နယ်များ' : 'Social Channels Integration'}
             </h3>
-            <p className="text-xs text-[#817D70]">
+            <p className="text-xs text-slate-400/80">
               {lang === 'my' ? 'Facebook Messenger, TikTok စသည်တို့၏ စစ်မှန်သော ချိတ်ဆက်မှု အခြေအနေ' : 'Truthful status of official social platform integrations.'}
             </p>
           </div>
@@ -1772,7 +1772,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             {/* Facebook Messenger */}
             <div className="bg-[#11110D] border border-[#393426] rounded-xl p-4 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-[#817D70]">Facebook Messenger</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400/80">Facebook Messenger</span>
                 <h4 className="text-sm font-bold text-[#F5F2E8]">Messenger Sales Chatbot</h4>
                 <div className="pt-1">
                   {providerStatus?.facebook ? (
@@ -1801,7 +1801,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             {/* TikTok */}
             <div className="bg-[#11110D] border border-[#393426] rounded-xl p-4 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-[#817D70]">TikTok</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400/80">TikTok</span>
                 <h4 className="text-sm font-bold text-[#F5F2E8]">TikTok Direct Messages</h4>
                 <div className="pt-1">
                   {providerStatus?.tiktok ? (
@@ -1830,7 +1830,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             {/* Google Sign-In OAuth */}
             <div className="bg-[#11110D] border border-[#393426] rounded-xl p-4 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-[#817D70]">Google OAuth</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400/80">Google OAuth</span>
                 <h4 className="text-sm font-bold text-[#F5F2E8]">Google Sign-In</h4>
                 <div className="pt-1">
                   {providerStatus?.google ? (
@@ -1861,31 +1861,31 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* Section 5: Account Security & Logout */}
       {activeSection === 'account' && (
-        <section aria-label="Account and Security" className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-2xl p-5 space-y-4 text-xs">
-          <div className="border-b border-[#CBD5E1] pb-3">
-            <h3 className="text-base font-bold text-[#0F172A]">
+        <section aria-label="Account and Security" className="bg-[#13121D] border border-white/10 rounded-2xl p-5 shadow-[0_15px_35px_rgba(0,0,0,0.5)] space-y-4 text-xs">
+          <div className="border-b border-white/15 pb-3">
+            <h3 className="text-base font-bold text-slate-100">
               {lang === 'my' ? 'အကောင့်နှင့် လုံခြုံရေး' : 'Account & Security Details'}
             </h3>
-            <p className="text-[#64748B]">
+            <p className="text-slate-400">
               {lang === 'my' ? 'လော့ဂ်အင်ဝင်ထားသော ကုန်သည်အကောင့် အချက်အလက်' : 'Currently authenticated merchant administrator details.'}
             </p>
           </div>
 
-          <div className="bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-4 space-y-2">
+          <div className="bg-[#1A1829] border border-white/15 rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[#64748B]">{lang === 'my' ? 'ကုန်သည် အမည်' : 'Name'}:</span>
-              <span className="font-bold text-[#0F172A]">{user?.name || user?.displayName || 'Merchant Admin'}</span>
+              <span className="text-slate-400">{lang === 'my' ? 'ကုန်သည် အမည်' : 'Name'}:</span>
+              <span className="font-bold text-slate-100">{user?.name || user?.displayName || 'Merchant Admin'}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[#64748B]">{lang === 'my' ? 'အီးမေးလ်' : 'Email'}:</span>
-              <span className="font-mono text-[#0F172A]">{user?.email || 'aung@yangonstyle.mm'}</span>
+              <span className="text-slate-400">{lang === 'my' ? 'အီးမေးလ်' : 'Email'}:</span>
+              <span className="font-mono text-slate-100">{user?.email || 'aung@yangonstyle.mm'}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[#817D70]">{lang === 'my' ? 'တာဝန် / Role' : 'Role'}:</span>
+              <span className="text-slate-400/80">{lang === 'my' ? 'တာဝန် / Role' : 'Role'}:</span>
               <span className="text-[#C9A227] font-semibold">{user?.role || 'merchant_admin'}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[#817D70]">{lang === 'my' ? 'ဆာဗာ တိုကင်' : 'Token'}:</span>
+              <span className="text-slate-400/80">{lang === 'my' ? 'ဆာဗာ တိုကင်' : 'Token'}:</span>
               <span className="text-[#65B985] font-mono">Active (Valid Session)</span>
             </div>
           </div>
@@ -1906,9 +1906,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       {/* Sample Reply Add/Edit Modal */}
       {isSampleModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
-          <div className="bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl w-full max-w-lg p-6 space-y-4 text-xs shadow-[0_20px_50px_rgba(15,23,42,0.15)] animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[#1A1829]/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl w-full max-w-lg p-6 space-y-4 text-xs shadow-[0_20px_50px_rgba(15,23,42,0.15)] animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900 tracking-tight">
+              <h3 className="text-base font-bold text-slate-100 tracking-tight">
                 {editingSample
                   ? (lang === 'my' ? 'နမူနာ ဖြေကြားချက် ပြင်ဆင်ရန်' : 'Edit Sample Reply')
                   : (lang === 'my' ? 'နမူနာ ဖြေကြားချက် အသစ်ထည့်ရန်' : 'Add New Sample Reply')}
@@ -1932,7 +1932,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   value={sampleForm.category}
                   onChange={(e) => setSampleForm({ ...sampleForm, category: e.target.value })}
                   placeholder="Stock and variants, Pricing, Shipping..."
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl px-3.5 py-2.5 text-slate-900 transition-all outline-none"
+                  className="w-full bg-[#1A1829] border border-slate-200 focus:bg-[#1A1829] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl px-3.5 py-2.5 text-slate-100 transition-all outline-none"
                 />
               </div>
 
@@ -1946,7 +1946,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   value={sampleForm.customerMessage}
                   onChange={(e) => setSampleForm({ ...sampleForm, customerMessage: e.target.value })}
                   placeholder="e.g. Size L ရှိသေးလားရှင်..."
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl px-3.5 py-2.5 text-slate-900 transition-all outline-none"
+                  className="w-full bg-[#1A1829] border border-slate-200 focus:bg-[#1A1829] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl px-3.5 py-2.5 text-slate-100 transition-all outline-none"
                 />
               </div>
 
@@ -1960,7 +1960,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   value={sampleForm.preferredReply}
                   onChange={(e) => setSampleForm({ ...sampleForm, preferredReply: e.target.value })}
                   placeholder="e.g. ဟုတ်ကဲ့ရှင် Size L လက်ကျန် ၃ ထည်ရှိပါတယ်..."
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl p-3 text-slate-900 focus:outline-none leading-relaxed transition-all resize-none"
+                  className="w-full bg-[#1A1829] border border-slate-200 focus:bg-[#1A1829] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 rounded-xl p-3 text-slate-100 focus:outline-none leading-relaxed transition-all resize-none"
                 />
               </div>
 
@@ -1997,13 +1997,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <button
                 type="button"
                 onClick={() => setRejectModalOrder(null)}
-                className="p-1.5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white cursor-pointer transition-colors"
+                className="p-1.5 hover:bg-[#1A1829]/10 rounded-full text-slate-400 hover:text-white cursor-pointer transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 space-y-1.5 font-mono">
+            <div className="bg-[#1A1829]/[0.04] border border-white/10 rounded-2xl p-3.5 space-y-1.5 font-mono">
               <div className="flex justify-between text-slate-400">
                 <span>{lang === 'my' ? 'အော်ဒါ အမှတ်' : 'Order'}:</span>
                 <span className="font-bold text-white">#{rejectModalOrder.id.slice(0, 8)}</span>
@@ -2041,7 +2041,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     key={chip}
                     type="button"
                     onClick={() => setRejectionReasonText(chip)}
-                    className="px-2.5 py-1 bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white rounded-lg text-[11px] font-medium transition-colors cursor-pointer border border-white/10"
+                    className="px-2.5 py-1 bg-[#1A1829]/[0.05] hover:bg-[#1A1829]/[0.1] text-slate-300 hover:text-white rounded-lg text-[11px] font-medium transition-colors cursor-pointer border border-white/10"
                   >
                     {chip}
                   </button>
@@ -2054,7 +2054,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 placeholder={lang === 'my' ? 'ဖောက်သည် သိရှိစေရန် အကြောင်းပြချက်ကို ရှင်းလင်းစွာ ရေးသားပါ...' : 'Explain clearly why the slip was rejected...'}
                 value={rejectionReasonText}
                 onChange={(e) => setRejectionReasonText(e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/10 rounded-xl p-3 text-white placeholder-slate-500 focus:border-rose-500 focus:outline-none transition-all resize-none"
+                className="w-full bg-[#1A1829]/[0.04] border border-white/10 rounded-xl p-3 text-white placeholder-slate-500 focus:border-rose-500 focus:outline-none transition-all resize-none"
               />
               <span className="text-[11px] text-slate-400 block leading-relaxed">
                 {lang === 'my' ? 'ဤအကြောင်းပြချက်ကို ဖောက်သည်၏ စစ်ဆေးမှု စာမျက်နှာတွင် ဖော်ပြပေးမည်ဖြစ်ပြီး စလစ်အသစ် ပြန်တင်ခွင့်ရပါမည်။' : 'Customer will see this reason on their order tracking page and can resubmit a valid slip.'}
@@ -2065,7 +2065,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <button
                 type="button"
                 onClick={() => setRejectModalOrder(null)}
-                className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 font-bold rounded-xl cursor-pointer transition-colors"
+                className="px-4 py-2 bg-[#1A1829]/[0.05] hover:bg-[#1A1829]/[0.1] text-slate-300 font-bold rounded-xl cursor-pointer transition-colors"
               >
                 {lang === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel'}
               </button>
@@ -2096,7 +2096,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <button
               type="button"
               onClick={() => setPreviewSlipUrl(null)}
-              className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full cursor-pointer z-10 transition-colors shadow-md"
+              className="absolute top-4 right-4 p-2 bg-[#1A1829]/10 hover:bg-[#1A1829]/20 text-white rounded-full cursor-pointer z-10 transition-colors shadow-md"
               title="Close"
             >
               <X className="w-5 h-5" />

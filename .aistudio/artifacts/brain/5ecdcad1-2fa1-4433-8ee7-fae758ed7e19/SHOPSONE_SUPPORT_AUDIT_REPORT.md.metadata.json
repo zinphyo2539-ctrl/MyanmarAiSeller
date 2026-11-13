@@ -1,5 +1,0 @@
-{
-  "summary":  "Pre-implementation audit report for guest order support. Findings indicate necessary API extensions for merchant support inbox and requirement for customer-facing chat UI.",
-  "updatedAt":  "2026-10-26T12:27:03.029002979Z",
-  "userFacing":  true
-}

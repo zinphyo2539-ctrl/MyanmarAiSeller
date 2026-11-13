@@ -1,5 +1,0 @@
-{
-  "summary":  "ShopSone Merchant KPay Setup, Checkout Payment Instructions, and Payment Slip Verification Report. Documents the multi-tenant architecture, server-side validation, secure guest order workflows, human-only payment review invariants, and automated test results (29/29 passed).",
-  "updatedAt":  "2026-10-26T13:33:17.357864533Z",
-  "userFacing":  true
-}

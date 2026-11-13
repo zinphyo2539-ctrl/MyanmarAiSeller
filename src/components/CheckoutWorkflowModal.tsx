@@ -67,7 +67,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
         <h4 className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">
           {lang === 'my' ? 'အော်ဒါ အနှစ်ချုပ်' : 'Order Summary'}
         </h4>
-        <div className="text-xs font-bold text-purple-300 font-mono">
+        <div className="text-xs font-bold text-[var(--brand-primary)] font-mono">
           {totalCartAmount.toLocaleString()} MMK
         </div>
       </div>
@@ -191,7 +191,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
             <h3 className="text-base font-bold text-white tracking-tight">
               {store?.storeName || 'Checkout'}
             </h3>
-            <p className="text-[10px] text-purple-400 uppercase font-bold tracking-wider font-mono">
+            <p className="text-[10px] text-[var(--brand-primary)] uppercase font-bold tracking-wider font-mono">
               Secure Checkout
             </p>
           </div>
@@ -223,8 +223,8 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                       ? 'ခြင်းတောင်းထဲရှိ ပစ္စည်းများနှင့် ကျသင့်ငွေကို အပေါ်တွင် စစ်ဆေးနိုင်ပါသည်။'
                       : 'You can review your items and total amount in the summary above.'}
                   </p>
-                  <div className="bg-purple-950/30 border border-purple-500/20 p-4 rounded-2xl backdrop-blur-md">
-                    <div className="flex items-center gap-2 text-purple-300 mb-1.5">
+                  <div className="bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 p-4 rounded-2xl backdrop-blur-md">
+                    <div className="flex items-center gap-2 text-[var(--brand-primary)] mb-1.5">
                       <Clock className="w-4 h-4 shrink-0" />
                       <span className="text-xs font-bold uppercase tracking-wider">
                         {lang === 'my' ? 'မှာယူမှု အချိန်' : 'Order Timing'}
@@ -255,7 +255,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-white/10 focus:border-purple-500/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-purple-500/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all outline-none"
+                      className="w-full bg-white/[0.04] border border-white/10 focus:border-[var(--brand-primary)] focus:bg-white/[0.08] focus:ring-4 focus:ring-[var(--brand-primary)]/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all outline-none"
                       placeholder="Daw Mya"
                     />
                   </div>
@@ -267,7 +267,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                       type="tel"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-white/10 focus:border-purple-500/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-purple-500/15 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 transition-all outline-none"
+                      className="w-full bg-white/[0.04] border border-white/10 focus:border-[var(--brand-primary)] focus:bg-white/[0.08] focus:ring-4 focus:ring-[var(--brand-primary)]/15 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 transition-all outline-none"
                       placeholder="09xxxxxxxxx"
                     />
                   </div>
@@ -279,7 +279,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                       rows={3}
                       value={shippingAddress}
                       onChange={(e) => setShippingAddress(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-white/10 focus:border-purple-500/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-purple-500/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all outline-none resize-none"
+                      className="w-full bg-white/[0.04] border border-white/10 focus:border-[var(--brand-primary)] focus:bg-white/[0.08] focus:ring-4 focus:ring-[var(--brand-primary)]/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-all outline-none resize-none"
                       placeholder="Street, Township, City"
                     />
                   </div>
@@ -296,8 +296,8 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
               content: (
                 <div className="space-y-4 py-1">
                   <div className="p-4 sm:p-5 bg-gradient-to-br from-purple-950/40 via-indigo-950/30 to-slate-900 border border-purple-500/20 rounded-2xl space-y-4 shadow-xl">
-                    <div className="flex items-center gap-2.5 text-purple-300 font-bold text-sm">
-                      <CreditCard className="w-5 h-5 text-purple-400" />
+                    <div className="flex items-center gap-2.5 text-[var(--brand-primary)] font-bold text-sm">
+                      <CreditCard className="w-5 h-5 text-[var(--brand-primary)]/80" />
                       <span>KBZPay Details</span>
                     </div>
 
@@ -310,7 +310,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-slate-400 font-medium">Phone Number</span>
-                        <span className="text-sm font-bold font-mono text-purple-300">
+                        <span className="text-sm font-bold font-mono text-[var(--brand-primary)]">
                           {store?.paymentSettings?.kpayPhone || 'N/A'}
                         </span>
                       </div>
@@ -349,7 +349,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                       <span className="text-xs text-purple-200 font-semibold">
                         {lang === 'my' ? 'အော်ဒါ အမှတ်' : 'Order ID'}
                       </span>
-                      <span className="font-mono text-xs font-bold text-purple-400">
+                      <span className="font-mono text-xs font-bold text-[var(--brand-primary)]">
                         {createdOrder.id}
                       </span>
                     </div>
@@ -360,7 +360,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                       className={`block py-8 px-4 border-2 border-dashed rounded-2xl text-center transition-all cursor-pointer ${
                         slipFile
                           ? 'border-emerald-500/50 bg-emerald-500/10'
-                          : 'border-purple-500/30 hover:border-purple-400/60 bg-purple-500/[0.04] hover:bg-purple-500/[0.08]'
+                          : 'border-[var(--brand-primary)]/30 hover:border-[var(--brand-primary)]/60 bg-[var(--brand-primary)]/[0.04] hover:bg-[var(--brand-primary)]/[0.08]'
                       }`}
                     >
                       <input
@@ -377,7 +377,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                             alt="Slip preview"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300">
+                          <div className="w-12 h-12 rounded-2xl bg-[var(--brand-primary)]/20 border border-[var(--brand-primary)]/30 flex items-center justify-center text-[var(--brand-primary)]">
                             <Upload className="w-6 h-6" />
                           </div>
                         )}
@@ -402,7 +402,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                         type="text"
                         value={transactionRef}
                         onChange={(e) => setTransactionRef(e.target.value)}
-                        className="w-full bg-white/[0.04] border border-white/10 focus:border-purple-500/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-purple-500/15 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 transition-all outline-none"
+                        className="w-full bg-white/[0.04] border border-white/10 focus:border-[var(--brand-primary)] focus:bg-white/[0.08] focus:ring-4 focus:ring-[var(--brand-primary)]/15 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 transition-all outline-none"
                         placeholder="e.g. 02941..."
                       />
                     </div>
@@ -437,7 +437,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                   <div className="mx-2 sm:mx-4 space-y-3.5">
                     <div className="bg-gradient-to-br from-purple-950/40 via-indigo-950/30 to-slate-900 border border-purple-500/30 rounded-2xl p-5 shadow-xl space-y-3.5 relative overflow-hidden text-left">
                       <div className="space-y-1 text-center">
-                        <h5 className="text-xs font-bold text-purple-300 uppercase tracking-wider font-mono">
+                        <h5 className="text-xs font-bold text-[var(--brand-primary)] uppercase tracking-wider font-mono">
                           {lang === 'my' ? 'သင့် Customer Code' : 'Your Customer Code'}
                         </h5>
                         <p className="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">
@@ -447,8 +447,8 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                         </p>
                       </div>
 
-                      <div className="bg-white/[0.04] border-2 border-purple-500/40 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg">
-                        <div className="font-mono text-xl sm:text-2xl font-black text-purple-300 tracking-[0.25em] select-all">
+                      <div className="bg-white/[0.04] border-2 border-[var(--brand-primary)]/40 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg">
+                        <div className="font-mono text-xl sm:text-2xl font-black text-[var(--brand-primary)] tracking-[0.25em] select-all">
                           {createdOrder?.supportCode || '------'}
                         </div>
                       </div>
@@ -460,7 +460,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
                             ? 'bg-emerald-600 text-white'
                             : copyError
                             ? 'bg-rose-600 text-white'
-                            : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-600/30 hover:shadow-purple-600/50'
+                            : 'bg-[var(--brand-primary)] hover:brightness-110 text-[var(--brand-on-primary)] shadow-[var(--brand-primary)]/30 hover:shadow-[var(--brand-primary)]/50'
                         }`}
                       >
                         {copiedCode ? (
@@ -505,7 +505,7 @@ export const CheckoutWorkflowModal: React.FC<CheckoutWorkflowModalProps> = ({
 
                     <button
                       onClick={onNavigateToSupport}
-                      className="w-full py-3 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded-xl text-purple-300 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                      className="w-full py-3 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded-xl text-[var(--brand-primary)] hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                     >
                       <RefreshCw className="w-4 h-4" />
                       <span>{lang === 'my' ? 'အော်ဒါအခြေအနေ စစ်ဆေးရန်' : 'Track Order Status'}</span>

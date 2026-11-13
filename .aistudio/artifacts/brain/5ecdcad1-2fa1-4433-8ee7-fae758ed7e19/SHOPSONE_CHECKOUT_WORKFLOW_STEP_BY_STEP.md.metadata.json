@@ -1,5 +1,0 @@
-{
-  "summary":  "Step-by-step forensic trace of the ShopSone customer checkout workflow. Documents each stage from cart review to order confirmation, including exact Myanmar Unicode instructions, API payloads, state transitions, and security verification. Confirms authoritative stock checks and authorized image proxies while noting that order idempotency is primarily managed in the frontend session state.",
-  "updatedAt":  "2026-10-27T10:52:43.039692950Z",
-  "userFacing":  true
-}

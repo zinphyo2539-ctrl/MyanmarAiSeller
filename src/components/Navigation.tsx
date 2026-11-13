@@ -76,26 +76,15 @@ export const Navigation: React.FC<NavigationProps> = ({
       labelEn: 'Account & AI',
       icon: Store,
       badge: badges.paymentsReviewCount > 0 ? badges.paymentsReviewCount : undefined
-    },
-    {
-      id: 'avatar_studio',
-      labelMy: 'Avatar Studio',
-      labelEn: 'Avatar Studio',
-      icon: Box
     }
   ];
 
   const destinations = allDestinations.filter(d => {
-    if (d.id === 'avatar_studio') return true;
     if (!userRole) return false; // Hide merchant tabs if unauthenticated
     
     // Merchant tabs require roles
     const isMerchantAdmin = userRole === 'merchant_admin' || userRole === 'admin' || provider === 'local';
     if (!isMerchantAdmin) {
-      // If just a regular customer, they might only see profile and home? 
-      // Existing App.tsx logic for desktop suggests they see everything except 'lab'.
-      // But 'home', 'messages', etc. are merchant-centric.
-      // However, I should follow the existing pattern in App.tsx line 898.
       return ['home', 'messages', 'inventory', 'accounting', 'aistudio', 'profile'].includes(d.id);
     }
     return true; // Merchant admin sees everything

@@ -1,5 +1,0 @@
-{
-  "summary": "SHOPSONE Gate 3.13 Read-Only Storage & Authentication Forensic Audit Report. Covering Firebase/Supabase storage audit, Firestore persistence integrity, and OAuth configuration analysis. Verdict: A. PASS - PRODUCTION ISOLATION MAINTAINED.",
-  "updatedAt": "2026-11-06T14:23:58.545089865Z",
-  "userFacing": true
-}

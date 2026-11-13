@@ -52,6 +52,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
   const [customImagePrompt, setCustomImagePrompt] = useState<string>('');
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
   const [referencePreview, setReferencePreview] = useState<string | null>(null);
+  const [referenceBase64, setReferenceBase64] = useState<string | null>(null);
 
   const [generatingImage, setGeneratingImage] = useState<boolean>(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
@@ -111,6 +112,12 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
       }
       setReferenceFile(file);
       setReferencePreview(URL.createObjectURL(file));
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setReferenceBase64(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -122,33 +129,29 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
     setAppliedSuccess(false);
 
     try {
-      const formData = new FormData();
-      if (activeProduct) {
-        formData.append('productId', activeProduct.id);
-        formData.append('productName', activeProduct.name);
-      }
-      formData.append('mode', imageMode);
-      formData.append('aspectRatio', aspectRatio);
-      if (customImagePrompt.trim()) {
-        formData.append('customInstructions', customImagePrompt.trim());
-      }
-      if (referenceFile) {
-        formData.append('referenceImage', referenceFile);
-      }
-
-      const headers = getHeaders();
-      // Remove Content-Type so browser sets boundary for multipart/form-data
-      delete headers['Content-Type'];
+      const payload = {
+        mode: imageMode,
+        aspectRatio,
+        customInstructions: customImagePrompt.trim(),
+        sourceImageBase64: referenceBase64
+      };
 
       const res = await fetch('/api/ai-studio/generate-image', {
         method: 'POST',
-        headers,
-        body: formData
+        headers: getHeaders(),
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || 'Failed to generate product image');
+        const text = await res.text();
+        let errMsg = 'Failed to generate studio image';
+        try {
+          const d = JSON.parse(text);
+          errMsg = d.error || errMsg;
+        } catch {
+          errMsg = `Server error (${res.status}): ${text.slice(0, 100)}`;
+        }
+        throw new Error(errMsg);
       }
 
       const data = await res.json();
@@ -244,413 +247,200 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header Banner - Luxury Studio Header Card */}
-      <div className="bg-gradient-to-r from-indigo-950 via-purple-950 to-slate-900 rounded-2xl p-5 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/30 shrink-0">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-white leading-relaxed">
-              AI Studio (ဆိုင်စုံ စတူဒီယို)
-            </h1>
-            <p className="text-xs text-purple-200/80 leading-relaxed">
-              {lang === 'my'
-                ? 'စတော့ကုန်ပစ္စည်းများအတွက် AI ဓာတ်ပုံဖန်တီးမှုနှင့် ဆိုရှယ်မီဒီယာ အရောင်းကြော်ငြာစာသားများ'
-                : 'AI-powered studio product photography, descriptions & high-converting marketing copy'}
-            </p>
-          </div>
-        </div>
-
-        {/* Studio Sub-Navigation Tabs */}
-        <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md p-1 rounded-xl border border-white/10">
-          <button
-            type="button"
-            onClick={() => setActiveTab('image_studio')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'image_studio'
-                ? 'bg-white text-indigo-950 shadow-sm font-bold'
-                : 'text-purple-200 hover:text-white'
-            }`}
-          >
-            <Camera className="w-3.5 h-3.5" />
-            <span>{lang === 'my' ? 'ဓာတ်ပုံ စတူဒီယို' : 'Product Photo Studio'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('copy_studio')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'copy_studio'
-                ? 'bg-white text-indigo-950 shadow-sm font-bold'
-                : 'text-purple-200 hover:text-white'
-            }`}
-          >
-            <FileText className="w-3.5 h-3.5" />
-            <span>{lang === 'my' ? 'ကြော်ငြာစာသား' : 'Marketing Copy'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('history')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'history'
-                ? 'bg-white text-indigo-950 shadow-sm font-bold'
-                : 'text-purple-200 hover:text-white'
-            }`}
-          >
-            <History className="w-3.5 h-3.5" />
-            <span>{lang === 'my' ? 'မှတ်တမ်း' : 'History'}</span>
-          </button>
-        </div>
+      {/* Segmented Pill Control */}
+      <div className="bg-[#181624] p-1 rounded-xl border border-white/10 flex items-center gap-1 w-full sm:w-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('image_studio')}
+          className={`flex-1 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            activeTab === 'image_studio'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>{lang === 'my' ? '✨ ဓာတ်ပုံ စတူဒီယို' : 'Photo Studio'}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('copy_studio')}
+          className={`flex-1 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            activeTab === 'copy_studio'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>{lang === 'my' ? '📝 ကြော်ငြာ စာသား' : 'Marketing Copy'}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('history')}
+          className={`flex-1 px-4 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            activeTab === 'history'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <History className="w-3.5 h-3.5" />
+          <span>{lang === 'my' ? '🕒 မှတ်တမ်း' : 'History'}</span>
+        </button>
       </div>
 
-      {/* Product Selector Bar (Unified across AI Studio) */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-slate-700 whitespace-nowrap">
-            {lang === 'my' ? 'ပစ္စည်းရွေးချယ်ပါ:' : 'Target Product:'}
-          </span>
-          <select
-            value={selectedProductId}
-            onChange={(e) => setSelectedProductId(e.target.value)}
-            className="w-full sm:w-80 px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white font-medium focus:outline-none focus:ring-2 focus:ring-purple-600"
-          >
-            {products.length === 0 ? (
-              <option value="">{lang === 'my' ? 'စတော့တွင် ပစ္စည်းမရှိသေးပါ' : 'No products in inventory'}</option>
-            ) : (
-              products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({Number(p.price).toLocaleString()} MMK)
-                </option>
-              ))
-            )}
-          </select>
-        </div>
-
-        {activeProduct && (
-          <div className="flex items-center gap-3 text-xs text-slate-500">
-            <span className="font-mono">SKU: {activeProduct.sku}</span>
-            <span>·</span>
-            <span className="font-mono font-semibold text-slate-800">
-              {Number(activeProduct.price).toLocaleString()} MMK
+      {/* Product Selector Bar (For Copy Studio) */}
+      {activeTab === 'copy_studio' && (
+        <div className="bg-[#13121D] p-4 rounded-2xl border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.5)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <span className="text-xs font-bold text-slate-200 whitespace-nowrap">
+              {lang === 'my' ? 'ပစ္စည်းရွေးချယ်ပါ:' : 'Target Product:'}
             </span>
-            {activeProduct.imageUrl && (
-              <div className="w-8 h-8 rounded-lg border border-slate-200 overflow-hidden shrink-0 shadow-2xs">
-                <img
-                  src={activeProduct.imageUrl}
-                  alt={activeProduct.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
+            <select
+              value={selectedProductId}
+              onChange={(e) => setSelectedProductId(e.target.value)}
+              className="w-full sm:w-80 px-3.5 py-2.5 text-xs border border-white/15 rounded-xl bg-[#1A1829] text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-violet-500"
+            >
+              {products.length === 0 ? (
+                <option value="">{lang === 'my' ? 'စတော့တွင် ပစ္စည်းမရှိသေးပါ' : 'No products in inventory'}</option>
+              ) : (
+                products.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-[#1A1829] text-slate-100">
+                    {p.name} ({Number(p.price).toLocaleString()} MMK)
+                  </option>
+                ))
+              )}
+            </select>
           </div>
-        )}
-      </div>
 
-      {/* SECTION 1: PRODUCT IMAGE STUDIO */}
+          {activeProduct && (
+            <div className="flex items-center gap-3 text-xs text-slate-400">
+              <span className="font-mono">SKU: {activeProduct.sku}</span>
+              <span>·</span>
+              <span className="font-mono font-semibold text-slate-200">
+                {Number(activeProduct.price).toLocaleString()} MMK
+              </span>
+              {activeProduct.imageUrl && (
+                <div className="w-8 h-8 rounded-lg border border-white/10 overflow-hidden shrink-0 shadow-2xs">
+                  <img
+                    src={activeProduct.imageUrl}
+                    alt={activeProduct.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SECTION 1: PRODUCT IMAGE STUDIO (Canvas-First UI) */}
       {activeTab === 'image_studio' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Controls Column (Left) */}
-          <div className="lg:col-span-5 space-y-5 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-purple-600" />
-                <span>{lang === 'my' ? 'ဓာတ်ပုံ ဖန်တီးမှု ရွေးချယ်စရာများ' : 'Studio Generation Settings'}</span>
-              </h2>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                {lang === 'my'
-                  ? 'အဆင့်မြင့် အလင်းအမှောင်နှင့် စတူဒီယိုနောက်ခံ စတိုင်ကို ရွေးချယ်ပါ'
-                  : 'Select professional background, lighting, and visual environment'}
-              </p>
+        <div className="space-y-6">
+          {/* Hero Interactive Canvas */}
+          <div className="aspect-square w-full max-w-2xl mx-auto rounded-2xl bg-[#14121F] border border-white/10 relative overflow-hidden shadow-2xl">
+            {/* ... */}
+          </div>
+          {/* Hero Interactive Canvas */}
+          <div className="aspect-square w-full max-w-2xl mx-auto rounded-2xl bg-[#14121F] border border-white/10 relative overflow-hidden shadow-2xl">
+            {/* Top-Left: Image Upload */}
+            <div className="absolute top-4 left-4 z-10">
+              <label className="cursor-pointer bg-black/60 backdrop-blur-md border border-white/15 rounded-full px-3 py-1.5 text-xs text-white flex items-center gap-2 hover:bg-black/80 transition-all">
+                <Camera className="w-3.5 h-3.5" />
+                <span>{lang === 'my' ? '📷 ပုံပြောင်းရန်' : 'Change Image'}</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleReferenceFileChange} className="hidden" />
+              </label>
             </div>
 
-            {/* Generation Modes with colorful 40x40px gradient icon boxes and check icon */}
-            <div className="space-y-2.5">
-              <label className="block text-xs font-bold text-slate-700">
-                {lang === 'my' ? 'စတူဒီယို စတိုင် (Generation Mode)' : 'Generation Mode'}
-              </label>
-              <div className="grid grid-cols-1 gap-2.5">
-                {[
-                  {
-                    id: 'clean_background',
-                    title: lang === 'my' ? 'Clean Background (နောက်ခံသန့်စင်ဖြူစင်)' : 'Clean White Studio',
-                    desc: lang === 'my' ? 'အဖြူရောင်စတူဒီယိုနောက်ခံ၊ အရိပ်အစွန်းနူးညံ့' : 'Isolated product, soft natural studio drop shadow',
-                    icon: Sparkles,
-                    color: 'from-sky-500 to-blue-600'
-                  },
-                  {
-                    id: 'premium_photo',
-                    title: lang === 'my' ? 'Premium Photography (ဇိမ်ခံ စတူဒီယို)' : 'Premium Luxury Studio',
-                    desc: lang === 'my' ? 'အမှောင်ရောင်နောက်ခံ၊ စတူဒီယိုမီးရောင်' : 'Dramatic rim lighting, dark slate surface',
-                    icon: Camera,
-                    color: 'from-amber-500 to-orange-600'
-                  },
-                  {
-                    id: 'social_ad',
-                    title: lang === 'my' ? 'Social Media Ad (ဆိုရှယ်မီဒီယာ ကြော်ငြာ)' : 'Social Media Commercial',
-                    desc: lang === 'my' ? 'အရောင်အသွေးစုံလင်၊ လူကြိုက်များသောကြော်ငြာစတိုင်' : 'Vibrant colors, high conversion commercial style',
-                    icon: Wand2,
-                    color: 'from-fuchsia-500 to-pink-600'
-                  },
-                  {
-                    id: 'lifestyle',
-                    title: lang === 'my' ? 'Lifestyle Showcase (လူနေမှုစတိုင် နောက်ခံ)' : 'Lifestyle Showcase',
-                    desc: lang === 'my' ? 'ခေတ်မီအိမ်တွင်းအလှဆင်၊ သဘာဝအလင်းရောင်' : 'Warm natural morning daylight, authentic setting',
-                    icon: Layers,
-                    color: 'from-emerald-500 to-teal-600'
-                  },
-                  {
-                    id: 'catalog',
-                    title: lang === 'my' ? 'Product Catalog (ကတ်တလောက် ပြကွက်)' : 'Catalog Pedestal',
-                    desc: lang === 'my' ? 'အရောင်းပြခန်း စင်တင်ပြသမှု' : 'Minimalist retail pedestal, clean balanced framing',
-                    icon: ShoppingBag,
-                    color: 'from-indigo-500 to-violet-600'
-                  }
-                ].map((mode) => {
-                  const Icon = mode.icon;
-                  const isSelected = imageMode === mode.id;
-
-                  return (
-                    <div
-                      key={mode.id}
-                      onClick={() => setImageMode(mode.id as AiStudioImageMode)}
-                      className={`cursor-pointer rounded-xl p-3 border transition-all flex items-center justify-between gap-3 ${
-                        isSelected
-                          ? 'border-purple-600 ring-2 ring-purple-600/20 bg-purple-50/40 shadow-xs'
-                          : 'border-slate-200 hover:border-purple-300 hover:bg-slate-50/60'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode.color} text-white flex items-center justify-center shadow-xs shrink-0`}>
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-bold text-xs text-slate-900 leading-snug truncate">
-                            {mode.title}
-                          </div>
-                          <div className="text-[11px] text-slate-500 leading-snug truncate mt-0.5">
-                            {mode.desc}
-                          </div>
-                        </div>
-                      </div>
-                      {isSelected && (
-                        <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0" />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Aspect Ratio */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
-                {lang === 'my' ? 'ပုံချိုး အချိုးအစား (Aspect Ratio)' : 'Aspect Ratio'}
-              </label>
-              <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-xl">
+            {/* Top-Right: Aspect Ratio Selector */}
+            <div className="absolute top-4 right-4 z-10">
+              <div className="bg-black/60 backdrop-blur-md rounded-full p-0.5 border border-white/15 text-[11px] text-white flex gap-0.5">
                 {(['1:1', '4:5', '16:9'] as const).map((ratio) => (
                   <button
                     key={ratio}
-                    type="button"
                     onClick={() => setAspectRatio(ratio)}
-                    className={`py-2 text-center text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                      aspectRatio === ratio
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                    className={`px-3 py-1 rounded-full transition-all ${aspectRatio === ratio ? 'bg-white/20' : 'hover:bg-white/10'}`}
                   >
-                    {ratio} {ratio === '1:1' ? '(Square)' : ratio === '4:5' ? '(Portrait)' : '(Landscape)'}
+                    {ratio}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Optional Reference Upload */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
-                {lang === 'my' ? 'နမူနာဓာတ်ပုံ ထည့်သွင်းရန် (Optional)' : 'Reference Image (Optional)'}
-              </label>
-              <div className="flex items-center gap-3">
-                <label className="flex-1 border-2 border-dashed border-slate-200 hover:border-purple-500 rounded-xl p-3 text-center cursor-pointer transition-colors">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleReferenceFileChange}
-                    className="hidden"
-                  />
-                  <div className="flex items-center justify-center gap-2 text-xs text-slate-600">
-                    <Upload className="w-4 h-4 text-purple-600" />
-                    <span>{referenceFile ? referenceFile.name : (lang === 'my' ? 'ပုံရွေးချယ်ပါ' : 'Upload file')}</span>
-                  </div>
-                </label>
-                {referencePreview && (
-                  <div className="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden relative group shrink-0 shadow-2xs">
-                    <img src={referencePreview} alt="Ref" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setReferenceFile(null);
-                        setReferencePreview(null);
-                      }}
-                      className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Custom Instructions */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
-                {lang === 'my' ? 'အထူးညွှန်ကြားချက် (Prompt Refinements)' : 'Custom Instructions (Optional)'}
-              </label>
-              <textarea
-                rows={2}
-                placeholder={lang === 'my' ? 'ဥပမာ: Add soft golden hour glow, wooden table...' : 'e.g. Add subtle warm morning light...'}
-                value={customImagePrompt}
-                onChange={(e) => setCustomImagePrompt(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600"
-              />
-            </div>
-
-            {/* Generate Trigger Button (Animated AI Magic Gradient) */}
-            <button
-              type="button"
-              disabled={generatingImage || !activeProduct}
-              onClick={handleGenerateImage}
-              className="w-full py-3.5 px-6 rounded-xl btn-ai-gradient text-white font-bold text-xs shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
+            {/* Canvas Center: Preview */}
+            <div className="w-full h-full flex items-center justify-center">
               {generatingImage ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>{lang === 'my' ? 'စတူဒီယို ဓာတ်ပုံ ဖန်တီးနေပါသည်...' : 'Generating Studio Photography...'}</span>
-                </>
+                <div className="text-white flex flex-col items-center gap-3">
+                  <RefreshCw className="w-8 h-8 animate-spin" />
+                  <span className="text-sm font-semibold">{lang === 'my' ? 'ဖန်တီးနေပါသည်...' : 'Generating...'}</span>
+                </div>
+              ) : generatedImageUrl ? (
+                <img src={generatedImageUrl} alt="Preview" className="w-full h-full object-contain" />
+              ) : referencePreview ? (
+                <img src={referencePreview} alt="Original" className="w-full h-full object-contain" />
               ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  <span>{lang === 'my' ? 'AI ဓာတ်ပုံ စတင်ဖန်တီးမည်' : 'Generate Studio Photo'}</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Preview & Action Column (Right) */}
-          <div className="lg:col-span-7 space-y-5 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-purple-600" />
-                  <span>{lang === 'my' ? 'ဖန်တီးမှု ပြကွက် (Preview & Apply)' : 'Studio Photo Preview'}</span>
-                </h2>
-                {generatedImageUrl && (
-                  <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    {lang === 'my' ? 'အောင်မြင်စွာ ဖန်တီးပြီးပါပြီ' : 'Generated Ready'}
-                  </span>
-                )}
-              </div>
-
-              {/* Status and Errors */}
-              {imageError && (
-                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-                  <span>{imageError}</span>
+                <div className="text-slate-500 text-center p-4">
+                  <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs">{lang === 'my' ? 'ပုံကို ဒီနေရာတွင် ဆွဲထည့်ပါ' : 'Drag & drop or upload image'}</p>
                 </div>
               )}
-
-              {appliedSuccess && (
-                <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>
-                    {lang === 'my'
-                      ? 'ကုန်ပစ္စည်း၏ အဓိကဓာတ်ပုံအဖြစ် စတော့တွင် အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!'
-                      : 'Successfully saved as primary image in your Inventory!'}
-                  </span>
-                </div>
-              )}
-
-              {/* Preview Display Area with subtle studio dot-grid background */}
-              <div className="mt-4 aspect-square max-h-[460px] w-full rounded-2xl border-2 border-dashed border-slate-200 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px] bg-slate-50/50 overflow-hidden flex items-center justify-center relative">
-                {generatingImage ? (
-                  <div className="text-center p-6 space-y-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-600 flex items-center justify-center mx-auto shadow-inner animate-pulse">
-                      <Wand2 className="w-7 h-7 animate-bounce" />
-                    </div>
-                    <div className="font-bold text-xs text-slate-800">
-                      {lang === 'my' ? 'AI စတူဒီယိုမှ ဓာတ်ပုံဖန်တီးနေပါသည်...' : 'Synthesizing Studio Product Image...'}
-                    </div>
-                    <p className="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
-                      {lang === 'my'
-                        ? 'ရွေးချယ်ထားသော စတိုင်အတိုင်း အလင်းအမှောင်နှင့် နောက်ခံကို အဆင့်မြင့်ဆုံး ပြင်ဆင်နေပါသည်'
-                        : 'Balancing lighting, shadows, and high-fidelity product reflection'}
-                    </p>
-                  </div>
-                ) : generatedImageUrl ? (
-                  <img
-                    src={generatedImageUrl}
-                    alt="Generated Product"
-                    className="w-full h-full object-contain bg-slate-900/5"
-                  />
-                ) : (
-                  <div className="text-center p-6 space-y-2 text-slate-400">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-600 flex items-center justify-center shadow-inner mb-3 mx-auto">
-                      <Sparkles className="w-8 h-8" />
-                    </div>
-                    <p className="font-bold text-sm text-slate-700">
-                      {lang === 'my' ? 'ဖန်တီးထားသော ပုံ မရှိသေးပါ' : 'No Studio Photo Generated Yet'}
-                    </p>
-                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed mt-1">
-                      {lang === 'my'
-                        ? 'အပေါ်ဘက်ရှိ စတူဒီယိုစတိုင်ကို ရွေးချယ်သတ်မှတ်ပြီး "AI ဓာတ်ပုံ စတင်ဖန်တီးမည်" ကို နှိပ်ပါ'
-                        : 'Configure your settings on the left and click "Generate Studio Photo" to begin.'}
-                    </p>
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* Merchant Explicit Actions (Never auto-replace without merchant confirmation) */}
+            {/* Bottom Action Bar (Only when generated) */}
             {generatedImageUrl && (
-              <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={handleDiscardImage}
-                  className="px-3.5 py-2 border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold rounded-xl cursor-pointer"
-                >
+              <div className="absolute bottom-4 left-4 right-4 z-10 flex gap-2">
+                <button onClick={handleDiscardImage} className="flex-1 py-2 text-xs font-semibold text-red-400 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl hover:bg-black/80">
                   {lang === 'my' ? 'ပယ်ဖျက်မည်' : 'Discard'}
                 </button>
-
-                <div className="flex items-center gap-2">
-                  <a
-                    href={generatedImageUrl}
-                    download={`shopsone-studio-${Date.now()}.png`}
-                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>{lang === 'my' ? 'ဒေါင်းလုဒ်ရယူမည်' : 'Download'}</span>
-                  </a>
-
-                  <button
-                    type="button"
-                    disabled={applyingImage}
-                    onClick={handleApplyToInventory}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
-                  >
-                    {applyingImage ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Check className="w-3.5 h-3.5" />
-                    )}
-                    <span>
-                      {lang === 'my' ? 'စတော့တွင် အဓိကပုံအဖြစ် သိမ်းဆည်းမည်' : 'Save as Product Image'}
-                    </span>
-                  </button>
-                </div>
+                <a href={generatedImageUrl} download="studio-image.png" className="flex-1 py-2 text-xs font-semibold text-white bg-black/60 backdrop-blur-md border border-white/10 rounded-xl hover:bg-black/80 text-center">
+                  {lang === 'my' ? '↓ ဒေါင်းလုဒ်' : 'Download'}
+                </a>
+                <button onClick={handleApplyToInventory} className="flex-1 py-2 text-xs font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-lg">
+                  {applyingImage ? <RefreshCw className="w-3.5 h-3.5 animate-spin mx-auto" /> : (lang === 'my' ? '✓ စတော့တွင် သိမ်းမည်' : 'Save to Stock')}
+                </button>
               </div>
             )}
+          </div>
+
+          {/* Prompt & Presets (Below Canvas) */}
+          <div className="space-y-4 max-w-2xl mx-auto">
+            {/* Prompt Dock */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder={lang === 'my' ? 'ပုံအတွက် ထပ်ဖြည့်လိုသည်များကို ရိုက်ထည့်ပါ...' : 'Add custom prompt instructions...'}
+                value={customImagePrompt}
+                onChange={(e) => setCustomImagePrompt(e.target.value)}
+                className="w-full bg-[#1A1829] border border-white/15 rounded-full py-3 px-6 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+              <button
+                onClick={handleGenerateImage}
+                disabled={generatingImage}
+                className="absolute right-1 top-1 bottom-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full px-4 text-white font-semibold text-xs disabled:opacity-50"
+              >
+                {generatingImage ? <RefreshCw className="w-4 h-4 animate-spin" /> : (lang === 'my' ? 'ဖန်တီးမည်' : 'Generate')}
+              </button>
+            </div>
+
+            {/* Style Presets Carousel */}
+            <div className="flex gap-2.5 overflow-x-auto pb-2 no-scrollbar">
+              {[
+                { id: 'clean_background', title: lang === 'my' ? 'နောက်ခံသန့်စင်' : 'Clean' },
+                { id: 'premium_photo', title: lang === 'my' ? 'ပရို စတူဒီယို' : 'Premium' },
+                { id: 'social_ad', title: lang === 'my' ? 'ဆိုရှယ်မီဒီယာ' : 'Social' },
+                { id: 'lifestyle', title: lang === 'my' ? 'လူနေမှုစတိုင်' : 'Lifestyle' },
+                { id: 'catalog', title: lang === 'my' ? 'ကတ်တလောက်' : 'Catalog' }
+              ].map((mode) => (
+                <button
+                  key={mode.id}
+                  onClick={() => setImageMode(mode.id as AiStudioImageMode)}
+                  className={`w-28 flex-shrink-0 p-3 rounded-xl border transition-all ${
+                    imageMode === mode.id ? 'border-purple-500 bg-purple-500/10 ring-1 ring-purple-500' : 'border-white/10 bg-[#1A1829] hover:border-purple-300'
+                  }`}
+                >
+                  <div className="w-full aspect-video mb-2 rounded bg-gradient-to-br from-purple-900 to-indigo-900" />
+                  <span className="text-[10px] font-bold text-slate-200">{mode.title}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -659,13 +449,13 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
       {activeTab === 'copy_studio' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Controls Column */}
-          <div className="lg:col-span-5 space-y-5 bg-white p-5 rounded-2xl border border-[#CBD5E1] shadow-xs">
+          <div className="lg:col-span-5 space-y-5 bg-[#13121D] p-5 rounded-2xl border border-white/10 shadow-lg">
             <div>
-              <h2 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#2563EB]" />
+              <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-violet-500" />
                 <span>{lang === 'my' ? 'စာသား ဖန်တီးမှု ပုံစံများ' : 'Marketing Copy Tools'}</span>
               </h2>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-slate-400 mt-0.5">
                 {lang === 'my'
                   ? 'မြန်မာဘာသာ သို့မဟုတ် အင်္ဂလိပ်ဘာသာဖြင့် ဆွဲဆောင်မှုရှိသော ရောင်းချစာသားများ'
                   : 'Culturally tuned copy, product descriptions, TikTok scripts & promos'}
@@ -674,7 +464,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
 
             {/* Copy Types */}
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700">
+              <label className="block text-xs font-semibold text-slate-300">
                 {lang === 'my' ? 'စာသား အမျိုးအစား' : 'Format Selection'}
               </label>
               <div className="grid grid-cols-1 gap-2">
@@ -716,12 +506,12 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                     onClick={() => setCopyType(type.id as AiStudioCopyType)}
                     className={`p-3 text-left rounded-xl border transition-all cursor-pointer ${
                       copyType === type.id
-                        ? 'border-[#2563EB] bg-blue-50/50 ring-1 ring-[#2563EB]'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? 'border-violet-600 bg-violet-600/10 ring-1 ring-violet-600'
+                        : 'border-white/10 hover:border-white/20 hover:bg-[#1A1829]'
                     }`}
                   >
-                    <div className="font-bold text-xs text-slate-800">{type.title}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{type.desc}</div>
+                    <div className="font-bold text-xs text-slate-200">{type.title}</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">{type.desc}</div>
                   </button>
                 ))}
               </div>
@@ -729,7 +519,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
 
             {/* Custom Guidance */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
+              <label className="block text-xs font-semibold text-slate-300">
                 {lang === 'my' ? 'အပိုဆောင်း ညွှန်ကြားချက် (Custom Instructions)' : 'Additional Notes (Optional)'}
               </label>
               <textarea
@@ -737,7 +527,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                 placeholder={lang === 'my' ? 'ဥပမာ: အထူးလျော့စျေး ကာလအကြောင်း ထည့်ရေးပေးပါ...' : 'e.g. Focus on fabric durability...'}
                 value={customCopyPrompt}
                 onChange={(e) => setCustomCopyPrompt(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                className="w-full px-3 py-2 text-xs border border-white/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-600 bg-[#1A1829] text-slate-100"
               />
             </div>
 
@@ -746,7 +536,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
               type="button"
               disabled={generatingCopy || !activeProduct}
               onClick={handleGenerateCopy}
-              className="w-full py-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+              className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-violet-600/20 disabled:opacity-50"
             >
               {generatingCopy ? (
                 <>
@@ -763,18 +553,18 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
           </div>
 
           {/* Output Display Column */}
-          <div className="lg:col-span-7 space-y-4 bg-white p-5 rounded-2xl border border-[#CBD5E1] shadow-xs flex flex-col justify-between">
+          <div className="lg:col-span-7 space-y-4 bg-[#13121D] p-5 rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h2 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#2563EB]" />
+                <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-violet-500" />
                   <span>{lang === 'my' ? 'ဖန်တီးထားသော စာသား (Generated Output)' : 'Generated Text Preview'}</span>
                 </h2>
                 {generatedText && (
                   <button
                     type="button"
                     onClick={handleCopyText}
-                    className="px-3 py-1 bg-blue-50 text-[#2563EB] hover:bg-blue-100 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3 py-1 bg-violet-600/10 text-violet-400 hover:bg-violet-600/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer border border-violet-600/20"
                   >
                     {copiedNotification ? (
                       <>
@@ -792,7 +582,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
               </div>
 
               {copyError && (
-                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
+                <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-700 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                   <span>{copyError}</span>
                 </div>
@@ -802,7 +592,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
               <div className="mt-4">
                 {generatingCopy ? (
                   <div className="h-64 flex flex-col items-center justify-center text-slate-400 space-y-2">
-                    <RefreshCw className="w-8 h-8 animate-spin text-[#2563EB]" />
+                    <RefreshCw className="w-8 h-8 animate-spin text-violet-500" />
                     <p className="text-xs">{lang === 'my' ? 'AI မှ စာသား ရေးသားနေပါသည်...' : 'Generating tailored marketing copy...'}</p>
                   </div>
                 ) : (
@@ -815,7 +605,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                         ? 'ဖန်တီးထားသော စာသား ဤနေရာတွင် ပေါ်လာပါမည်။ လိုအပ်သလို စိတ်ကြိုက် ပြင်ဆင်နိုင်ပါသည်။'
                         : 'Generated promotional copy will appear here. You can freely review and edit.'
                     }
-                    className="w-full p-4 border border-slate-200 rounded-xl text-xs font-sans leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2563EB] bg-slate-50/50"
+                    className="w-full p-4 border border-white/10 rounded-xl text-xs font-sans leading-relaxed focus:outline-none focus:ring-2 focus:ring-violet-600 bg-[#1A1829] text-slate-100"
                   />
                 )}
               </div>
@@ -823,12 +613,12 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
 
             {/* Quick Actions Footer */}
             {generatedText && (
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
                 <span>{generatedText.length} {lang === 'my' ? 'စာလုံးရေ' : 'characters'}</span>
                 <button
                   type="button"
                   onClick={handleCopyText}
-                  className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:brightness-110 text-white font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-lg shadow-violet-600/20"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   <span>{lang === 'my' ? 'ကူးယူပြီး အသုံးပြုမည်' : 'Copy to Clipboard'}</span>
@@ -841,14 +631,14 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
 
       {/* SECTION 3: GENERATION HISTORY */}
       {activeTab === 'history' && (
-        <div className="bg-white border border-[#CBD5E1] rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-[#13121D] border border-white/10 rounded-2xl p-5 shadow-[0_15px_35px_rgba(0,0,0,0.5)] space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h2 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
                 <History className="w-4 h-4 text-[#2563EB]" />
                 <span>{lang === 'my' ? 'AI စတူဒီယို ဖန်တီးမှု မှတ်တမ်း' : 'Studio Generation History'}</span>
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400">
                 {lang === 'my' ? 'လတ်တလော ဖန်တီးခဲ့သော ဓာတ်ပုံနှင့် စာသားများ' : 'Past generated images, copy, and products'}
               </p>
             </div>
@@ -856,7 +646,7 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
               type="button"
               onClick={fetchHistory}
               disabled={loadingHistory}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 bg-[#1A1829] hover:bg-slate-200 text-slate-300 text-xs font-semibold rounded-lg flex items-center gap-1.5 cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loadingHistory ? 'animate-spin' : ''}`} />
               <span>{lang === 'my' ? 'ပြန်လည်စစ်ဆေးမည်' : 'Refresh'}</span>
@@ -871,9 +661,9 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {history.map((item) => (
-                <div key={item.id} className="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50/50">
+                <div key={item.id} className="border border-white/10 rounded-xl p-4 space-y-3 bg-[#1A1829]/50">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-slate-200">
                       {item.type === 'image' ? (lang === 'my' ? 'စတူဒီယို ဓာတ်ပုံ' : 'Studio Photo') : (lang === 'my' ? 'ကြော်ငြာစာသား' : 'Marketing Copy')}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">
@@ -888,13 +678,13 @@ export const AiStudioView: React.FC<AiStudioViewProps> = ({
                   )}
 
                   {item.type === 'image' && item.outputUrl && (
-                    <div className="aspect-square w-full rounded-lg overflow-hidden border border-slate-200 bg-white">
+                    <div className="aspect-square w-full rounded-lg overflow-hidden border border-white/10 bg-white">
                       <img src={item.outputUrl} alt="Thumbnail" className="w-full h-full object-contain" />
                     </div>
                   )}
 
                   {item.type === 'copy' && item.outputText && (
-                    <div className="p-2.5 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-700 line-clamp-4 font-mono">
+                    <div className="p-2.5 bg-white border border-white/10 rounded-lg text-[11px] text-slate-300 line-clamp-4 font-mono">
                       {item.outputText}
                     </div>
                   )}
