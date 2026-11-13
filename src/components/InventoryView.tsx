@@ -75,13 +75,95 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Upload State
+  // Upload & AI Analysis State
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
+  const [aiAnalysisError, setAiAnalysisError] = useState<string | null>(null);
+  const [aiAnalysisApplied, setAiAnalysisApplied] = useState(false);
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const applyAiAnalysisResult = (analysis: any) => {
+    if (!analysis) return;
+    setFormData((prev) => {
+      const baseSuffix = prev.sku && prev.sku.includes('-') ? prev.sku.split('-').pop() : Date.now().toString().slice(-4);
+      const nextSku = analysis.skuPrefix ? `${analysis.skuPrefix}-${baseSuffix}` : prev.sku;
+      const nextVariants = Array.isArray(analysis.variants) && analysis.variants.length > 0
+        ? analysis.variants.map((v: any, idx: number) => ({
+            color: v.color || 'Standard',
+            size: v.size || 'Free Size',
+            stock: typeof v.stock === 'number' ? v.stock : 10,
+            sku: `${nextSku}-V${idx + 1}`
+          }))
+        : prev.variants;
+
+      return {
+        ...prev,
+        name: analysis.name || prev.name,
+        category: analysis.category || prev.category,
+        sku: nextSku,
+        description: analysis.description || prev.description,
+        price: typeof analysis.price === 'number' && analysis.price > 0 ? analysis.price : prev.price,
+        variants: nextVariants
+      };
+    });
+    setAiAnalysisApplied(true);
+  };
+
+  const runAiImageAnalysis = async (input: { file?: File; imageUrl?: string }) => {
+    setAnalyzingImage(true);
+    setAiAnalysisError(null);
+    try {
+      const rawHeaders = getHeaders();
+      let res: Response;
+
+      if (input.file) {
+        const aiForm = new FormData();
+        aiForm.append('image', input.file);
+        aiForm.append('lang', lang);
+        const headers: Record<string, string> = {};
+        for (const [k, v] of Object.entries(rawHeaders)) {
+          if (k.toLowerCase() !== 'content-type') {
+            headers[k] = v;
+          }
+        }
+        res = await fetch('/api/merchant/analyze-product-image', {
+          method: 'POST',
+          headers,
+          body: aiForm
+        });
+      } else if (input.imageUrl) {
+        res = await fetch('/api/merchant/analyze-product-image', {
+          method: 'POST',
+          headers: rawHeaders,
+          body: JSON.stringify({ imageUrl: input.imageUrl, lang })
+        });
+      } else {
+        return;
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'AI analysis failed');
+      }
+      if (data.analysis) {
+        applyAiAnalysisResult(data.analysis);
+      }
+    } catch (err: any) {
+      setAiAnalysisError(
+        err?.message ||
+          (lang === 'my'
+            ? 'AI မှ ပုံခွဲခြမ်းစိတ်ဖြာမှု မအောင်မြင်ပါ — ကိုယ်တိုင်ဖြည့်သွင်းနိုင်ပါသည်။'
+            : 'AI image analysis failed — you can still fill fields manually.')
+      );
+    } finally {
+      setAnalyzingImage(false);
+    }
+  };
+
+  const processImageFile = async (file: File) => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
@@ -95,9 +177,20 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       return;
     }
 
+    if (localImagePreview && localImagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(localImagePreview);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setLocalImagePreview(previewUrl);
+    setSelectedImageFile(file);
     setUploadingImage(true);
     setUploadError(null);
     setUploadSuccessMessage(null);
+    setAiAnalysisError(null);
+
+    const shouldAutoAnalyze = !editingProduct;
+    const analysisPromise = shouldAutoAnalyze ? runAiImageAnalysis({ file }) : Promise.resolve();
 
     try {
       const dataForm = new FormData();
@@ -129,8 +222,15 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       setUploadError(err.message || 'Failed to upload image');
     } finally {
       setUploadingImage(false);
-      e.target.value = '';
+      await analysisPromise;
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    await processImageFile(file);
   };
 
   // AI Generator State
@@ -182,6 +282,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   // Form State
   const [formData, setFormData] = useState<{
     name: string;
+    category: string;
     sku: string;
     price: number;
     costPrice?: number | string;
@@ -192,6 +293,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     variants: Array<{ color: string; size: string; stock: number; sku: string }>;
   }>({
     name: '',
+    category: '',
     sku: '',
     price: 15000,
     costPrice: '',
@@ -254,9 +356,16 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setFormError(null);
+    setUploadError(null);
+    setUploadSuccessMessage(null);
+    setAiAnalysisError(null);
+    setAiAnalysisApplied(false);
+    setLocalImagePreview(null);
+    const shortTs = Date.now().toString().slice(-6);
     setFormData({
       name: '',
-      sku: `SKU-${Date.now().toString().slice(-6)}`,
+      category: '',
+      sku: `SKU-${shortTs}`,
       price: 15000,
       costPrice: '',
       description: '',
@@ -264,7 +373,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       status: 'active',
       imageUrl: '',
       variants: [
-        { color: 'Standard', size: 'Free Size', stock: 10, sku: `SKU-${Date.now().toString().slice(-6)}-V1` }
+        { color: 'Standard', size: 'Free Size', stock: 10, sku: `SKU-${shortTs}-V1` }
       ]
     });
     setIsModalOpen(true);
@@ -273,8 +382,14 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const handleOpenEdit = (prod: Product) => {
     setEditingProduct(prod);
     setFormError(null);
+    setUploadError(null);
+    setUploadSuccessMessage(null);
+    setAiAnalysisError(null);
+    setAiAnalysisApplied(false);
+    setLocalImagePreview(null);
     setFormData({
       name: prod.name,
+      category: prod.category || '',
       sku: prod.sku,
       price: prod.price,
       costPrice: prod.costPrice !== undefined && prod.costPrice !== null ? prod.costPrice : '',
@@ -306,9 +421,14 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     }));
   };
 
-  const handleSaveProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim() || saving) return;
+  const handleSaveProduct = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
+    if (!formData.name.trim()) {
+      const msg = lang === 'my' ? 'ကုန်ပစ္စည်းအမည် ဖြည့်သွင်းရန် လိုအပ်ပါသည်။' : 'Product name is required.';
+      setFormError(msg);
+      throw new Error(msg);
+    }
+    if (saving) return;
     setSaving(true);
     setFormError(null);
     try {
@@ -325,6 +445,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       setIsModalOpen(false);
     } catch (err: any) {
       setFormError(err.message || 'Failed to save product');
+      throw err;
     } finally {
       setSaving(false);
     }
@@ -607,9 +728,26 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         editingProduct={editingProduct}
         formError={formError}
         handleFileUpload={handleFileUpload}
+        onImageFileSelected={processImageFile}
+        hasSelectedFile={Boolean(selectedImageFile)}
         uploadingImage={uploadingImage}
         uploadError={uploadError}
         uploadSuccessMessage={uploadSuccessMessage}
+        localImagePreview={localImagePreview}
+        setLocalImagePreview={(val: string | null) => {
+          setLocalImagePreview(val);
+          if (!val) setSelectedImageFile(null);
+        }}
+        analyzingImage={analyzingImage}
+        aiAnalysisError={aiAnalysisError}
+        aiAnalysisApplied={aiAnalysisApplied}
+        onReanalyzeImage={() => {
+          if (selectedImageFile) {
+            runAiImageAnalysis({ file: selectedImageFile });
+          } else if (formData.imageUrl) {
+            runAiImageAnalysis({ imageUrl: formData.imageUrl });
+          }
+        }}
         handleGenerateAiPhoto={handleGenerateAiPhoto}
         generatingAiPhoto={generatingAiPhoto}
         aiGeneratedPreviewUrl={aiGeneratedPreviewUrl}

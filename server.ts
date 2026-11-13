@@ -5,7 +5,9 @@
  */
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { GoogleGenAI, Type } from '@google/genai';
 import { FirestoreRestClient } from './server/firestoreClient.ts';
+import { validateProductImageUrl } from './server/validator.ts';
 import { checkoutEngine } from './server/checkoutEngine.ts';
 import { ledgerService } from './server/accounting/ledger.ts';
 import { aiActionSecurity } from './server/aiActions/actionSecurity.ts';
@@ -466,6 +468,7 @@ app.post('/api/products', async (c) => {
         sku: v.sku || `SKU-V${idx}`
       })),
       discount: body.discount || null,
+      category: body.category || null,
       status: body.status || 'active'
     };
     const created = await productRepository.create(product);
@@ -1247,6 +1250,206 @@ app.post('/api/merchant/upload-image', async (c) => {
     return c.json({ success: true, imageUrl: publicUrl }, 201);
   } catch (err: any) {
     return c.json({ error: err.message }, 500);
+  }
+});
+
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+}
+
+app.post('/api/merchant/analyze-product-image', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth?.user?.merchantId) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+
+  const geminiApiKey = c.env?.GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
+  if (!geminiApiKey) {
+    return c.json({ error: 'Gemini API key is not configured on the server.' }, 503);
+  }
+
+  try {
+    const contentType = c.req.header('content-type') || '';
+    let base64Data = '';
+    let mimeType = 'image/jpeg';
+    let lang: 'my' | 'en' = 'my';
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await c.req.formData();
+      const file = formData.get('image') as File | null;
+      const formLang = formData.get('lang');
+      if (formLang === 'en') lang = 'en';
+
+      if (!file) {
+        return c.json({ error: 'No image provided for analysis' }, 400);
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        return c.json({ error: 'Image file size must not exceed 5 MiB' }, 400);
+      }
+      const normalizedType = (file.type || 'image/jpeg').toLowerCase();
+      if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(normalizedType)) {
+        return c.json({ error: 'Only JPEG, PNG, and WebP images are supported' }, 400);
+      }
+      mimeType = normalizedType === 'image/jpg' ? 'image/jpeg' : normalizedType;
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      base64Data = uint8ArrayToBase64(bytes);
+    } else {
+      const body = await c.req.json().catch(() => ({}));
+      if (body.lang === 'en') lang = 'en';
+
+      if (typeof body.imageBase64 === 'string' && body.imageBase64.trim()) {
+        const raw = body.imageBase64.trim();
+        const match = raw.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+        if (match) {
+          mimeType = match[1].toLowerCase() === 'image/jpg' ? 'image/jpeg' : match[1].toLowerCase();
+          base64Data = match[2];
+        } else {
+          mimeType = (body.mimeType || 'image/jpeg').toLowerCase();
+          base64Data = raw;
+        }
+      } else if (typeof body.imageUrl === 'string' && body.imageUrl.trim()) {
+        const urlCheck = validateProductImageUrl(body.imageUrl.trim());
+        if (!urlCheck.isValid || !urlCheck.sanitizedUrl) {
+          return c.json({ error: urlCheck.error || 'Invalid image URL' }, 400);
+        }
+        const imgRes = await fetch(urlCheck.sanitizedUrl);
+        if (!imgRes.ok) {
+          return c.json({ error: `Failed to fetch image for analysis (${imgRes.status})` }, 400);
+        }
+        const fetchedType = (imgRes.headers.get('content-type') || 'image/jpeg').split(';')[0].trim().toLowerCase();
+        if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(fetchedType)) {
+          return c.json({ error: 'Unsupported remote image format' }, 400);
+        }
+        const bytes = new Uint8Array(await imgRes.arrayBuffer());
+        if (bytes.byteLength > 5 * 1024 * 1024) {
+          return c.json({ error: 'Remote image exceeds 5 MiB size limit' }, 400);
+        }
+        mimeType = fetchedType === 'image/jpg' ? 'image/jpeg' : fetchedType;
+        base64Data = uint8ArrayToBase64(bytes);
+      } else {
+        return c.json({ error: 'Provide an image file, imageBase64, or imageUrl to analyze' }, 400);
+      }
+    }
+
+    const ai = new GoogleGenAI({
+      apiKey: geminiApiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
+
+    const languageInstruction =
+      lang === 'my'
+        ? 'Write productName, category, and description naturally in Myanmar (Burmese Unicode) mixed with clear retail terms where helpful. Write variant color and size cleanly (e.g., "Black", "Free Size", "M", "L").'
+        : 'Write productName, category, and description in clear English for an e-commerce storefront.';
+
+    const promptText = `Analyze this product photo for a Myanmar e-commerce store catalog and extract structured product fields so the merchant can review, edit, and save.
+${languageInstruction}
+Rules:
+- Only describe attributes, colors, materials, and product type actually visible in the photo. Do not fabricate invisible certifications or brand guarantees.
+- Provide a realistic estimated retail price in Myanmar Kyats (MMK) as an integer (e.g. 25000).
+- Provide a short uppercase alphanumeric skuPrefix (e.g. "DRESS-BLK" or "BAG-LTH").
+- Detect visible color(s) and appropriate standard size(s) for variants (1 to 3 variants, default stock 10 each).`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-4-hydrogen',
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              mimeType,
+              data: base64Data,
+            },
+          },
+          {
+            text: promptText,
+          },
+        ],
+      },
+      config: {
+        systemInstruction:
+          'You are a retail catalog specialist helping Myanmar online sellers quickly list products from photos. Return strictly valid JSON matching the requested schema.',
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            productName: {
+              type: Type.STRING,
+              description: 'Concise, appealing product title based on the image.',
+            },
+            category: {
+              type: Type.STRING,
+              description: 'Product category such as Fashion, Footwear, Bags, Cosmetics, Electronics, Accessories, Home & Living, or Food & Beverage.',
+            },
+            description: {
+              type: Type.STRING,
+              description: 'Helpful 2-3 sentence retail description detailing visible design, color, style, and usage.',
+            },
+            skuPrefix: {
+              type: Type.STRING,
+              description: 'Short uppercase SKU prefix like SHIRT-BLK or CREAM-50ML.',
+            },
+            suggestedPrice: {
+              type: Type.INTEGER,
+              description: 'Estimated selling price in MMK (positive integer).',
+            },
+            variants: {
+              type: Type.ARRAY,
+              description: 'Detected color and size options.',
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  color: { type: Type.STRING },
+                  size: { type: Type.STRING },
+                  stock: { type: Type.INTEGER },
+                },
+                required: ['color', 'size', 'stock'],
+              },
+            },
+          },
+          required: ['productName', 'category', 'description', 'skuPrefix', 'suggestedPrice', 'variants'],
+        },
+      },
+    });
+
+    const rawJson = (response.text ?? '{}').trim();
+    const parsed = JSON.parse(rawJson);
+
+    return c.json({
+      success: true,
+      analysis: {
+        name: typeof parsed.productName === 'string' ? parsed.productName.trim() : '',
+        category: typeof parsed.category === 'string' ? parsed.category.trim() : '',
+        description: typeof parsed.description === 'string' ? parsed.description.trim() : '',
+        skuPrefix: typeof parsed.skuPrefix === 'string'
+          ? parsed.skuPrefix.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 16)
+          : '',
+        price: Number.isFinite(Number(parsed.suggestedPrice)) && Number(parsed.suggestedPrice) > 0
+          ? Math.round(Number(parsed.suggestedPrice))
+          : 15000,
+        variants: Array.isArray(parsed.variants) && parsed.variants.length > 0
+          ? parsed.variants.slice(0, 5).map((v: any) => ({
+              color: typeof v?.color === 'string' && v.color.trim() ? v.color.trim() : 'Standard',
+              size: typeof v?.size === 'string' && v.size.trim() ? v.size.trim() : 'Free Size',
+              stock: Number.isInteger(Number(v?.stock)) && Number(v.stock) >= 0 ? Number(v.stock) : 10,
+            }))
+          : [{ color: 'Standard', size: 'Free Size', stock: 10 }],
+      },
+    });
+  } catch (err: any) {
+    console.error('[AnalyzeProductImage] Failed:', err);
+    return c.json(
+      { error: err?.message || 'Failed to analyze product image with AI' },
+      500
+    );
   }
 });
 

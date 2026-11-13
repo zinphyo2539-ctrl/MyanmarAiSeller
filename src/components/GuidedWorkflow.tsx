@@ -11,10 +11,11 @@ interface WorkflowStep {
 
 interface GuidedWorkflowProps {
   steps: WorkflowStep[];
-  onFinish: () => void;
+  onFinish: () => void | Promise<void>;
   onClose: () => void;
   lang: 'my' | 'en';
   persistentContent?: React.ReactNode;
+  finishLabel?: string;
 }
 
 export const GuidedWorkflow: React.FC<GuidedWorkflowProps> = ({
@@ -22,7 +23,8 @@ export const GuidedWorkflow: React.FC<GuidedWorkflowProps> = ({
   onFinish,
   onClose,
   lang,
-  persistentContent
+  persistentContent,
+  finishLabel
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -49,7 +51,14 @@ export const GuidedWorkflow: React.FC<GuidedWorkflowProps> = ({
     }
 
     if (isLastStep) {
-      onFinish();
+      setLoading(true);
+      try {
+        await onFinish();
+      } catch (err: any) {
+        setError(err?.message || 'Failed to complete workflow');
+      } finally {
+        setLoading(false);
+      }
     } else {
       setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
     }
@@ -129,9 +138,7 @@ export const GuidedWorkflow: React.FC<GuidedWorkflowProps> = ({
             <>
               <span>
                 {isLastStep
-                  ? lang === 'my'
-                    ? 'ပြီးဆုံးမည်'
-                    : 'Finish'
+                  ? finishLabel || (lang === 'my' ? 'ပြီးဆုံးမည်' : 'Finish')
                   : lang === 'my'
                   ? 'ရှေ့ဆက်မည်'
                   : 'Next'}
