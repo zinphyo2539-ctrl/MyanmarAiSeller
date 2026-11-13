@@ -1148,6 +1148,15 @@ export default function App() {
             }}
             onLogout={handleLogout}
             onOpenPublicStore={() => setIsPublicStoreOpen(true)}
+            onOpenStorefront={(targetSlug: string) => {
+              const cleanSlug = targetSlug || 'yangon-style';
+              try {
+                window.history.pushState({}, '', `/store/${encodeURIComponent(cleanSlug)}`);
+              } catch {}
+              setPublicStoreSlug(cleanSlug);
+              setIsMarketplace(false);
+              setSelectedProductId(null);
+            }}
             initialTab={subFilter}
             config={aiConfig}
             samples={samples}

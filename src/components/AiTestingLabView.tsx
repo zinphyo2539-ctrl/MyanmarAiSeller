@@ -353,12 +353,12 @@ export const AiTestingLabView: React.FC<AiTestingLabViewProps> = ({
 
           {/* Engine & Context Metadata (Zero-pill text separators) */}
           <div className="flex items-center gap-2 text-[11px] text-[#817D70] font-mono flex-wrap">
-            <span>Provider: Groq</span>
+            <span>Provider: Groq (Main)</span>
             <span aria-hidden="true">·</span>
-            <span>Model: {labStatus?.model || 'openai/gpt-oss-120b'}</span>
+            <span>Model: {labStatus?.model || 'llama-3.3-70b-versatile'}</span>
             <span aria-hidden="true">·</span>
             <span className={labStatus?.configured ? 'text-[#50C878]' : 'text-[#E06B61]'}>
-              {labStatus?.configured ? 'Key Configured' : 'Key Missing'}
+              {labStatus?.configured ? 'Key Configured' : 'GROQ_API_KEY Missing'}
             </span>
             <span aria-hidden="true">·</span>
             <span className="text-[#A88419]">Turns: {messages.filter(m => m.role === 'user').length}</span>

@@ -35,13 +35,28 @@ export class MerchantRepository {
         limit: 1,
       });
       if (results.length > 0) return results[0];
+
+      // Secondary scan for mixed-case slugs or merchant IDs used as slugs
+      const allFirestore = await this.client.runQuery<MerchantRecord>('merchants', { limit: 200 });
+      const firestoreMatch = allFirestore.find(
+        (m: any) =>
+          m?.store?.slug?.toLowerCase() === cleanSlug ||
+          m?.id?.toLowerCase() === cleanSlug ||
+          m?.slug?.toLowerCase() === cleanSlug
+      );
+      if (firestoreMatch) return firestoreMatch;
     } catch (err: any) {
       console.warn('Firestore query failed for merchants by slug, falling back to local db:', err?.message || err);
     }
     let foundMerchant: MerchantRecord | null = null;
     await withDbTransaction((db: any) => {
       const allMerchants = Object.values(db.merchants || {}) as MerchantRecord[];
-      const match = allMerchants.find((m: any) => m.store?.slug?.toLowerCase() === cleanSlug || m.id === cleanSlug || m.slug === cleanSlug);
+      const match = allMerchants.find(
+        (m: any) =>
+          m.store?.slug?.toLowerCase() === cleanSlug ||
+          m.id?.toLowerCase() === cleanSlug ||
+          m.slug?.toLowerCase() === cleanSlug
+      );
       if (match) {
         foundMerchant = match;
       }
@@ -70,7 +85,17 @@ export class MerchantRepository {
   }
 
   async listAll(limit = 100): Promise<MerchantRecord[]> {
-    return await this.client.runQuery<MerchantRecord>('merchants', { limit });
+    try {
+      const docs = await this.client.runQuery<MerchantRecord>('merchants', { limit });
+      if (docs && docs.length > 0) return docs;
+    } catch (err: any) {
+      console.warn('Firestore listAll failed for merchants, falling back to local db:', err?.message || err);
+    }
+    let local: MerchantRecord[] = [];
+    await withDbTransaction((db: any) => {
+      local = Object.values(db.merchants || {}) as MerchantRecord[];
+    });
+    return local.slice(0, limit);
   }
 }
 

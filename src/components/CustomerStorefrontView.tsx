@@ -138,6 +138,52 @@ const DEFAULT_THEME: StorefrontThemeConfig = {
   }
 };
 
+function mergeThemeWithDefaults(partial?: Partial<StorefrontThemeConfig> | null): StorefrontThemeConfig {
+  if (!partial) return DEFAULT_THEME;
+  return {
+    ...DEFAULT_THEME,
+    ...partial,
+    brand: { ...DEFAULT_THEME.brand, ...(partial.brand || {}) },
+    background: { ...DEFAULT_THEME.background, ...(partial.background || {}) },
+    typography: { ...DEFAULT_THEME.typography, ...(partial.typography || {}) },
+    header: { ...DEFAULT_THEME.header, ...(partial.header || {}) },
+    homepage: {
+      ...DEFAULT_THEME.homepage,
+      ...(partial.homepage || {}),
+      sections:
+        Array.isArray(partial.homepage?.sections) && partial.homepage.sections.length > 0
+          ? partial.homepage.sections
+          : DEFAULT_THEME.homepage.sections,
+    },
+    productDisplay: { ...DEFAULT_THEME.productDisplay, ...(partial.productDisplay || {}) },
+    buttons: { ...DEFAULT_THEME.buttons, ...(partial.buttons || {}) },
+    footer: {
+      ...DEFAULT_THEME.footer,
+      ...(partial.footer || {}),
+      socialLinks: {
+        ...DEFAULT_THEME.footer.socialLinks,
+        ...(partial.footer?.socialLinks || {}),
+      },
+    },
+  };
+}
+
+const FORCED_GRID_COLS_CLASS: Record<number, string> = {
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+  6: 'grid-cols-6',
+};
+
+const RESPONSIVE_LG_GRID_COLS_CLASS: Record<number, string> = {
+  2: 'lg:grid-cols-2',
+  3: 'lg:grid-cols-3',
+  4: 'lg:grid-cols-4',
+  5: 'lg:grid-cols-5',
+  6: 'lg:grid-cols-6',
+};
+
 const StorefrontProductCard: React.FC<{
   product: Product;
   isHighlighted: boolean;
@@ -307,9 +353,13 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
     return null; // Let Tailwind responsive classes handle it
   }, [viewport, theme.productDisplay.gridColumns, isMobileView, isTabletView, isDesktopView]);
 
-  // Theme variable injection
+  // Theme variable injection (safe deep merge so partial theme configs never crash)
+  const activeTheme = useMemo(
+    () => mergeThemeWithDefaults(previewTheme || theme),
+    [previewTheme, theme]
+  );
+
   const themeVars = useMemo(() => {
-    const activeTheme = previewTheme || theme;
     const b = activeTheme.brand;
     const d = activeTheme.productDisplay;
 
@@ -341,7 +391,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
       '--font-heading': activeTheme.typography.headingFont || 'Plus Jakarta Sans',
       '--font-body': activeTheme.typography.bodyFont || 'Plus Jakarta Sans',
     } as React.CSSProperties;
-  }, [previewTheme, theme]);
+  }, [activeTheme]);
 
   useEffect(() => {
     if (previewStore) setStore(previewStore);
@@ -364,11 +414,16 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
     }
     try {
       setLoading(true);
+      setFetchError(null);
       const targetSlug = slug || 'yangon-style';
       const res = await fetch(`/api/public/store/${encodeURIComponent(targetSlug)}`);
       if (res.status === 404) {
         if (!isPreviewMode) setNotFound(true);
         return;
+      }
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody?.error || `Failed to load store (${res.status})`);
       }
       const data = await res.json();
       if (!data?.merchant) {
@@ -393,11 +448,11 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
       setStore(prev => previewStore || formattedStore);
       setProducts(prev => (previewProducts && previewProducts.length > 0) ? previewProducts : (data.products || []));
       if (!previewTheme && formattedStore.themeConfig) {
-        setTheme(formattedStore.themeConfig);
+        setTheme(mergeThemeWithDefaults(formattedStore.themeConfig));
       }
       setNotFound(false);
     } catch (err: any) {
-      setFetchError(err.message);
+      setFetchError(err?.message || 'Unable to load storefront.');
     } finally {
       setLoading(false);
     }
@@ -412,8 +467,10 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   }, [isSearchOpen]);
 
   const addToCart = (product: Product, variantId?: string, qty = 1) => {
-    const vId = variantId || product.variants[0]?.id;
-    const variant = product.variants.find(v => v.id === vId) || product.variants[0];
+    const variants = product.variants || [];
+    const vId = variantId || variants[0]?.id || 'default';
+    const variant = variants.find(v => v.id === vId) || variants[0];
+    if (!variant) return;
     
     setCart(prev => {
       const existing = prev.find(item => item.productId === product.id && item.variantId === vId);
@@ -427,10 +484,10 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
         productId: product.id,
         variantId: vId,
         name: product.name,
-        variantName: `${variant.color} / ${variant.size}`,
-        price: product.price,
+        variantName: `${variant.color || 'Standard'} / ${variant.size || 'Free'}`,
+        price: Number(product.price) || 0,
         qty: 1,
-        maxStock: variant.stock,
+        maxStock: Number(variant.stock) || 0,
         imageUrl: product.imageUrl
       }];
     });
@@ -442,15 +499,76 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
   }, [products]);
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.sku || '').toLowerCase().includes(q);
     const matchesCategory = activeCategory === 'all' || p.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
+  const announcementText = useMemo(() => {
+    if (activeTheme.header?.announcementText && activeTheme.header.announcementText.trim()) {
+      return activeTheme.header.announcementText.trim();
+    }
+    if (store?.deliveryInfo && store.deliveryInfo.trim()) {
+      const firstLine = store.deliveryInfo.split('\n')[0].trim();
+      if (firstLine.length > 0 && firstLine.length <= 70) {
+        return firstLine;
+      }
+    }
+    if (store?.tagline && store.tagline.trim()) {
+      return store.tagline.trim();
+    }
+    return lang === 'my'
+      ? 'တစ်နိုင်ငံလုံး အိမ်အရောက် ပို့ဆောင်ပေးပါသည်'
+      : 'Complimentary Express Delivery Across Myanmar';
+  }, [activeTheme.header?.announcementText, store?.deliveryInfo, store?.tagline, lang]);
+
   if (loading && !isPreviewMode) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <RefreshCw className="w-8 h-8 text-black animate-spin" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0C0C0F] text-slate-200 gap-3">
+        <RefreshCw className="w-8 h-8 text-purple-400 animate-spin" />
+        <p className="text-xs text-slate-400 font-mono">
+          {lang === 'my' ? 'စတိုးဆိုင် ဖွင့်နေပါသည်...' : 'Loading storefront...'}
+        </p>
+      </div>
+    );
+  }
+
+  if (fetchError && !isPreviewMode) {
+    return (
+      <div className="min-h-screen bg-[#0C0C0F] text-slate-100 flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full bg-[#141419] border border-rose-500/25 rounded-3xl p-8 shadow-2xl space-y-5">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-7 h-7" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-white">
+              {lang === 'my' ? 'စတိုးဆိုင် ဖွင့်ရာတွင် အမှားဖြစ်နေပါသည်' : 'Unable to Open Storefront'}
+            </h2>
+            <p className="text-xs text-slate-400 leading-relaxed">{fetchError}</p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+            <button
+              type="button"
+              onClick={fetchStoreData}
+              className="flex-1 py-2.5 px-4 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>{lang === 'my' ? 'ထပ်မံကြိုးစားမည်' : 'Retry'}</span>
+            </button>
+            {onNavigateToMerchant && (
+              <button
+                type="button"
+                onClick={onNavigateToMerchant}
+                className="py-2.5 px-4 bg-white/5 border border-white/10 text-slate-300 font-bold text-xs rounded-xl hover:bg-white/10 transition-all cursor-pointer"
+              >
+                {lang === 'my' ? 'ပင်မစာမျက်နှာ' : 'Back'}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -497,28 +615,39 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
     );
   }
 
-  const activeTheme = previewTheme || theme;
-
-  const announcementText = useMemo(() => {
-    if (activeTheme.header?.announcementText && activeTheme.header.announcementText.trim()) {
-      return activeTheme.header.announcementText.trim();
-    }
-    if (store?.deliveryInfo && store.deliveryInfo.trim()) {
-      const firstLine = store.deliveryInfo.split('\n')[0].trim();
-      if (firstLine.length > 0 && firstLine.length <= 70) {
-        return firstLine;
-      }
-    }
-    if (store?.tagline && store.tagline.trim()) {
-      return store.tagline.trim();
-    }
-    return lang === 'my'
-      ? 'တစ်နိုင်ငံလုံး အိမ်အရောက် ပို့ဆောင်ပေးပါသည်'
-      : 'Complimentary Express Delivery Across Myanmar';
-  }, [activeTheme.header?.announcementText, store?.deliveryInfo, store?.tagline, lang]);
-
   return (
     <div style={themeVars} className="min-h-screen bg-[var(--surface-canvas)] text-[var(--text-secondary)] font-sans selection:bg-[var(--brand-primary)] selection:text-[var(--brand-on-primary)] overflow-x-hidden">
+      {/* Compact Storefront / Merchant Navigation Bar when viewed directly */}
+      {!isPreviewMode && (onNavigateToMerchant || onNavigateToMarketplace) && (
+        <div className="bg-slate-950 text-slate-200 border-b border-white/10 px-4 py-2 text-[11px] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Store className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+            <span className="font-semibold truncate text-white">
+              {store?.storeName || slug}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {onNavigateToMarketplace && (
+              <button
+                type="button"
+                onClick={onNavigateToMarketplace}
+                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 font-semibold cursor-pointer transition-colors"
+              >
+                {lang === 'my' ? 'ဆိုင်စုံ (Marketplace)' : 'Marketplace'}
+              </button>
+            )}
+            {onNavigateToMerchant && (
+              <button
+                type="button"
+                onClick={onNavigateToMerchant}
+                className="px-2.5 py-1 rounded-lg bg-purple-600/80 hover:bg-purple-500 text-white font-semibold cursor-pointer transition-colors"
+              >
+                {lang === 'my' ? 'Merchant Panel သို့' : 'Merchant Panel'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* TIER 1: Announcement Bar - Ultra-Clean Single-Line Ribbon */}
       {activeTheme.header?.showAnnouncement !== false && announcementText && (
@@ -721,7 +850,7 @@ export const CustomerStorefrontView: React.FC<CustomerStorefrontViewProps> = ({
               </div>
            </div>
 
-           <div className={`grid ${isMobileView ? 'gap-4 grid-cols-2' : (isForced ? `gap-8 grid-cols-${gridCols}` : `gap-4 sm:gap-8 grid-cols-2 md:grid-cols-3 lg:grid-cols-${activeTheme.productDisplay.gridColumns}`)}`}>
+           <div className={`grid ${isMobileView ? 'gap-4 grid-cols-2' : (isForced ? `gap-8 ${FORCED_GRID_COLS_CLASS[gridCols || 3] || 'grid-cols-3'}` : `gap-4 sm:gap-8 grid-cols-2 md:grid-cols-3 ${RESPONSIVE_LG_GRID_COLS_CLASS[activeTheme.productDisplay.gridColumns] || 'lg:grid-cols-3'}`)}`}>
               {filteredProducts.map(product => (
                 <StorefrontProductCard 
                   key={product.id}

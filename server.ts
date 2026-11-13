@@ -5,7 +5,6 @@
  */
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { GoogleGenAI, Type } from '@google/genai';
 import { FirestoreRestClient } from './server/firestoreClient.ts';
 import { validateProductImageUrl } from './server/validator.ts';
 import { checkoutEngine } from './server/checkoutEngine.ts';
@@ -40,7 +39,6 @@ export interface Bindings {
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GROQ_API_KEY?: string;
-  GEMINI_API_KEY?: string;
   CLOUDFLARE_API_TOKEN?: string;
   CLOUDFLARE_ACCOUNT_ID?: string;
 }
@@ -726,9 +724,41 @@ app.get('/api/merchant/samples', async (c) => {
   return c.json([]);
 });
 
-// Merchant AI Config
-app.get('/api/merchant/ai-config', (c) => {
-  return c.json({
+const GROQ_MAIN_TEXT_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MAIN_VISION_MODEL = 'qwen/qwen3.8-27b';
+const CF_FALLBACK_TEXT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const CF_FALLBACK_VISION_MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
+
+function getAiRuntimeConfig(c: any) {
+  const groqApiKey =
+    c.env?.GROQ_API_KEY ||
+    (typeof process !== 'undefined' ? process.env?.GROQ_API_KEY : undefined);
+  const cfAiBinding = (c.env as any)?.AI;
+  const cfToken =
+    c.env?.CLOUDFLARE_API_TOKEN ||
+    (typeof process !== 'undefined' ? process.env?.CLOUDFLARE_API_TOKEN : undefined);
+  const cfAccount =
+    c.env?.CLOUDFLARE_ACCOUNT_ID ||
+    (typeof process !== 'undefined' ? process.env?.CLOUDFLARE_ACCOUNT_ID : undefined);
+
+  const hasGroq = Boolean(typeof groqApiKey === 'string' && groqApiKey.trim());
+  const hasCloudflare = Boolean(
+    (cfAiBinding && typeof cfAiBinding.run === 'function') ||
+      (cfToken && cfAccount)
+  );
+
+  return {
+    groqApiKey: hasGroq ? groqApiKey!.trim() : undefined,
+    cfAiBinding,
+    cfToken,
+    cfAccount,
+    hasGroq,
+    hasCloudflare,
+  };
+}
+
+function getDefaultAiConfig() {
+  return {
     enabled: true,
     preferredLanguage: 'myanmar',
     replyStyle: 'friendly',
@@ -741,25 +771,424 @@ app.get('/api/merchant/ai-config', (c) => {
       followUp: 'needed_only',
       salesApproach: 'helpful_recommendations',
       discountBehavior: 'verified_only',
-      uncertainPolicy: 'escalate_to_human'
+      uncertainPolicy: 'escalate_to_human',
     },
     humanHandoff: {
       enabled: true,
       triggerOnUncertain: true,
       triggerOnComplaint: true,
       triggerOnHumanRequest: true,
-      notificationChannel: 'telegram_staff'
+      notificationChannel: 'telegram_staff',
+    },
+  };
+}
+
+async function callGroqTextChat(
+  groqApiKey: string,
+  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  options?: { model?: string; temperature?: number; maxTokens?: number }
+): Promise<{ text: string; model: string }> {
+  const model = options?.model || GROQ_MAIN_TEXT_MODEL;
+  const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${groqApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: options?.temperature ?? 0.5,
+      max_tokens: options?.maxTokens ?? 700,
+    }),
+  });
+
+  if (!groqRes.ok) {
+    const errText = await groqRes.text().catch(() => '');
+    throw new Error(`Groq API failed (${groqRes.status}): ${errText || groqRes.statusText}`);
+  }
+
+  const groqData: any = await groqRes.json();
+  const content = groqData?.choices?.[0]?.message?.content;
+  if (typeof content !== 'string' || !content.trim()) {
+    throw new Error('Groq API returned an empty completion');
+  }
+  return { text: content.trim(), model };
+}
+
+async function callCloudflareTextChat(
+  cfAiBinding: any,
+  cfToken: string | undefined,
+  cfAccount: string | undefined,
+  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  maxTokens = 700
+): Promise<{ text: string; model: string }> {
+  const payload = { messages, max_tokens: maxTokens };
+
+  if (cfAiBinding && typeof cfAiBinding.run === 'function') {
+    const result = await cfAiBinding.run(CF_FALLBACK_TEXT_MODEL, payload);
+    const text = typeof result?.response === 'string' ? result.response.trim() : '';
+    if (!text) throw new Error('Cloudflare Workers AI returned empty response');
+    return { text, model: CF_FALLBACK_TEXT_MODEL };
+  }
+
+  if (!cfToken || !cfAccount) {
+    throw new Error('Cloudflare Workers AI credentials are not configured');
+  }
+
+  const endpoint = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(cfAccount)}/ai/run/${CF_FALLBACK_TEXT_MODEL}`;
+  const cfRes = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${cfToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!cfRes.ok) {
+    const errText = await cfRes.text().catch(() => '');
+    throw new Error(`Cloudflare AI failed (${cfRes.status}): ${errText || cfRes.statusText}`);
+  }
+
+  const cfJson: any = await cfRes.json();
+  const text = String(cfJson?.result?.response ?? cfJson?.response ?? '').trim();
+  if (!text) throw new Error('Cloudflare Workers AI returned empty response');
+  return { text, model: CF_FALLBACK_TEXT_MODEL };
+}
+
+function buildSalesSystemPrompt(params: {
+  shopName: string;
+  products: ProductRecord[];
+  customInstructions?: string;
+  replyStyle?: string;
+  preferredLanguage?: string;
+  catalogMode?: 'real' | 'empty';
+}): string {
+  const {
+    shopName,
+    products,
+    customInstructions,
+    replyStyle = 'friendly',
+    preferredLanguage = 'myanmar',
+    catalogMode = 'real',
+  } = params;
+
+  const langRule =
+    preferredLanguage === 'english'
+      ? 'Respond in clear, polite English.'
+      : preferredLanguage === 'bilingual'
+      ? 'Respond primarily in natural Myanmar (Burmese Unicode) with helpful English product terms.'
+      : 'Respond naturally and politely in Myanmar (Burmese Unicode).';
+
+  const catalogLines =
+    catalogMode === 'empty' || products.length === 0
+      ? 'Catalog is currently empty (0 products available). Do NOT invent any products, prices, or stock. Politely state that no matching stock is listed and offer human assistance.'
+      : products
+          .slice(0, 30)
+          .map((p) => {
+            const variantsText = Array.isArray(p.variants) && p.variants.length > 0
+              ? p.variants.map((v: any) => `${v.color || 'Std'}/${v.size || 'Free'}: ${Number(v.stock || 0)} left`).join(', ')
+              : 'Standard stock';
+            return `- ${p.name} (SKU: ${p.sku}) | Price: ${Number(p.price || 0).toLocaleString()} MMK | Category: ${p.category || 'General'} | Variants: ${variantsText}`;
+          })
+          .join('\n');
+
+  return [
+    `You are the official AI Sales Representative for "${shopName}".`,
+    langRule,
+    `Reply style: ${replyStyle}.`,
+    customInstructions ? `Merchant instructions: ${customInstructions}` : '',
+    'Strict truthfulness rules:',
+    '1. ONLY quote product names, prices, and variant stock quantities explicitly present in the Verified Catalog below.',
+    '2. If a requested item is not in the catalog, clearly state it is unavailable without inventing alternatives or prices.',
+    '3. NEVER confirm or claim that a bank/KBZPay payment has been verified or received; explain that human staff will verify payment slips.',
+    `Verified Store Catalog (${catalogMode === 'empty' ? 0 : products.length} items):\n${catalogLines}`,
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+// Merchant AI Config
+app.get('/api/merchant/ai-config', async (c) => {
+  const defaults = getDefaultAiConfig();
+  const auth = await extractUser(c);
+  if (auth?.user?.merchantId) {
+    const merchant = await merchantRepository.findById(auth.user.merchantId);
+    if (merchant?.aiConfig) {
+      return c.json({
+        ...defaults,
+        ...merchant.aiConfig,
+        salesBehavior: { ...defaults.salesBehavior, ...(merchant.aiConfig.salesBehavior || {}) },
+        humanHandoff: { ...defaults.humanHandoff, ...(merchant.aiConfig.humanHandoff || {}) },
+        provider: 'groq',
+        model: GROQ_MAIN_TEXT_MODEL,
+        visionModel: GROQ_MAIN_VISION_MODEL,
+      });
     }
+  }
+  return c.json({
+    ...defaults,
+    provider: 'groq',
+    model: GROQ_MAIN_TEXT_MODEL,
+    visionModel: GROQ_MAIN_VISION_MODEL,
   });
 });
 
-// AI Health Status
+app.put('/api/merchant/ai-config', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth?.user?.merchantId) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+  try {
+    const body = await c.req.json();
+    const merchant = await merchantRepository.findById(auth.user.merchantId);
+    if (!merchant) {
+      return c.json({ error: 'Merchant not found' }, 404);
+    }
+    const defaults = getDefaultAiConfig();
+    const current = merchant.aiConfig || defaults;
+    const updatedConfig = {
+      ...defaults,
+      ...current,
+      ...body,
+      salesBehavior: {
+        ...defaults.salesBehavior,
+        ...(current.salesBehavior || {}),
+        ...(body.salesBehavior || {}),
+      },
+      humanHandoff: {
+        ...defaults.humanHandoff,
+        ...(current.humanHandoff || {}),
+        ...(body.humanHandoff || {}),
+      },
+      updatedAt: new Date().toISOString(),
+    };
+    merchant.aiConfig = updatedConfig;
+    await merchantRepository.upsert(merchant);
+    return c.json({ success: true, aiConfig: updatedConfig });
+  } catch (err: any) {
+    return c.json({ error: err?.message || 'Failed to update AI config' }, 500);
+  }
+});
+
+// AI Health Status (Groq is strictly Main AI Provider; Cloudflare Workers AI is optional fallback)
 app.get('/api/ai/health', (c) => {
+  const { hasGroq, hasCloudflare } = getAiRuntimeConfig(c);
+  const now = new Date().toISOString();
   return c.json({
-    status: 'healthy',
-    provider: 'cloudflare-workers',
-    model: 'gemini-1.5-flash',
-    timestamp: new Date().toISOString()
+    provider: 'groq',
+    configured: hasGroq,
+    status: hasGroq ? 'operational' : 'configuration_missing',
+    model: GROQ_MAIN_TEXT_MODEL,
+    visionModel: GROQ_MAIN_VISION_MODEL,
+    fallbackProvider: hasCloudflare ? 'cloudflare-workers-ai' : null,
+    fallbackConfigured: hasCloudflare,
+    fallbackVisionModel: hasCloudflare ? CF_FALLBACK_VISION_MODEL : null,
+    lastCheck: now,
+    timestamp: now,
+  });
+});
+
+// AI Reply Live Preview (Groq Main)
+app.post('/api/ai/preview', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth?.user?.merchantId) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+  const { groqApiKey, cfAiBinding, cfToken, cfAccount, hasGroq, hasCloudflare } = getAiRuntimeConfig(c);
+  if (!hasGroq && !hasCloudflare) {
+    return c.json({ error: 'GROQ_API_KEY is not configured on the server.' }, 503);
+  }
+
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const customerMessage = String(body.customerMessage || '').trim();
+    if (!customerMessage) {
+      return c.json({ error: 'customerMessage is required' }, 400);
+    }
+
+    const merchant = await merchantRepository.findById(auth.user.merchantId);
+    const products = await productRepository.findByMerchantId(auth.user.merchantId);
+    const systemPrompt = buildSalesSystemPrompt({
+      shopName: merchant?.shopName || 'ShopSone Store',
+      products,
+      customInstructions: body.customInstructions || merchant?.aiConfig?.customInstructions,
+      replyStyle: body.replyStyle || merchant?.aiConfig?.replyStyle,
+      preferredLanguage: body.preferredLanguage || merchant?.aiConfig?.preferredLanguage,
+    });
+
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: customerMessage },
+    ];
+
+    if (groqApiKey) {
+      try {
+        const res = await callGroqTextChat(groqApiKey, messages);
+        return c.json({ previewReply: res.text, provider: 'groq', model: res.model });
+      } catch (groqErr) {
+        if (!hasCloudflare) throw groqErr;
+      }
+    }
+
+    const cfRes = await callCloudflareTextChat(cfAiBinding, cfToken, cfAccount, messages);
+    return c.json({ previewReply: cfRes.text, provider: 'cloudflare-workers-ai', model: cfRes.model });
+  } catch (err: any) {
+    return c.json({ error: err?.message || 'AI preview failed' }, 500);
+  }
+});
+
+// AI Testing Lab Status & Chat (Groq Main)
+app.get('/api/ai/test-lab/status', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth?.user?.merchantId) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+  const { hasGroq, hasCloudflare } = getAiRuntimeConfig(c);
+  const merchant = await merchantRepository.findById(auth.user.merchantId);
+  const products = await productRepository.findByMerchantId(auth.user.merchantId);
+
+  return c.json({
+    status: hasGroq ? 'operational' : 'configuration_missing',
+    provider: 'groq',
+    model: GROQ_MAIN_TEXT_MODEL,
+    visionModel: GROQ_MAIN_VISION_MODEL,
+    configured: hasGroq,
+    fallbackProvider: hasCloudflare ? 'cloudflare-workers-ai' : null,
+    fallbackConfigured: hasCloudflare,
+    merchantId: auth.user.merchantId,
+    shopName: merchant?.shopName || 'ShopSone Store',
+    realCatalogCount: products.length,
+    sampleCount: 0,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.post('/api/ai/test-lab/chat', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth?.user?.merchantId) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+  const { groqApiKey, cfAiBinding, cfToken, cfAccount, hasGroq, hasCloudflare } = getAiRuntimeConfig(c);
+  if (!hasGroq && !hasCloudflare) {
+    return c.json({ error: 'GROQ_API_KEY is not configured on the server.' }, 503);
+  }
+
+  const startedAt = Date.now();
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const customerMessage = String(body.customerMessage || '').trim();
+    if (!customerMessage) {
+      return c.json({ error: 'customerMessage is required' }, 400);
+    }
+    const catalogMode: 'real' | 'empty' = body.catalogMode === 'empty' ? 'empty' : 'real';
+    const merchant = await merchantRepository.findById(auth.user.merchantId);
+    const allProducts = await productRepository.findByMerchantId(auth.user.merchantId);
+    const groundedProducts = catalogMode === 'empty' ? [] : allProducts;
+
+    const systemPrompt = buildSalesSystemPrompt({
+      shopName: merchant?.shopName || 'ShopSone Store',
+      products: groundedProducts,
+      customInstructions: body.customInstructions || merchant?.aiConfig?.customInstructions,
+      replyStyle: body.replyStyle || merchant?.aiConfig?.replyStyle,
+      preferredLanguage: body.preferredLanguage || merchant?.aiConfig?.preferredLanguage,
+      catalogMode,
+    });
+
+    const historyTurns = Array.isArray(body.history)
+      ? body.history
+          .slice(-10)
+          .filter((m: any) => (m?.role === 'user' || m?.role === 'assistant') && typeof m?.content === 'string')
+          .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+      : [];
+
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+      ...historyTurns,
+      { role: 'user', content: customerMessage },
+    ];
+
+    let replyText = '';
+    let usedProvider = 'groq';
+    let usedModel = GROQ_MAIN_TEXT_MODEL;
+
+    if (groqApiKey) {
+      try {
+        const res = await callGroqTextChat(groqApiKey, messages, { maxTokens: 900 });
+        replyText = res.text;
+        usedModel = res.model;
+      } catch (groqErr) {
+        if (!hasCloudflare) throw groqErr;
+      }
+    }
+
+    if (!replyText && hasCloudflare) {
+      const cfRes = await callCloudflareTextChat(cfAiBinding, cfToken, cfAccount, messages, 900);
+      replyText = cfRes.text;
+      usedProvider = 'cloudflare-workers-ai';
+      usedModel = cfRes.model;
+    }
+
+    return c.json({
+      reply: replyText,
+      metadata: {
+        latencyMs: Date.now() - startedAt,
+        provider: usedProvider,
+        model: usedModel,
+        catalogMode,
+        productsCount: groundedProducts.length,
+      },
+    });
+  } catch (err: any) {
+    return c.json({ error: err?.message || 'Test Lab chat failed' }, 500);
+  }
+});
+
+// AI Store Optimization Suggestions (Groq Main)
+app.post('/api/ai/suggestions', async (c) => {
+  const auth = await extractUser(c);
+  if (!auth?.user?.merchantId) {
+    return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
+  }
+  const products = await productRepository.findByMerchantId(auth.user.merchantId);
+  const { groqApiKey } = getAiRuntimeConfig(c);
+
+  if (groqApiKey) {
+    try {
+      const res = await callGroqTextChat(
+        groqApiKey,
+        [
+          {
+            role: 'system',
+            content:
+              'Return strictly a JSON object {"suggestions": ["...", "...", "..."]} with 3 practical tips in Myanmar Unicode for a retail seller.',
+          },
+          {
+            role: 'user',
+            content: `Store has ${products.length} products. Generate 3 concise Myanmar e-commerce optimization tips for catalog photos, pricing clarity, and fast AI replies.`,
+          },
+        ],
+        { temperature: 0.4, maxTokens: 400 }
+      );
+      const parsed = extractJsonObject(res.text);
+      if (Array.isArray(parsed.suggestions) && parsed.suggestions.length > 0) {
+        return c.json({ suggestions: parsed.suggestions, provider: 'groq', model: res.model });
+      }
+    } catch {
+      // Fall through to deterministic catalog-aware suggestions
+    }
+  }
+
+  return c.json({
+    provider: 'groq',
+    suggestions: [
+      products.length < 3
+        ? 'ကုန်ပစ္စည်းအနည်းဆုံး ၃ မျိုးနှင့်အထက် တင်ထားပါက AI မှ ဖောက်သည်များကို ပိုမိုတိကျစွာ ညွှန်းပေးနိုင်ပါမည်။'
+        : 'ကုန်ပစ္စည်းတိုင်းတွင် အရောင်/အရွယ်အစား Stock အရေအတွက်ကို ပုံမှန် Update လုပ်ထားပါ။',
+      'ပစ္စည်းဓာတ်ပုံများကို 1:1 စတုရန်းပုံစံဖြင့် ကြည်လင်စွာ ရိုက်တင်ခြင်းဖြင့် ဝယ်ယူမှုနှုန်း တိုးမြှင့်နိုင်ပါသည်။',
+      'KBZPay ငွေပေးချေမှု အချက်အလက်များနှင့် ပို့ဆောင်ခ စည်းမျဉ်းများကို ဆိုင်ဆက်တင်တွင် ပြည့်စုံစွာ ဖြည့်သွင်းထားပါ။',
+    ],
   });
 });
 
@@ -779,14 +1208,20 @@ app.post('/api/merchant/onboard', async (c) => {
     const body = await c.req.json();
     const auth = await extractUser(c);
     const merchantId = body.merchantId || `merchant_${Date.now()}`;
+    const rawSlugSource = String(body.slug || body.shopName || body.storeName || '').trim().toLowerCase();
+    const cleanedSlug = rawSlugSource
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    const finalSlug = cleanedSlug || merchantId.toLowerCase();
+
     const merchant: MerchantRecord = {
       id: merchantId,
       shopName: body.shopName || body.storeName || 'My Shop',
       ownerName: body.ownerName || auth?.user?.name || 'Shop Owner',
       email: body.email || auth?.user?.email || 'owner@shop.mm',
       store: {
-        slug: (body.shopName || 'my-shop').toLowerCase().replace(/[^a-z0-9]/g, '-'),
-        storeName: body.shopName || 'My Shop',
+        slug: finalSlug,
+        storeName: body.shopName || body.storeName || 'My Shop',
         description: body.description || '',
         isPublished: true
       },
@@ -821,7 +1256,7 @@ const fetchPublicStoreHandler = async (c: any, targetSlug?: string) => {
 
   try {
     let merchant = await merchantRepository.findBySlug(slug);
-    if (!merchant) {
+    if (!merchant && slug === 'yangon-style') {
       merchant = await merchantRepository.findById('merchant_001');
       if (!merchant) {
         merchant = {
@@ -830,7 +1265,7 @@ const fetchPublicStoreHandler = async (c: any, targetSlug?: string) => {
           ownerName: 'Merchant',
           email: 'merchant@shopsone.com',
           store: {
-            slug: slug || 'yangon-style',
+            slug: 'yangon-style',
             storeName: 'ShopsOne Store',
             isPublished: true,
           },
@@ -838,27 +1273,31 @@ const fetchPublicStoreHandler = async (c: any, targetSlug?: string) => {
         };
       }
     }
-    const products = await productRepository.findByMerchantId(merchant.id);
-    let finalProducts = products;
-    if (!finalProducts || finalProducts.length === 0) {
-      finalProducts = await productRepository.listAll(200).catch(() => []);
+
+    if (!merchant) {
+      return c.json({ error: 'Storefront not found' }, 404);
     }
-    return c.json({ merchant, products: finalProducts || [] });
+
+    const products = await productRepository.findByMerchantId(merchant.id);
+    return c.json({ merchant, products: products || [] });
   } catch (err: any) {
-    const defaultMerchant = {
-      id: 'merchant_001',
-      shopName: 'ShopsOne Store',
-      ownerName: 'Merchant',
-      email: 'merchant@shopsone.com',
-      store: {
-        slug: slug || 'yangon-style',
-        storeName: 'ShopsOne Store',
-        isPublished: true,
-      },
-      aiConfig: {}
-    };
-    const allProducts = await productRepository.listAll(200).catch(() => []);
-    return c.json({ merchant: defaultMerchant, products: allProducts || [] });
+    if (slug === 'yangon-style') {
+      const defaultMerchant = {
+        id: 'merchant_001',
+        shopName: 'ShopsOne Store',
+        ownerName: 'Merchant',
+        email: 'merchant@shopsone.com',
+        store: {
+          slug: 'yangon-style',
+          storeName: 'ShopsOne Store',
+          isPublished: true,
+        },
+        aiConfig: {}
+      };
+      const products = await productRepository.findByMerchantId('merchant_001').catch(() => []);
+      return c.json({ merchant: defaultMerchant, products: products || [] });
+    }
+    return c.json({ error: err?.message || 'Failed to load store' }, 500);
   }
 };
 
@@ -868,23 +1307,40 @@ app.get('/api/public/store/:slug', async (c) => fetchPublicStoreHandler(c));
 app.get('/api/public/store/:slug/', async (c) => fetchPublicStoreHandler(c));
 
 app.get('/api/public/marketplace', async (c) => {
-  const env = c.env;
-  const projectId = env?.FIREBASE_PROJECT_ID || 'gen-lang-client-0903319954';
-  const client = new FirestoreRestClient({
-    projectId,
-    databaseId: env?.FIRESTORE_DATABASE_ID || 'ai-studio-myanmaraiseller-5ecdcad1-2fa1-4433-8ee7-fae758ed7e19',
-    credentials: env?.FIREBASE_PRIVATE_KEY ? {
-      project_id: projectId,
-      client_email: env?.FIREBASE_CLIENT_EMAIL || '',
-      private_key: env.FIREBASE_PRIVATE_KEY
-    } : undefined
-  });
-
   try {
-    const products = await client.runQuery('products', {
-      limit: 50
-    });
-    return c.json({ products: products || [] });
+    const [merchants, allProducts] = await Promise.all([
+      merchantRepository.listAll(100),
+      productRepository.listAll(500).catch(() => [])
+    ]);
+
+    const productsByMerchant = new Map<string, any[]>();
+    for (const p of allProducts || []) {
+      if (!p || !p.merchantId) continue;
+      if (p.status && p.status !== 'active' && p.status !== 'published') continue;
+      const list = productsByMerchant.get(p.merchantId) || [];
+      list.push(p);
+      productsByMerchant.set(p.merchantId, list);
+    }
+
+    const stores = (merchants || [])
+      .filter((m) => m && m.store?.isPublished !== false)
+      .map((m) => {
+        const storeProducts = productsByMerchant.get(m.id) || [];
+        return {
+          slug: m.store?.slug || m.id,
+          storeName: m.store?.storeName || m.shopName || 'ShopSone Store',
+          brandName: m.store?.brandName || m.shopName || '',
+          description: m.store?.description || '',
+          logoUrl: m.store?.logoUrl || '',
+          coverUrl: m.store?.coverUrl || '',
+          deliveryInfo: m.store?.deliveryInfo || '',
+          productCount: storeProducts.length,
+          products: storeProducts
+        };
+      });
+
+    const totalProducts = stores.reduce((sum, s) => sum + s.productCount, 0);
+    return c.json({ stores, totalStores: stores.length, totalProducts });
   } catch (err: any) {
     return c.json({ error: err?.message || 'Internal error' }, 500);
   }
@@ -1031,7 +1487,7 @@ app.post('/api/merchant/ai-actions/propose', async (c) => {
     const proposal = aiActionSecurity.createSignedProposalToken({
       actionType: body.actionType,
       merchantId: body.merchantId,
-      proposedByModel: body.proposedByModel || 'gemini-1.5-flash',
+      proposedByModel: body.proposedByModel || 'groq-llama-3.3-70b-versatile',
       payload: body.payload,
       reasoning: body.reasoning || 'AI proposal'
     });
@@ -1263,20 +1719,197 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+function extractJsonObject(rawText: string): Record<string, any> {
+  const withoutThinking = (rawText || '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  const withoutFences = withoutThinking
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+  try {
+    return JSON.parse(withoutFences);
+  } catch {
+    const start = withoutFences.indexOf('{');
+    const end = withoutFences.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      return JSON.parse(withoutFences.slice(start, end + 1));
+    }
+    throw new Error('AI response did not contain valid JSON');
+  }
+}
+
+async function analyzeImageWithGroq(
+  groqApiKey: string,
+  dataUri: string,
+  promptText: string
+): Promise<{ parsed: Record<string, any>; model: string }> {
+  const model = GROQ_MAIN_VISION_MODEL;
+  const messages = [
+    {
+      role: 'system',
+      content:
+        'You are a retail catalog specialist helping Myanmar online sellers quickly list products from photos. Respond strictly with a single valid JSON object matching the requested schema.',
+    },
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: promptText },
+        { type: 'image_url', image_url: { url: dataUri } },
+      ],
+    },
+  ];
+
+  const sendRequest = async (useJsonMode: boolean) => {
+    const payload: Record<string, any> = {
+      model,
+      messages,
+      temperature: 0.2,
+      max_completion_tokens: 1024,
+    };
+    if (useJsonMode) {
+      payload.response_format = { type: 'json_object' };
+    }
+    return fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  };
+
+  let groqRes = await sendRequest(true);
+  if (!groqRes.ok && groqRes.status === 400) {
+    const firstErr = await groqRes.text().catch(() => '');
+    if (firstErr.toLowerCase().includes('response_format') || firstErr.toLowerCase().includes('json_object')) {
+      groqRes = await sendRequest(false);
+    } else {
+      throw new Error(`Groq vision request failed (400): ${firstErr || groqRes.statusText}`);
+    }
+  }
+
+  if (!groqRes.ok) {
+    const errText = await groqRes.text().catch(() => '');
+    throw new Error(`Groq vision request failed (${groqRes.status}): ${errText || groqRes.statusText}`);
+  }
+
+  const groqData: any = await groqRes.json();
+  const content = groqData?.choices?.[0]?.message?.content;
+  if (typeof content !== 'string' || !content.trim()) {
+    throw new Error('Groq returned an empty vision response');
+  }
+  return { parsed: extractJsonObject(content), model };
+}
+
+async function analyzeImageWithCloudflare(
+  cfAiBinding: any,
+  cfToken: string | undefined,
+  cfAccount: string | undefined,
+  imageBytes: Uint8Array,
+  promptText: string
+): Promise<{ parsed: Record<string, any>; model: string }> {
+  const model = '@cf/meta/llama-3.2-11b-vision-instruct';
+  const messages = [
+    {
+      role: 'system',
+      content:
+        'You are a retail catalog specialist helping Myanmar online sellers quickly list products from photos. Respond ONLY with a valid JSON object (no markdown, no extra text).',
+    },
+    {
+      role: 'user',
+      content: promptText,
+    },
+  ];
+
+  const payload = {
+    messages,
+    image: Array.from(imageBytes),
+    max_tokens: 1024,
+  };
+
+  if (cfAiBinding && typeof cfAiBinding.run === 'function') {
+    const result = await cfAiBinding.run(model, payload);
+    const raw = typeof result?.response === 'string' ? result.response : JSON.stringify(result?.response ?? result ?? {});
+    return { parsed: extractJsonObject(raw), model };
+  }
+
+  if (!cfToken || !cfAccount) {
+    throw new Error('Cloudflare Workers AI credentials are not configured');
+  }
+
+  const endpoint = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(cfAccount)}/ai/run/${model}`;
+  let cfRes = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${cfToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!cfRes.ok) {
+    const errText = await cfRes.text().catch(() => '');
+    // Automatically accept Meta Llama 3.2 license once if Cloudflare prompts for agreement
+    if (errText.toLowerCase().includes('agree') || errText.toLowerCase().includes('license')) {
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${cfToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: 'agree' }),
+      }).catch(() => null);
+
+      cfRes = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${cfToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+    } else {
+      throw new Error(`Cloudflare vision request failed (${cfRes.status}): ${errText || cfRes.statusText}`);
+    }
+  }
+
+  if (!cfRes.ok) {
+    const retryErr = await cfRes.text().catch(() => '');
+    throw new Error(`Cloudflare vision request failed (${cfRes.status}): ${retryErr || cfRes.statusText}`);
+  }
+
+  const cfJson: any = await cfRes.json();
+  const responseField = cfJson?.result?.response ?? cfJson?.result ?? cfJson?.response;
+  const raw = typeof responseField === 'string' ? responseField : JSON.stringify(responseField ?? {});
+  return { parsed: extractJsonObject(raw), model };
+}
+
 app.post('/api/merchant/analyze-product-image', async (c) => {
   const auth = await extractUser(c);
   if (!auth?.user?.merchantId) {
     return c.json({ error: 'Unauthorized: Authentication required', code: 'UNAUTHENTICATED' }, 401);
   }
 
-  const geminiApiKey = c.env?.GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
-  if (!geminiApiKey) {
-    return c.json({ error: 'Gemini API key is not configured on the server.' }, 503);
+  const groqApiKey = c.env?.GROQ_API_KEY || (typeof process !== 'undefined' ? process.env?.GROQ_API_KEY : undefined);
+  const cfAiBinding = (c.env as any)?.AI;
+  const cfToken = c.env?.CLOUDFLARE_API_TOKEN || (typeof process !== 'undefined' ? process.env?.CLOUDFLARE_API_TOKEN : undefined);
+  const cfAccount = c.env?.CLOUDFLARE_ACCOUNT_ID || (typeof process !== 'undefined' ? process.env?.CLOUDFLARE_ACCOUNT_ID : undefined);
+  const hasCloudflare = Boolean((cfAiBinding && typeof cfAiBinding.run === 'function') || (cfToken && cfAccount));
+
+  if (!groqApiKey && !hasCloudflare) {
+    return c.json(
+      {
+        error: 'Main AI provider (Groq) requires GROQ_API_KEY on the server (with optional Cloudflare Workers AI fallback).',
+        code: 'GROQ_API_KEY_MISSING',
+      },
+      503
+    );
   }
 
   try {
     const contentType = c.req.header('content-type') || '';
     let base64Data = '';
+    let imageBytes: Uint8Array | null = null;
     let mimeType = 'image/jpeg';
     let lang: 'my' | 'en' = 'my';
 
@@ -1297,8 +1930,8 @@ app.post('/api/merchant/analyze-product-image', async (c) => {
         return c.json({ error: 'Only JPEG, PNG, and WebP images are supported' }, 400);
       }
       mimeType = normalizedType === 'image/jpg' ? 'image/jpeg' : normalizedType;
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      base64Data = uint8ArrayToBase64(bytes);
+      imageBytes = new Uint8Array(await file.arrayBuffer());
+      base64Data = uint8ArrayToBase64(imageBytes);
     } else {
       const body = await c.req.json().catch(() => ({}));
       if (body.lang === 'en') lang = 'en';
@@ -1313,6 +1946,12 @@ app.post('/api/merchant/analyze-product-image', async (c) => {
           mimeType = (body.mimeType || 'image/jpeg').toLowerCase();
           base64Data = raw;
         }
+        const binary = atob(base64Data);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        imageBytes = bytes;
       } else if (typeof body.imageUrl === 'string' && body.imageUrl.trim()) {
         const urlCheck = validateProductImageUrl(body.imageUrl.trim());
         if (!urlCheck.isValid || !urlCheck.sanitizedUrl) {
@@ -1331,100 +1970,76 @@ app.post('/api/merchant/analyze-product-image', async (c) => {
           return c.json({ error: 'Remote image exceeds 5 MiB size limit' }, 400);
         }
         mimeType = fetchedType === 'image/jpg' ? 'image/jpeg' : fetchedType;
+        imageBytes = bytes;
         base64Data = uint8ArrayToBase64(bytes);
       } else {
         return c.json({ error: 'Provide an image file, imageBase64, or imageUrl to analyze' }, 400);
       }
     }
 
-    const ai = new GoogleGenAI({
-      apiKey: geminiApiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    });
-
     const languageInstruction =
       lang === 'my'
         ? 'Write productName, category, and description naturally in Myanmar (Burmese Unicode) mixed with clear retail terms where helpful. Write variant color and size cleanly (e.g., "Black", "Free Size", "M", "L").'
         : 'Write productName, category, and description in clear English for an e-commerce storefront.';
 
-    const promptText = `Analyze this product photo for a Myanmar e-commerce store catalog and extract structured product fields so the merchant can review, edit, and save.
+    const promptText = `Analyze this product photo for a Myanmar e-commerce store catalog and return strictly a JSON object with this exact schema:
+{
+  "productName": "string (concise appealing product title)",
+  "category": "string (e.g. Fashion, Footwear, Bags, Cosmetics, Electronics, Accessories, Home & Living, Food & Beverage)",
+  "description": "string (2-3 helpful retail sentences describing visible design, color, style, and usage)",
+  "skuPrefix": "string (short uppercase alphanumeric SKU prefix like DRESS-BLK or BAG-LTH)",
+  "suggestedPrice": number (positive integer retail price in MMK, e.g. 25000),
+  "variants": [
+    { "color": "string", "size": "string", "stock": number }
+  ]
+}
+
 ${languageInstruction}
 Rules:
 - Only describe attributes, colors, materials, and product type actually visible in the photo. Do not fabricate invisible certifications or brand guarantees.
-- Provide a realistic estimated retail price in Myanmar Kyats (MMK) as an integer (e.g. 25000).
-- Provide a short uppercase alphanumeric skuPrefix (e.g. "DRESS-BLK" or "BAG-LTH").
-- Detect visible color(s) and appropriate standard size(s) for variants (1 to 3 variants, default stock 10 each).`;
+- Return 1 to 3 variants based on visible color/style (default stock 10 each).
+- Return ONLY valid JSON with no markdown formatting or extra commentary.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType,
-              data: base64Data,
-            },
-          },
-          {
-            text: promptText,
-          },
-        ],
-      },
-      config: {
-        systemInstruction:
-          'You are a retail catalog specialist helping Myanmar online sellers quickly list products from photos. Return strictly valid JSON matching the requested schema.',
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            productName: {
-              type: Type.STRING,
-              description: 'Concise, appealing product title based on the image.',
-            },
-            category: {
-              type: Type.STRING,
-              description: 'Product category such as Fashion, Footwear, Bags, Cosmetics, Electronics, Accessories, Home & Living, or Food & Beverage.',
-            },
-            description: {
-              type: Type.STRING,
-              description: 'Helpful 2-3 sentence retail description detailing visible design, color, style, and usage.',
-            },
-            skuPrefix: {
-              type: Type.STRING,
-              description: 'Short uppercase SKU prefix like SHIRT-BLK or CREAM-50ML.',
-            },
-            suggestedPrice: {
-              type: Type.INTEGER,
-              description: 'Estimated selling price in MMK (positive integer).',
-            },
-            variants: {
-              type: Type.ARRAY,
-              description: 'Detected color and size options.',
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  color: { type: Type.STRING },
-                  size: { type: Type.STRING },
-                  stock: { type: Type.INTEGER },
-                },
-                required: ['color', 'size', 'stock'],
-              },
-            },
-          },
-          required: ['productName', 'category', 'description', 'skuPrefix', 'suggestedPrice', 'variants'],
-        },
-      },
-    });
+    const dataUri = `data:${mimeType};base64,${base64Data}`;
+    let parsed: Record<string, any> | null = null;
+    let usedProvider = '';
+    let usedModel = '';
+    const errors: string[] = [];
 
-    const rawJson = (response.text ?? '{}').trim();
-    const parsed = JSON.parse(rawJson);
+    // Primary (Main) AI Provider: Groq Vision (qwen/qwen3.8-27b)
+    if (groqApiKey) {
+      try {
+        const res = await analyzeImageWithGroq(groqApiKey, dataUri, promptText);
+        parsed = res.parsed;
+        usedProvider = 'groq';
+        usedModel = res.model;
+      } catch (groqErr: any) {
+        errors.push(groqErr?.message || 'Groq vision error');
+      }
+    } else {
+      errors.push('GROQ_API_KEY is not configured');
+    }
+
+    // Secondary Fallback Provider: Cloudflare Workers AI Vision
+    if (!parsed && hasCloudflare && imageBytes) {
+      try {
+        const res = await analyzeImageWithCloudflare(cfAiBinding, cfToken, cfAccount, imageBytes, promptText);
+        parsed = res.parsed;
+        usedProvider = 'cloudflare-workers-ai';
+        usedModel = res.model;
+      } catch (cfErr: any) {
+        errors.push(cfErr?.message || 'Cloudflare Workers AI vision error');
+      }
+    }
+
+    if (!parsed) {
+      throw new Error(errors.join(' | ') || 'Groq AI image analysis failed');
+    }
 
     return c.json({
       success: true,
+      provider: usedProvider,
+      model: usedModel,
       analysis: {
         name: typeof parsed.productName === 'string' ? parsed.productName.trim() : '',
         category: typeof parsed.category === 'string' ? parsed.category.trim() : '',

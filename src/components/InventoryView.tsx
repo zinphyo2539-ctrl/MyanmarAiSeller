@@ -82,6 +82,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const [analyzingImage, setAnalyzingImage] = useState(false);
   const [aiAnalysisError, setAiAnalysisError] = useState<string | null>(null);
   const [aiAnalysisApplied, setAiAnalysisApplied] = useState(false);
+  const [aiAnalysisMeta, setAiAnalysisMeta] = useState<{ provider: string; model: string } | null>(null);
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
@@ -148,10 +149,17 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       if (!res.ok) {
         throw new Error(data.error || 'AI analysis failed');
       }
+      if (data.provider || data.model) {
+        setAiAnalysisMeta({
+          provider: data.provider || 'groq',
+          model: data.model || 'qwen/qwen3.8-27b',
+        });
+      }
       if (data.analysis) {
         applyAiAnalysisResult(data.analysis);
       }
     } catch (err: any) {
+      setAiAnalysisMeta(null);
       setAiAnalysisError(
         err?.message ||
           (lang === 'my'
@@ -360,6 +368,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     setUploadSuccessMessage(null);
     setAiAnalysisError(null);
     setAiAnalysisApplied(false);
+    setAiAnalysisMeta(null);
     setLocalImagePreview(null);
     const shortTs = Date.now().toString().slice(-6);
     setFormData({
@@ -386,6 +395,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     setUploadSuccessMessage(null);
     setAiAnalysisError(null);
     setAiAnalysisApplied(false);
+    setAiAnalysisMeta(null);
     setLocalImagePreview(null);
     setFormData({
       name: prod.name,
@@ -741,6 +751,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
         analyzingImage={analyzingImage}
         aiAnalysisError={aiAnalysisError}
         aiAnalysisApplied={aiAnalysisApplied}
+        aiAnalysisMeta={aiAnalysisMeta}
         onReanalyzeImage={() => {
           if (selectedImageFile) {
             runAiImageAnalysis({ file: selectedImageFile });

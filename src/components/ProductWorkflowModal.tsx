@@ -67,6 +67,7 @@ export const ProductWorkflowModal = ({
   analyzingImage,
   aiAnalysisError,
   aiAnalysisApplied,
+  aiAnalysisMeta,
   onReanalyzeImage,
   handleAddVariantRow,
   handleRemoveVariantRow,
@@ -541,8 +542,8 @@ export const ProductWorkflowModal = ({
                       <div>
                         <p className="font-semibold">
                           {lang === 'my'
-                            ? 'AI မှ ပုံကို ခွဲခြမ်းစိတ်ဖြာနေပါသည်...'
-                            : 'AI is analyzing your product photo...'}
+                            ? 'Groq AI (Main) မှ ပုံကို ခွဲခြမ်းစိတ်ဖြာနေပါသည်...'
+                            : 'Groq AI (Main) is analyzing your product photo...'}
                         </p>
                         <p className="text-[11px] text-purple-300/80 mt-0.5">
                           {lang === 'my'
@@ -576,13 +577,20 @@ export const ProductWorkflowModal = ({
 
                   {aiAnalysisApplied && !analyzingImage && (
                     <div className="p-3.5 rounded-2xl bg-emerald-500/[0.08] border border-emerald-500/30 space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
-                        <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span>
-                          {lang === 'my'
-                            ? 'AI မှ အချက်အလက်များ ကြိုတင်ဖြည့်ပြီးပါပြီ (နောက်တစ်ဆင့်တွင် ပြင်ဆင်နိုင်သည်)'
-                            : 'AI pre-filled your product details (editable in next steps)'}
-                        </span>
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
+                          <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>
+                            {lang === 'my'
+                              ? 'AI မှ အချက်အလက်များ ကြိုတင်ဖြည့်ပြီးပါပြီ (နောက်တစ်ဆင့်တွင် ပြင်ဆင်နိုင်သည်)'
+                              : 'AI pre-filled your product details (editable in next steps)'}
+                          </span>
+                        </div>
+                        {aiAnalysisMeta && (
+                          <span className="text-[10px] font-mono text-emerald-200/90 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                            {aiAnalysisMeta.provider === 'groq' ? 'Groq (Main)' : 'Cloudflare AI'} · {aiAnalysisMeta.model}
+                          </span>
+                        )}
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1">
                         <div className="bg-slate-950/50 rounded-lg p-2 border border-white/5">

@@ -51,6 +51,7 @@ interface ProfileViewProps {
   onOpenConfig: (provider: 'google' | 'facebook' | 'tiktok') => void;
   onLogout: () => void;
   onOpenPublicStore: () => void;
+  onOpenStorefront?: (slug: string) => void;
   initialTab?: string;
   // AI System Props
   config: AiConfig | null;
@@ -77,6 +78,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenConfig,
   onLogout,
   onOpenPublicStore,
+  onOpenStorefront,
   initialTab,
   config,
   samples,
@@ -563,15 +565,30 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <a
-                href={`/store/${store?.slug || 'yangon-style'}`}
-                target="_blank"
-                rel="noreferrer"
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  const targetSlug = store?.slug || 'yangon-style';
+                  if (onOpenStorefront) {
+                    onOpenStorefront(targetSlug);
+                  } else {
+                    window.location.href = `/store/${encodeURIComponent(targetSlug)}`;
+                  }
+                }}
                 className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-md"
               >
                 <Globe className="w-3.5 h-3.5" />
                 <span>{lang === 'my' ? 'Public စတိုး ဖွင့်မည်' : 'Open Storefront'}</span>
+              </button>
+              <a
+                href={`/store/${encodeURIComponent(store?.slug || 'yangon-style')}`}
+                target="_blank"
+                rel="noreferrer"
+                title={lang === 'my' ? 'Tab အသစ်ဖြင့် ဖွင့်မည်' : 'Open in new tab'}
+                className="p-1.5 bg-white/5 hover:bg-white/15 border border-white/15 text-slate-200 hover:text-white rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
               <button
                 type="button"
@@ -584,7 +601,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <button
                 type="button"
                 onClick={onOpenPublicStore}
-                className="px-3 py-1.5 bg-[#F8FAFC] hover:bg-[#CBD5E1] border border-white/15 text-xs font-semibold text-slate-300 hover:text-slate-100 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-slate-200 hover:text-white rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span>{lang === 'my' ? 'စမ်းသပ်ခန်း' : 'Simulator'}</span>
@@ -1011,17 +1028,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   {lang === 'my' ? 'AI အရောင်းအကူ ကွပ်ကဲရေး' : 'Sales Agent Control Center'}
                 </span>
                 <span className="text-[10px] bg-[#1E1D14] text-[#E0BD55] px-2 py-0.5 rounded-full font-mono border border-[#393426]">
-                  Groq Cloud Only
+                  Groq Main AI
                 </span>
               </div>
               <h2 className="text-xl font-bold text-[#F5F2E8]">
                 {lang === 'my' ? 'Groq AI အရောင်းကိုယ်စားလှယ်' : 'Groq AI Sales Representative'}
               </h2>
               <div className="flex items-center gap-3 text-xs text-slate-400/80 font-mono pt-0.5">
-                <span>Model: {aiHealth?.model || 'openai/gpt-oss-120b'}</span>
+                <span>Model: {aiHealth?.model || 'llama-3.3-70b-versatile'}</span>
                 <span>·</span>
                 <span className={aiHealth?.configured ? 'text-[#65B985] font-semibold' : 'text-[#E06B61]'}>
-                  Status: {aiHealth?.configured ? 'Operational' : 'API Key Missing'}
+                  Status: {aiHealth?.configured ? 'Operational' : 'GROQ_API_KEY Missing'}
                 </span>
               </div>
             </div>
